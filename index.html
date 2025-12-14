@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DIGIY — Accès PRO</title>
+
   <style>
     :root{--bg:#022c22;--bg2:#065f46;--card:#052e16;--accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;--danger:#f97373;--ok:#22c55e;--line:rgba(148,163,184,.35);}
     *{box-sizing:border-box;margin:0;padding:0}
@@ -31,23 +31,12 @@
     .tiny{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
     .hint{font-size:12px;color:#fef9c3}
   </style>
+
+  <!-- ✅ SDK Supabase UNE SEULE FOIS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-  <body>
-  <!-- FORMULAIRE ACCÈS PRO -->
-  <input id="phone" type="tel" placeholder="+221771234567" />
 
-  <button id="btnSendOtp">
-    Recevoir le code
-  </button>
-
-  <input id="otp" type="number" placeholder="Code OTP" />
-
-  <button id="btnVerifyOtp">
-    Valider
-  </button>
-
-  <div id="msg"></div>
+<body>
   <div class="wrap">
     <div class="card">
       <div class="top"><div class="ico">🦅</div></div>
@@ -69,8 +58,11 @@
               <input id="otp" placeholder="ex: 4821" inputmode="numeric" />
             </div>
           </div>
-          <button class="btn primary" id="btnSendOtp">📩 Envoyer OTP</button>
-          <button class="btn" id="btnVerifyOtp">✅ Valider OTP</button>
+
+          <!-- ✅ type="button" pour éviter tout submit/reload -->
+          <button class="btn primary" id="btnSendOtp" type="button">📩 Envoyer OTP</button>
+          <button class="btn" id="btnVerifyOtp" type="button">✅ Valider OTP</button>
+
           <div class="tiny">Si réseau lent : l’OTP reste valable <b>10 minutes</b>.</div>
         </div>
 
@@ -81,12 +73,14 @@
               <input id="pin" placeholder="ex: 2889" inputmode="numeric" maxlength="4" />
             </div>
           </div>
-          <button class="btn primary" id="btnPin">🔓 Ouvrir avec mon code</button>
+          <button class="btn primary" id="btnPin" type="button">🔓 Ouvrir avec mon code</button>
           <div class="tiny">Astuce : par défaut = <b>4 derniers chiffres</b> du téléphone.</div>
         </div>
       </div>
 
+      <!-- ✅ msg UNE SEULE FOIS -->
       <div class="msg" id="msg"></div>
+
       <div class="tiny">
         ✅ Une fois connecté, DIGIY retient l’appareil.<br/>
         Tu ne dois pas retaper l’OTP tous les jours.
@@ -94,89 +88,92 @@
     </div>
   </div>
 
-<script>
-  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-  const HUB_URL = "https://beauville.github.io/mon-espace-digiy/"; // ✅ ton HUB
+  <script>
+    const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+    const HUB_URL = "https://beauville.github.io/mon-espace-digiy/";
 
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const $ = (id)=>document.getElementById(id);
-  const msg = (t, type="")=>{
-    $("msg").className = "msg " + (type==="err"?"err":type==="ok"?"ok":"");
-    $("msg").textContent = t || "";
-  };
+    const $ = (id)=>document.getElementById(id);
+    const msg = (t, type="")=>{
+      $("msg").className = "msg " + (type==="err"?"err":type==="ok"?"ok":"");
+      $("msg").textContent = t || "";
+    };
 
-  function getDeviceId(){
-    let d = localStorage.getItem("digiy_device_id");
-    if(!d){
-      d = "dev_" + crypto.randomUUID();
-      localStorage.setItem("digiy_device_id", d);
-    }
-    return d;
-  }
-
-  $("btnSendOtp").onclick = async ()=>{
-    msg("");
-    const phone = $("phone").value.trim();
-    if(!phone) return msg("Entre ton numéro au format +221...", "err");
-
-    try{
-      // ⚠️ nécessite Supabase Auth Phone OTP configuré (SMS provider)
-      const { error } = await client.auth.signInWithOtp({ phone });
-      if(error) return msg("Erreur OTP : " + error.message, "err");
-      msg("OTP envoyé. Il est valable 10 minutes.", "ok");
-    } catch(e){
-      msg("Erreur inattendue OTP.", "err");
-      console.error(e);
-    }
-  };
-
-  $("btnVerifyOtp").onclick = async ()=>{
-    msg("");
-    const phone = $("phone").value.trim();
-    const token = $("otp").value.trim();
-    if(!phone || !token) return msg("Téléphone + OTP obligatoires.", "err");
-
-    try{
-      const { data, error } = await client.auth.verifyOtp({ phone, token, type: "sms" });
-      if(error) return msg("OTP invalide : " + error.message, "err");
-
-      msg("Connecté ✅ Redirection…", "ok");
-      window.location.href = HUB_URL;
-    } catch(e){
-      msg("Erreur inattendue validation OTP.", "err");
-      console.error(e);
-    }
-  };
-
-  $("btnPin").onclick = async ()=>{
-    msg("");
-    const pin = $("pin").value.trim();
-    if(!/^[0-9]{4}$/.test(pin)) return msg("Code PRO = 4 chiffres.", "err");
-
-    try{
-      // Il faut être déjà authentifié (session). Sinon → OTP une fois.
-      const { data: u } = await client.auth.getUser();
-      if(!u || !u.user){
-        return msg("Première fois : fais l’OTP, puis ensuite le code PRO.", "err");
+    function getDeviceId(){
+      let d = localStorage.getItem("digiy_device_id");
+      if(!d){
+        d = "dev_" + crypto.randomUUID();
+        localStorage.setItem("digiy_device_id", d);
       }
+      return d;
+    }
 
-      const deviceId = getDeviceId();
-      const { data: ok, error } = await client.rpc("verify_my_pin", { p_pin: pin, p_device_id: deviceId });
-      if(error) return msg("Erreur vérification PIN : " + error.message, "err");
+    $("btnSendOtp").onclick = async ()=>{
+      msg("");
+      const phone = $("phone").value.trim();
+      if(!phone) return msg("Entre ton numéro au format +221...", "err");
 
-      if(ok){
-        msg("Accès autorisé ✅ Redirection…", "ok");
+      try{
+        // ✅ FORCER LE CANAL SMS (clé du fix)
+        const { error } = await client.auth.signInWithOtp({
+          phone,
+          options: { channel: "sms" }
+        });
+
+        if(error) return msg("Erreur OTP : " + error.message, "err");
+        msg("OTP envoyé. Il est valable 10 minutes.", "ok");
+      } catch(e){
+        msg("Erreur inattendue OTP.", "err");
+        console.error(e);
+      }
+    };
+
+    $("btnVerifyOtp").onclick = async ()=>{
+      msg("");
+      const phone = $("phone").value.trim();
+      const token = $("otp").value.trim();
+      if(!phone || !token) return msg("Téléphone + OTP obligatoires.", "err");
+
+      try{
+        const { error } = await client.auth.verifyOtp({ phone, token, type: "sms" });
+        if(error) return msg("OTP invalide : " + error.message, "err");
+
+        msg("Connecté ✅ Redirection…", "ok");
         window.location.href = HUB_URL;
-      } else {
-        msg("Code incorrect. Si tu as un doute : refais OTP puis change ton code.", "err");
+      } catch(e){
+        msg("Erreur inattendue validation OTP.", "err");
+        console.error(e);
       }
-    } catch(e){
-      msg("Erreur inattendue PIN.", "err");
-      console.error(e);
-    }
-  };
-</script>
+    };
+
+    $("btnPin").onclick = async ()=>{
+      msg("");
+      const pin = $("pin").value.trim();
+      if(!/^[0-9]{4}$/.test(pin)) return msg("Code PRO = 4 chiffres.", "err");
+
+      try{
+        const { data: u } = await client.auth.getUser();
+        if(!u || !u.user){
+          return msg("Première fois : fais l’OTP, puis ensuite le code PRO.", "err");
+        }
+
+        const deviceId = getDeviceId();
+        const { data: ok, error } = await client.rpc("verify_my_pin", { p_pin: pin, p_device_id: deviceId });
+        if(error) return msg("Erreur vérification PIN : " + error.message, "err");
+
+        if(ok){
+          msg("Accès autorisé ✅ Redirection…", "ok");
+          window.location.href = HUB_URL;
+        } else {
+          msg("Code incorrect. Si tu as un doute : refais OTP puis change ton code.", "err");
+        }
+      } catch(e){
+        msg("Erreur inattendue PIN.", "err");
+        console.error(e);
+      }
+    };
+  </script>
 </body>
 </html>
