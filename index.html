@@ -131,11 +131,23 @@
     };
 
     $("btnVerifyOtp").onclick = async ()=>{
-      msg("");
-      const phone = $("phone").value.trim();
-      const token = $("otp").value.trim();
-      if(!phone || !token) return msg("Téléphone + OTP obligatoires.", "err");
+  msg("");
+  const phone = $("phone").value.trim();
+  const token = $("otp").value.trim();
 
+  const { error } = await client.auth.verifyOtp({
+    phone,
+    token,
+    type: "sms"
+  });
+
+  if(error) return msg("OTP invalide : " + error.message, "err");
+
+  msg("Connecté ✅ Redirection…", "ok");
+
+  // ✅ ICI
+  window.location.href = "https://beauville.github.io/mon-espace-digiy/";
+};
       try{
         const { error } = await client.auth.verifyOtp({ phone, token, type: "sms" });
         if(error) return msg("OTP invalide : " + error.message, "err");
