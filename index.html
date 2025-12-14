@@ -8,194 +8,116 @@
   <style>
     :root{--bg:#022c22;--bg2:#065f46;--card:#052e16;--accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;--danger:#f97373;--ok:#22c55e;--line:rgba(148,163,184,.35);}
     *{box-sizing:border-box;margin:0;padding:0}
-    body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;font-family:system-ui,-apple-system,Segoe UI,Roboto;color:var(--text);
-      background:radial-gradient(circle at top,#16a34a22 0,transparent 55%),linear-gradient(135deg,var(--bg),var(--bg2));}
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      color:var(--text);
+      background:radial-gradient(circle at top,#16a34a22 0,transparent 55%),linear-gradient(135deg,var(--bg),var(--bg2));
+    }
     .wrap{width:100%;max-width:520px}
-    .card{background:linear-gradient(145deg,rgba(5,46,22,.97),rgba(6,95,70,.96));border:1px solid rgba(15,118,110,.45);border-radius:24px;padding:20px 18px;box-shadow:0 24px 60px rgba(0,0,0,.75)}
-    .top{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:10px}
-    .ico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 0,#facc15 0,transparent 55%),radial-gradient(circle at bottom,#16a34a66 0,transparent 60%);
-      border:1px solid rgba(250,204,21,.7);box-shadow:0 0 25px rgba(250,204,21,.45);font-weight:900;color:#022c22}
-    h1{text-align:center;font-size:18px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
-    p{text-align:center;color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.5}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-    .col{flex:1 1 160px}
-    label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
-    input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(15,23,42,.55);color:var(--text);outline:none}
-    input:focus{border-color:rgba(250,204,21,.85)}
-    .btn{width:100%;margin-top:8px;padding:11px 14px;border-radius:999px;border:1px solid rgba(250,204,21,.65);background:rgba(0,0,0,.25);color:var(--text);cursor:pointer;font-weight:700;letter-spacing:.08em}
-    .btn.primary{background:linear-gradient(135deg,#facc15,#f97316);color:#022c22;border:none}
-    .split{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
-    .box{border:1px dashed rgba(148,163,184,.35);border-radius:16px;padding:12px;background:rgba(255,255,255,.05)}
-    .msg{margin-top:10px;text-align:center;font-size:13px;min-height:18px}
-    .err{color:var(--danger)} .ok{color:var(--ok)}
-    .tiny{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
-    .hint{font-size:12px;color:#fef9c3}
+    .card{
+      background:linear-gradient(145deg,rgba(5,46,22,.97),rgba(6,95,70,.96));
+      border-radius:24px;
+      border:1px solid rgba(15,118,110,.45);
+      padding:20px 18px;
+      box-shadow:0 24px 60px rgba(0,0,0,.75)
+    }
+    h1{text-align:center;font-size:18px;letter-spacing:.08em;margin-bottom:10px}
+    p{text-align:center;color:var(--muted);font-size:13px;margin-bottom:14px}
+    label{font-size:12px;color:var(--muted)}
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(15,23,42,.55);
+      color:var(--text);
+      margin-bottom:8px;
+    }
+    .btn{
+      width:100%;
+      padding:11px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-weight:700;
+      margin-top:6px;
+    }
+    .primary{
+      background:linear-gradient(135deg,#facc15,#f97316);
+      color:#022c22;
+    }
+    .msg{margin-top:10px;text-align:center;font-size:13px}
+    .ok{color:var(--ok)}
+    .err{color:var(--danger)}
   </style>
 
-  <!-- Supabase SDK (UNE SEULE FOIS) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="top"><div class="ico">🦅</div></div>
-      <h1>ACCÈS PRO DIGIY</h1>
-      <p>
-        Première fois : <span class="hint">code OTP</span> (valable <b>10 minutes</b>).<br/>
-        Ensuite : <span class="hint">ton code PRO 4 chiffres</span> (par défaut les 4 derniers du tel).
-      </p>
+      <h1>🔐 ACCÈS PRO DIGIY</h1>
+      <p>Connexion sécurisée par SMS (OTP)</p>
 
-      <div class="split">
-        <!-- OTP -->
-        <div class="box">
-          <div class="row">
-            <div class="col">
-              <label>Téléphone (format international)</label>
-              <input id="phone" placeholder="+221771342889" autocomplete="tel" />
-            </div>
-            <div class="col">
-              <label>OTP (4-6 chiffres)</label>
-              <input id="otp" placeholder="ex: 4821" inputmode="numeric" autocomplete="one-time-code" />
-            </div>
-          </div>
+      <label>Téléphone</label>
+      <input id="phone" placeholder="+221771342889" />
 
-          <button class="btn primary" id="btnSendOtp" type="button">📩 Envoyer OTP</button>
-          <button class="btn" id="btnVerifyOtp" type="button">✅ Valider OTP</button>
+      <button class="btn primary" id="sendOtp">📩 Envoyer le code</button>
 
-          <div class="tiny">Si réseau lent : l’OTP reste valable <b>10 minutes</b>.</div>
-        </div>
+      <label style="margin-top:10px">Code reçu par SMS</label>
+      <input id="otp" placeholder="ex: 955496" inputmode="numeric" />
 
-        <!-- PIN -->
-        <div class="box">
-          <div class="row">
-            <div class="col">
-              <label>Code PRO (4 chiffres)</label>
-              <input id="pin" placeholder="ex: 2889" inputmode="numeric" maxlength="4" autocomplete="off" />
-            </div>
-          </div>
-          <button class="btn primary" id="btnPin" type="button">🔓 Ouvrir avec mon code</button>
-          <div class="tiny">Astuce : par défaut = <b>4 derniers chiffres</b> du téléphone.</div>
-        </div>
-      </div>
+      <button class="btn" id="verifyOtp">✅ Valider</button>
 
       <div class="msg" id="msg"></div>
-
-      <div class="tiny">
-        ✅ Une fois connecté, DIGIY retient l’appareil.<br/>
-        Tu ne dois pas retaper l’OTP tous les jours.
-      </div>
     </div>
   </div>
 
-  <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-    const HUB_URL = "https://beauville.github.io/mon-espace-digiy/";
+<script>
+(function(){
+  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+  const SUPABASE_ANON_KEY = "TON_ANON_KEY_ICI";
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const $ = id => document.getElementById(id);
+  const msg = (t,c="")=>{
+    $("msg").className="msg "+c;
+    $("msg").textContent=t;
+  };
 
-    const $ = (id)=>document.getElementById(id);
+  $("sendOtp").onclick = async ()=>{
+    msg("");
+    const phone = $("phone").value.trim();
+    if(!phone.startsWith("+")) return msg("Numéro invalide", "err");
 
-    const msg = (t, type="")=>{
-      const el = $("msg");
-      if(!el) return;
-      el.className = "msg " + (type==="err"?"err":type==="ok"?"ok":"");
-      el.textContent = t || "";
-    };
-
-    function getDeviceId(){
-      let d = localStorage.getItem("digiy_device_id");
-      if(!d){
-        d = "dev_" + crypto.randomUUID();
-        localStorage.setItem("digiy_device_id", d);
-      }
-      return d;
-    }
-
-    // =========================
-    // OTP: SEND
-    // =========================
-    $("btnSendOtp").addEventListener("click", async ()=>{
-      msg("");
-      const phone = ($("phone").value || "").trim();
-      if(!phone) return msg("Entre ton numéro au format +221...", "err");
-      if(!phone.startsWith("+")) return msg("Format requis : +2217xxxxxxx", "err");
-
-      try{
-        const { error } = await client.auth.signInWithOtp({
-          phone,
-          options: { channel: "sms" } // ✅ FIX Unsupported provider
-        });
-
-        if(error) return msg("Erreur OTP : " + error.message, "err");
-        msg("OTP envoyé ✅ (valable 10 minutes)", "ok");
-        $("otp").focus();
-      } catch(e){
-        console.error(e);
-        msg("Erreur inattendue OTP.", "err");
-      }
+    const { error } = await client.auth.signInWithOtp({
+      phone,
+      options:{ channel:"sms" }
     });
 
-    // =========================
-    // OTP: VERIFY
-    // =========================
-    $("btnVerifyOtp").addEventListener("click", async ()=>{
-      msg("");
-      const phone = ($("phone").value || "").trim();
-      const token = ($("otp").value || "").trim();
-      if(!phone || !token) return msg("Téléphone + OTP obligatoires.", "err");
+    if(error) msg(error.message,"err");
+    else msg("📲 Code envoyé par SMS","ok");
+  };
 
-      try{
-        const { error } = await client.auth.verifyOtp({ phone, token, type: "sms" });
-        if(error) return msg("OTP invalide : " + error.message, "err");
+  $("verifyOtp").onclick = async ()=>{
+    msg("");
+    const phone = $("phone").value.trim();
+    const token = $("otp").value.trim();
 
-        msg("Connecté ✅ Redirection…", "ok");
-        window.location.href = HUB_URL;
-      } catch(e){
-        console.error(e);
-        msg("Erreur inattendue validation OTP.", "err");
-      }
+    const { error } = await client.auth.verifyOtp({
+      phone, token, type:"sms"
     });
 
-    // =========================
-    // PIN: VERIFY (RPC)
-    // =========================
-    $("btnPin").addEventListener("click", async ()=>{
-      msg("");
-      const pin = ($("pin").value || "").trim();
-      if(!/^[0-9]{4}$/.test(pin)) return msg("Code PRO = 4 chiffres.", "err");
-
-      try{
-        const { data: u, error: ue } = await client.auth.getUser();
-        if(ue) console.warn(ue);
-
-        if(!u || !u.user){
-          return msg("Première fois : fais l’OTP, puis ensuite le code PRO.", "err");
-        }
-
-        const deviceId = getDeviceId();
-        const { data: ok, error } = await client.rpc("verify_my_pin", {
-          p_pin: pin,
-          p_device_id: deviceId
-        });
-
-        if(error) return msg("Erreur vérification PIN : " + error.message, "err");
-
-        if(ok){
-          msg("Accès autorisé ✅ Redirection…", "ok");
-          window.location.href = HUB_URL;
-        } else {
-          msg("Code incorrect. Si tu as un doute : refais OTP puis change ton code.", "err");
-        }
-      } catch(e){
-        console.error(e);
-        msg("Erreur inattendue PIN.", "err");
-      }
-    });
-  </script>
+    if(error) msg(error.message,"err");
+    else msg("✅ Connecté. Session active.","ok");
+  };
+})();
+</script>
 </body>
 </html>
