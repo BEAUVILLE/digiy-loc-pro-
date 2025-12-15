@@ -1,74 +1,399 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DIGIY LOC • Réservations</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DIGIY LOC • Réservations</title>
 
-<style>
-:root{
-  --bg:#022c22;--bg2:#065f46;--card:#052e16;
-  --accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;
-  --ok:#22c55e;--danger:#f97373;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  min-height:100vh;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  color:var(--text);
-  background:linear-gradient(135deg,var(--bg),var(--bg2));
-  padding:16px;
-}
-.wrap{max-width:980px;margin:0 auto}
-h1{
-  font-size:14px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  margin-bottom:10px;
-}
-.card{
-  background:var(--card);
-  border-radius:18px;
-  padding:12px;
-  margin-bottom:10px;
-  font-size:13px;
-}
-.card b{display:block;margin-bottom:4px}
-.src{font-size:12px;color:var(--muted)}
-.ok{color:var(--ok)}
-.bad{color:var(--danger)}
-.btn{
-  margin-top:16px;
-  padding:12px;
-  width:100%;
-  border-radius:16px;
-  border:none;
-  font-weight:900;
-  background:rgba(250,204,21,.15);
-  color:var(--text);
-}
-</style>
+  <link rel="stylesheet" href="./ui.css">
 </head>
 
 <body>
 <div class="wrap">
-  <h1>🧾 Réservations LOC</h1>
 
-  <div class="card">
-    <b>Chez Baptiste — Studio</b>
-    02 → 05 Octobre<br>
-    <span class="src">Source : DIGIY</span><br>
-    <span class="ok">Payé</span>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="ico">🧾</div>
+      <div>
+        <div class="title">DIGIY LOC • PRO</div>
+        <div class="sub">Réservations — liste & filtres (UI)</div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="pill" onclick="location.href='index.html'">← Dashboard</div>
+      <div class="pill" onclick="location.href='https://beauville.github.io/mon-espace-digiy/?choose=1'">🦅 Menu</div>
+    </div>
   </div>
 
-  <div class="card">
-    <b>Chez Baptiste — Chambre Double</b>
-    10 → 12 Octobre<br>
-    <span class="src">Source : Booking</span><br>
-    <span class="bad">À encaisser</span>
+  <!-- NAV -->
+  <div class="nav">
+    <a href="planning.html">📅 Planning</a>
+    <a href="reservations.html">🧾 Réservations</a>
+    <a href="encaissements.html">💸 Encaissements</a>
+    <a href="tarifs.html">🏷️ Tarifs</a>
+    <a href="medias.html">📸 Photos</a>
+    <a href="fiche.html">👤 Fiche</a>
   </div>
 
-  <button class="btn" onclick="history.back()">← Retour LOC PRO</button>
+  <!-- FILTER BAR -->
+  <div class="card">
+    <h2>Filtres</h2>
+    <div class="muted">Filtre rapide (interface). Plus tard → branchage Supabase.</div>
+
+    <div class="filters">
+      <div class="f">
+        <label>Recherche</label>
+        <input id="q" placeholder="Nom client / téléphone / logement..." />
+      </div>
+
+      <div class="f">
+        <label>Source</label>
+        <select id="source">
+          <option value="all">Toutes</option>
+          <option value="digiy">DIGIY</option>
+          <option value="booking">Booking</option>
+          <option value="ota">OTA</option>
+        </select>
+      </div>
+
+      <div class="f">
+        <label>Statut</label>
+        <select id="status">
+          <option value="all">Tous</option>
+          <option value="confirmed">Confirmée</option>
+          <option value="pending">En attente</option>
+          <option value="cancelled">Annulée</option>
+        </select>
+      </div>
+
+      <div class="f">
+        <label>Paiement</label>
+        <select id="pay">
+          <option value="all">Tous</option>
+          <option value="paid">Payé</option>
+          <option value="due">À encaisser</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="reset">♻️ Réinitialiser</button>
+      <button class="btn" id="export">⬇️ Export (à brancher)</button>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div class="grid">
+    <div class="card">
+      <h2>Liste des réservations</h2>
+      <div class="muted" id="count">—</div>
+
+      <div id="list" class="list"></div>
+      <div class="muted" id="empty" style="display:none;margin-top:12px">
+        Aucune réservation ne correspond aux filtres.
+      </div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="card">
+      <h2>Vue rapide</h2>
+      <div class="muted">
+        - Clique une réservation pour voir les détails<br>
+        - Les boutons “Encaisser / Contacter” sont UI pour l’instant
+      </div>
+
+      <hr class="sep">
+
+      <div class="muted" id="detail">
+        Sélectionne une réservation à gauche.
+      </div>
+
+      <button class="btn" id="btnPay" disabled>💸 Encaisser (UI)</button>
+      <button class="btn" id="btnContact" disabled>📞 Contacter (UI)</button>
+      <button class="btn" id="btnClose" disabled>✅ Clôturer (UI)</button>
+    </div>
+  </div>
+
 </div>
+
+<!-- PAGE CSS (spécifique) -->
+<style>
+.filters{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:10px;
+}
+@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.filters{grid-template-columns:1fr}}
+.f input,.f select{width:100%}
+
+.list{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.item{
+  border:1px solid rgba(148,163,184,.22);
+  border-radius:18px;
+  padding:12px;
+  background:rgba(2,44,34,.22);
+  cursor:pointer;
+  transition:transform .08s ease, border-color .08s ease;
+}
+.item:hover{transform:translateY(-1px);border-color:rgba(250,204,21,.35)}
+.item.active{border-color:rgba(250,204,21,.60);background:rgba(250,204,21,.08)}
+.top{
+  display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+}
+.name{font-weight:1000}
+.meta{color:var(--muted);font-size:12px;margin-top:3px;line-height:1.5}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.badge{
+  font-size:11px;font-weight:1000;
+  padding:6px 10px;border-radius:999px;
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(15,23,42,.28);
+}
+.b-digiy{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10)}
+.b-booking{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.10)}
+.b-ota{border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.10)}
+.s-confirmed{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}
+.s-pending{border-color:rgba(250,204,21,.45);background:rgba(250,204,21,.12)}
+.s-cancelled{border-color:rgba(249,115,115,.45);background:rgba(249,115,115,.12)}
+.p-paid{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}
+.p-due{border-color:rgba(249,115,115,.35);background:rgba(249,115,115,.12)}
+.kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.kpi .chip{display:flex;gap:8px;align-items:center}
+.smallbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.smallbtns .pill{background:rgba(2,44,34,.25)}
+</style>
+
+<!-- JS UI -->
+<script>
+/** UI dataset (mock) : plus tard, remplacé par Supabase */
+const DATA = [
+  {
+    id:"R-1001",
+    client:"Awa Ndiaye",
+    phone:"+221 77 111 22 33",
+    logement:"Studio • Chez Baptiste",
+    checkin:"2025-12-18",
+    checkout:"2025-12-22",
+    source:"digiy",
+    status:"confirmed",
+    pay:"paid",
+    total:120000
+  },
+  {
+    id:"R-1002",
+    client:"Jean Martin",
+    phone:"+33 6 12 34 56 78",
+    logement:"Chambre Double • Chez Baptiste",
+    checkin:"2025-12-24",
+    checkout:"2025-12-27",
+    source:"booking",
+    status:"confirmed",
+    pay:"due",
+    total:95000
+  },
+  {
+    id:"R-1003",
+    client:"Fatou Sarr",
+    phone:"+221 78 555 66 77",
+    logement:"Studio • Chez Baptiste",
+    checkin:"2025-12-28",
+    checkout:"2025-12-29",
+    source:"ota",
+    status:"pending",
+    pay:"due",
+    total:25000
+  },
+  {
+    id:"R-1004",
+    client:"Mamadou Diallo",
+    phone:"+221 76 999 00 11",
+    logement:"Chambre Triple • Chez Baptiste",
+    checkin:"2025-12-14",
+    checkout:"2025-12-16",
+    source:"digiy",
+    status:"cancelled",
+    pay:"due",
+    total:70000
+  }
+];
+
+const $ = (id)=>document.getElementById(id);
+
+function fmtMoney(x){
+  try{ return new Intl.NumberFormat('fr-FR').format(x) + " FCFA"; }
+  catch(e){ return x + " FCFA"; }
+}
+
+function badgeSource(s){
+  if(s==="digiy") return ["DIGIY","b-digiy"];
+  if(s==="booking") return ["Booking","b-booking"];
+  return ["OTA","b-ota"];
+}
+function badgeStatus(s){
+  if(s==="confirmed") return ["Confirmée","s-confirmed"];
+  if(s==="pending") return ["En attente","s-pending"];
+  return ["Annulée","s-cancelled"];
+}
+function badgePay(s){
+  if(s==="paid") return ["Payé","p-paid"];
+  return ["À encaisser","p-due"];
+}
+
+let current = null;
+
+function applyFilters(){
+  const q = ($("q").value||"").trim().toLowerCase();
+  const source = $("source").value;
+  const status = $("status").value;
+  const pay = $("pay").value;
+
+  const filtered = DATA.filter(r=>{
+    const matchQ = !q || (
+      r.client.toLowerCase().includes(q) ||
+      r.phone.toLowerCase().includes(q) ||
+      r.logement.toLowerCase().includes(q) ||
+      r.id.toLowerCase().includes(q)
+    );
+    const matchSource = (source==="all") || (r.source===source);
+    const matchStatus = (status==="all") || (r.status===status);
+    const matchPay = (pay==="all") || (r.pay===pay);
+    return matchQ && matchSource && matchStatus && matchPay;
+  });
+
+  renderList(filtered);
+}
+
+function renderList(rows){
+  const list = $("list");
+  list.innerHTML = "";
+
+  $("count").textContent = rows.length + " réservation(s)";
+  $("empty").style.display = rows.length ? "none" : "block";
+
+  rows.forEach(r=>{
+    const [S, sCls] = badgeSource(r.source);
+    const [ST, stCls] = badgeStatus(r.status);
+    const [P, pCls] = badgePay(r.pay);
+
+    const el = document.createElement("div");
+    el.className = "item";
+    el.dataset.id = r.id;
+
+    el.innerHTML = `
+      <div class="top">
+        <div>
+          <div class="name">${r.client}</div>
+          <div class="meta">
+            ${r.logement}<br>
+            ${r.checkin} → ${r.checkout} • <b>${fmtMoney(r.total)}</b><br>
+            <span style="opacity:.8">${r.id}</span>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge ${sCls}">${S}</span>
+          <span class="badge ${stCls}">${ST}</span>
+          <span class="badge ${pCls}">${P}</span>
+        </div>
+      </div>
+    `;
+
+    el.onclick = ()=>{
+      document.querySelectorAll(".item").forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      current = r;
+      renderDetail(r);
+    };
+
+    list.appendChild(el);
+  });
+
+  // Si current n'est plus dans la liste, reset détail
+  if(current && !rows.find(x=>x.id===current.id)){
+    current = null;
+    resetDetail();
+  }
+}
+
+function resetDetail(){
+  $("detail").innerHTML = "Sélectionne une réservation à gauche.";
+  $("btnPay").disabled = true;
+  $("btnContact").disabled = true;
+  $("btnClose").disabled = true;
+}
+
+function renderDetail(r){
+  const [S] = badgeSource(r.source);
+  const [ST] = badgeStatus(r.status);
+  const [P] = badgePay(r.pay);
+
+  $("detail").innerHTML = `
+    <div style="font-weight:1000;margin-bottom:6px">${r.client}</div>
+    <div class="muted">
+      <b>${r.logement}</b><br>
+      ${r.checkin} → ${r.checkout}<br>
+      Téléphone : <b>${r.phone}</b><br>
+      Réf : <b>${r.id}</b><br><br>
+      Source : <b>${S}</b><br>
+      Statut : <b>${ST}</b><br>
+      Paiement : <b>${P}</b><br>
+      Total : <b>${fmtMoney(r.total)}</b>
+    </div>
+
+    <div class="kpi">
+      <div class="chip">🧍 Client</div>
+      <div class="chip">🏠 Bien</div>
+      <div class="chip">💸 Paiement</div>
+    </div>
+
+    <div class="smallbtns">
+      <div class="pill" onclick="alert('UI: voir détail complet')">👁️ Détail</div>
+      <div class="pill" onclick="alert('UI: ajouter note')">📝 Note</div>
+      <div class="pill" onclick="alert('UI: envoyer message')">💬 Message</div>
+    </div>
+  `;
+
+  $("btnPay").disabled = false;
+  $("btnContact").disabled = false;
+  $("btnClose").disabled = false;
+}
+
+$("q").addEventListener("input", applyFilters);
+$("source").addEventListener("change", applyFilters);
+$("status").addEventListener("change", applyFilters);
+$("pay").addEventListener("change", applyFilters);
+
+$("reset").onclick = ()=>{
+  $("q").value="";
+  $("source").value="all";
+  $("status").value="all";
+  $("pay").value="all";
+  current=null;
+  resetDetail();
+  applyFilters();
+};
+
+$("export").onclick = ()=>alert("Export UI — plus tard: CSV depuis Supabase ✅");
+
+$("btnPay").onclick = ()=> {
+  if(!current) return;
+  alert("Encaissement UI : " + current.id + " (" + fmtMoney(current.total) + ")");
+};
+$("btnContact").onclick = ()=> {
+  if(!current) return;
+  alert("Contact UI : " + current.client + " / " + current.phone);
+};
+$("btnClose").onclick = ()=> {
+  if(!current) return;
+  alert("Clôture UI : " + current.id);
+};
+
+resetDetail();
+applyFilters();
+</script>
+
+<script src="./ui.js"></script>
 </body>
 </html>
