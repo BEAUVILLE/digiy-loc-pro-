@@ -1,92 +1,176 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DIGIY LOC • Planning</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DIGIY LOC • Planning</title>
 
-<style>
-:root{
-  --bg:#022c22;--bg2:#065f46;--card:#052e16;
-  --accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;
-  --ok:#22c55e;--danger:#f97373;--warn:#facc15;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  min-height:100vh;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  color:var(--text);
-  background:linear-gradient(135deg,var(--bg),var(--bg2));
-  padding:16px;
-}
-.wrap{max-width:980px;margin:0 auto}
-h1{
-  font-size:14px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  margin-bottom:10px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:8px;
-}
-.day{
-  background:var(--card);
-  border-radius:14px;
-  padding:10px;
-  text-align:center;
-  font-size:13px;
-}
-.day b{display:block;margin-bottom:6px}
-.free{color:var(--ok)}
-.booked{color:var(--danger)}
-.closed{color:var(--muted)}
-.legend{
-  display:flex;
-  gap:14px;
-  font-size:12px;
-  margin-top:12px;
-}
-.legend span{display:flex;gap:6px;align-items:center}
-.dot{width:10px;height:10px;border-radius:50%}
-.ok{background:var(--ok)}
-.bad{background:var(--danger)}
-.off{background:var(--muted)}
-.btn{
-  margin-top:16px;
-  padding:12px;
-  width:100%;
-  border-radius:16px;
-  border:none;
-  font-weight:900;
-  background:rgba(250,204,21,.15);
-  color:var(--text);
-}
-</style>
+  <link rel="stylesheet" href="./ui.css">
 </head>
 
 <body>
 <div class="wrap">
-  <h1>📅 Planning LOC</h1>
 
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="ico">📅</div>
+      <div>
+        <div class="title">DIGIY LOC • PRO</div>
+        <div class="sub">Planning — gestion des disponibilités</div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="pill" onclick="location.href='index.html'">← Dashboard</div>
+      <div class="pill" onclick="location.href='https://beauville.github.io/mon-espace-digiy/?choose=1'">🦅 Menu</div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <a href="planning.html">📅 Planning</a>
+    <a href="reservations.html">🧾 Réservations</a>
+    <a href="encaissements.html">💸 Encaissements</a>
+    <a href="tarifs.html">🏷️ Tarifs</a>
+    <a href="medias.html">📸 Photos</a>
+    <a href="fiche.html">👤 Fiche</a>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="card">
+    <h2>Calendrier — Octobre 2025</h2>
+    <div class="muted">
+      Clique sur un jour pour changer son statut (interface locale).
+    </div>
+
+    <div class="calendar">
+      <!-- Days header -->
+      <div class="cal-head">Lun</div>
+      <div class="cal-head">Mar</div>
+      <div class="cal-head">Mer</div>
+      <div class="cal-head">Jeu</div>
+      <div class="cal-head">Ven</div>
+      <div class="cal-head">Sam</div>
+      <div class="cal-head">Dim</div>
+
+      <!-- Empty start -->
+      <div class="cal-day off"></div>
+      <div class="cal-day off"></div>
+
+      <!-- Days -->
+      <div class="cal-day free" data-day="1">1</div>
+      <div class="cal-day booked" data-day="2">2</div>
+      <div class="cal-day free" data-day="3">3</div>
+      <div class="cal-day free" data-day="4">4</div>
+      <div class="cal-day closed" data-day="5">5</div>
+      <div class="cal-day free" data-day="6">6</div>
+      <div class="cal-day booked" data-day="7">7</div>
+      <div class="cal-day free" data-day="8">8</div>
+      <div class="cal-day free" data-day="9">9</div>
+      <div class="cal-day booked" data-day="10">10</div>
+      <div class="cal-day free" data-day="11">11</div>
+      <div class="cal-day free" data-day="12">12</div>
+      <div class="cal-day closed" data-day="13">13</div>
+      <div class="cal-day free" data-day="14">14</div>
+      <div class="cal-day free" data-day="15">15</div>
+      <div class="cal-day booked" data-day="16">16</div>
+      <div class="cal-day free" data-day="17">17</div>
+      <div class="cal-day free" data-day="18">18</div>
+      <div class="cal-day free" data-day="19">19</div>
+      <div class="cal-day closed" data-day="20">20</div>
+      <div class="cal-day free" data-day="21">21</div>
+      <div class="cal-day free" data-day="22">22</div>
+      <div class="cal-day booked" data-day="23">23</div>
+      <div class="cal-day free" data-day="24">24</div>
+      <div class="cal-day free" data-day="25">25</div>
+      <div class="cal-day free" data-day="26">26</div>
+      <div class="cal-day closed" data-day="27">27</div>
+      <div class="cal-day free" data-day="28">28</div>
+      <div class="cal-day free" data-day="29">29</div>
+      <div class="cal-day free" data-day="30">30</div>
+      <div class="cal-day free" data-day="31">31</div>
+    </div>
+  </div>
+
+  <!-- LEGEND + ACTIONS -->
   <div class="grid">
-    <div class="day"><b>Lun 1</b><span class="free">Libre</span></div>
-    <div class="day"><b>Mar 2</b><span class="booked">Réservé</span></div>
-    <div class="day"><b>Mer 3</b><span class="free">Libre</span></div>
-    <div class="day"><b>Jeu 4</b><span class="closed">Fermé</span></div>
-    <div class="day"><b>Ven 5</b><span class="free">Libre</span></div>
-    <div class="day"><b>Sam 6</b><span class="booked">Réservé</span></div>
-    <div class="day"><b>Dim 7</b><span class="free">Libre</span></div>
+    <div class="card">
+      <h2>Légende</h2>
+      <div class="row">
+        <div class="chip"><span class="dot free"></span> Libre</div>
+        <div class="chip"><span class="dot booked"></span> Réservé</div>
+        <div class="chip"><span class="dot closed"></span> Fermé</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Actions rapides</h2>
+      <button class="btn" onclick="alert('UI prête → futur : bloquer une période')">
+        🚫 Bloquer une période
+      </button>
+      <button class="btn" onclick="alert('UI prête → futur : ouvrir tout le mois')">
+        ✅ Ouvrir tout le mois
+      </button>
+      <button class="btn" onclick="alert('UI prête → futur : sync réservations')">
+        🔄 Synchroniser réservations
+      </button>
+    </div>
   </div>
 
-  <div class="legend">
-    <span><i class="dot ok"></i> Libre</span>
-    <span><i class="dot bad"></i> Réservé</span>
-    <span><i class="dot off"></i> Fermé</span>
-  </div>
-
-  <button class="btn" onclick="history.back()">← Retour LOC PRO</button>
 </div>
+
+<!-- STYLE CALENDAR -->
+<style>
+.calendar{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+}
+.cal-head{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:900;
+}
+.cal-day{
+  border-radius:14px;
+  padding:14px 0;
+  text-align:center;
+  font-weight:900;
+  cursor:pointer;
+  user-select:none;
+  border:1px solid var(--line);
+}
+.cal-day.free{background:rgba(34,197,94,.18);color:var(--ok)}
+.cal-day.booked{background:rgba(249,115,115,.18);color:var(--danger)}
+.cal-day.closed{background:rgba(148,163,184,.18);color:var(--muted)}
+.cal-day.off{opacity:.2;border:none;cursor:default}
+.dot{
+  width:10px;height:10px;border-radius:50%;display:inline-block
+}
+.dot.free{background:var(--ok)}
+.dot.booked{background:var(--danger)}
+.dot.closed{background:var(--muted)}
+</style>
+
+<!-- JS UI ONLY -->
+<script>
+document.querySelectorAll(".cal-day").forEach(day=>{
+  if(day.classList.contains("off")) return;
+  day.addEventListener("click",()=>{
+    if(day.classList.contains("free")){
+      day.classList.remove("free"); day.classList.add("booked");
+    }else if(day.classList.contains("booked")){
+      day.classList.remove("booked"); day.classList.add("closed");
+    }else{
+      day.classList.remove("closed"); day.classList.add("free");
+    }
+  });
+});
+</script>
+
+<script src="./ui.js"></script>
 </body>
 </html>
+
