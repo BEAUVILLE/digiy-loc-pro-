@@ -3,262 +3,213 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DIGIY LOC PRO — Accès</title>
+  <title>DIGIY LOC PRO</title>
 
   <style>
-    :root{--bg:#022c22;--bg2:#065f46;--accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;--danger:#f97373;--ok:#22c55e;--line:rgba(148,163,184,.35);}
+    :root{
+      --bg:#022c22;--bg2:#065f46;--card:#052e16;
+      --accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;
+      --danger:#f97373;--ok:#22c55e;--line:rgba(148,163,184,.28);
+      --glass:rgba(2,44,34,.35);
+    }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
-      min-height:100vh;display:flex;align-items:center;justify-content:center;
-      padding:18px;font-family:system-ui,-apple-system,Segoe UI,Roboto;color:var(--text);
-      background:radial-gradient(circle at top,#16a34a22 0,transparent 55%),linear-gradient(135deg,var(--bg),var(--bg2));
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top,#16a34a22 0,transparent 55%),
+        radial-gradient(circle at 20% 85%, rgba(250,204,21,.14) 0, transparent 55%),
+        linear-gradient(135deg,var(--bg),var(--bg2));
+      padding:18px;
     }
-    .wrap{width:100%;max-width:520px}
-    .card{
-      background:linear-gradient(145deg,rgba(5,46,22,.97),rgba(6,95,70,.96));
-      border-radius:24px;border:1px solid rgba(15,118,110,.45);
-      padding:20px 18px;box-shadow:0 24px 60px rgba(0,0,0,.75)
+    .wrap{max-width:980px;margin:0 auto}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      background:linear-gradient(145deg,rgba(5,46,22,.92),rgba(6,95,70,.90));
+      border:1px solid rgba(15,118,110,.45);
+      border-radius:20px;
+      padding:14px;
+      box-shadow:0 18px 50px rgba(0,0,0,.55);
     }
-    .top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .brand{display:flex;align-items:center;gap:10px}
     .ico{
-      width:46px;height:46px;border-radius:50%;
+      width:44px;height:44px;border-radius:50%;
       display:grid;place-items:center;
       background:rgba(250,204,21,.14);
       border:1px solid rgba(250,204,21,.35);
       color:#022c22;font-weight:1000;font-size:22px;
     }
-    h1{font-size:15px;letter-spacing:.10em;text-transform:uppercase}
-    .sub{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.4}
-    .sep{height:1px;background:rgba(148,163,184,.22);margin:14px 0}
-    .step{display:none}
-    .step.active{display:block}
-    label{font-size:12px;color:var(--muted)}
-    input{
-      width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--line);
-      background:rgba(15,23,42,.55);color:var(--text);margin:8px 0 10px;font-size:15px;
+    .title{font-weight:1000;letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      border:1px solid var(--line);
+      background:rgba(250,204,21,.12);
+      color:var(--text);
+      padding:10px 12px;border-radius:999px;
+      font-weight:1000;font-size:12px;cursor:pointer;
+      user-select:none;
     }
-    .btn{width:100%;padding:12px;border-radius:999px;border:none;cursor:pointer;font-weight:900;margin-top:6px;}
-    .primary{background:linear-gradient(135deg,#facc15,#f97316);color:#022c22}
-    .ghost{background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.35);color:var(--text)}
-    .mutedbtn{background:rgba(2,44,34,.18);border:1px solid var(--line);color:var(--text)}
-    .btn:disabled{opacity:.55;cursor:not-allowed}
-    .row{display:flex;gap:10px;margin-top:8px}
-    .row > *{flex:1}
-    .msg{margin-top:10px;text-align:center;font-size:13px}
+    .pill.danger{background:rgba(249,115,115,.12);border-color:rgba(249,115,115,.35)}
+    .grid{margin-top:14px;display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+    @media(max-width:860px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(145deg,rgba(5,46,22,.94),rgba(6,95,70,.92));
+      border:1px solid rgba(15,118,110,.45);
+      border-radius:20px;
+      padding:14px;
+      box-shadow:0 18px 50px rgba(0,0,0,.45);
+    }
+    .card h2{
+      font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+      color:rgba(250,204,21,.95);margin-bottom:10px;
+    }
+    .muted{color:var(--muted);font-size:13px;line-height:1.6}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      padding:8px 10px;border-radius:999px;border:1px solid var(--line);
+      background:var(--glass);font-weight:900;font-size:12px;
+    }
     .ok{color:var(--ok)} .err{color:var(--danger)}
-    .tiny{font-size:12px;color:var(--muted);margin-top:8px;text-align:center;line-height:1.5}
-    .spin{display:inline-block;width:16px;height:16px;margin-left:8px;border:2px solid rgba(229,231,235,.35);border-top:2px solid rgba(250,204,21,.95);border-radius:50%;animation:spin 1s linear infinite;vertical-align:-3px;}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    .btn{
+      width:100%;margin-top:10px;padding:12px 14px;border-radius:16px;
+      border:1px solid rgba(250,204,21,.35);
+      background:rgba(250,204,21,.12);
+      color:var(--text);font-weight:1000;cursor:pointer;text-align:left;
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="top">
-        <div class="ico">🏠</div>
-        <div>
-          <h1>DIGIY LOC • PRO</h1>
-          <div class="sub">Entrée rapide • zéro 404 (redirige uniquement vers Mon Espace)</div>
-        </div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="ico">🏠</div>
+      <div>
+        <div class="title">DIGIY LOC • PRO</div>
+        <div class="sub" id="who">Vérification accès…</div>
       </div>
-
-      <div class="msg" id="msg"></div>
-
-      <div class="step active" id="step1">
-        <label>Téléphone</label>
-        <input id="phone" placeholder="+221771342889" autocomplete="tel" inputmode="tel" />
-        <button class="btn primary" id="sendOtp">📩 Envoyer le code</button>
-        <div class="tiny">Ne clique pas 2 fois. Seul le dernier code est valable.</div>
-      </div>
-
-      <div class="step" id="step2">
-        <label>Code reçu par SMS</label>
-        <input id="otp" placeholder="ex: 955496" inputmode="numeric" maxlength="6" autocomplete="one-time-code" />
-        <div class="tiny" id="sentTo"></div>
-        <button class="btn primary" id="verifyOtp">✅ Valider</button>
-
-        <div class="row">
-          <button class="btn mutedbtn" id="back">↩️ Changer numéro</button>
-          <button class="btn ghost" id="resend">🔁 Renvoyer</button>
-        </div>
-      </div>
-
-      <div class="sep"></div>
-
-      <button class="btn ghost" id="goMenu">🦅 Mon Espace (menu modules)</button>
+    </div>
+    <div class="actions">
+      <div class="pill" id="backMenu">🦅 Retour Menu</div>
+      <div class="pill danger" id="logout">⏏ Déconnexion</div>
     </div>
   </div>
 
-<script>
-(async () => {
-  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+  <div class="grid">
+    <div class="card">
+      <h2>Vue rapide</h2>
+      <div class="muted" id="status">Chargement…</div>
+      <div class="row" id="chips"></div>
 
-  const MON_ESPACE_MENU = "https://beauville.github.io/mon-espace-digiy/?choose=1";
+      <button class="btn" id="planning">📅 Planning (à brancher)</button>
+      <button class="btn" id="resas">🧾 Réservations (à brancher)</button>
+    </div>
+
+    <div class="card">
+      <h2>État</h2>
+      <div class="muted" id="meta">—</div>
+      <div class="row" style="margin-top:12px">
+        <div class="chip">0% commission</div>
+        <div class="chip">Paiement direct</div>
+        <div class="chip">Souveraineté</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(async()=>{
+  const SUPABASE_URL="https://wesqmwjjtsefyjnluosj.supabase.co";
+  const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+
+  const MON_ESPACE_MENU="https://beauville.github.io/mon-espace-digiy/?choose=1";
+  const LOGIN_URL="https://beauville.github.io/login-otp-fix/";
 
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const $ = (id) => document.getElementById(id);
-  const step1 = $("step1"), step2 = $("step2");
-  const msgEl = $("msg");
-  const phoneEl = $("phone");
-  const otpEl = $("otp");
-  const sentTo = $("sentTo");
-  const btnSend = $("sendOtp");
-  const btnVerify = $("verifyOtp");
-  const btnResend = $("resend");
-  const btnBack = $("back");
+  const whoEl = document.getElementById("who");
+  const statusEl = document.getElementById("status");
+  const chipsEl = document.getElementById("chips");
+  const metaEl = document.getElementById("meta");
 
-  const msg = (t, cls="") => { msgEl.className = "msg " + cls; msgEl.textContent = t || ""; };
-  const setStep = (n) => { step1.classList.toggle("active", n===1); step2.classList.toggle("active", n===2); };
-  const go = (url) => setTimeout(() => window.location.replace(url), 500);
-
-  const setLoading = (btn, on) => {
-    btn.disabled = !!on;
-    if(on && !btn.dataset.busy){ btn.dataset.busy="1"; btn.innerHTML += '<span class="spin"></span>'; }
-    if(!on && btn.dataset.busy){ btn.dataset.busy=""; const s=btn.querySelector(".spin"); if(s) s.remove(); }
+  document.getElementById("backMenu").onclick = ()=>location.href = MON_ESPACE_MENU;
+  document.getElementById("logout").onclick = async ()=>{
+    try{ await client.auth.signOut(); }catch(e){}
+    location.href = LOGIN_URL;
   };
 
-  function normalizePhone(raw){
-    let p = String(raw || "").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
-    if (/^\d+$/.test(p) && (p.startsWith("7") || p.startsWith("77"))) p = "221" + p;
-    if (/^\d+$/.test(p) && p.startsWith("221")) p = "+" + p;
-    if (!p.startsWith("+")) p = "+" + p;
-    return p;
+  // 1) session obligatoire
+  const { data:s } = await client.auth.getSession();
+  if(!s?.session){
+    whoEl.textContent = "Non connecté";
+    statusEl.innerHTML = "<span class='err'>Accès refusé.</span> Connecte-toi d’abord.";
+    chipsEl.innerHTML = `<div class="chip">Action: connexion</div>`;
+    metaEl.innerHTML = `Session: <span class="err">NON</span>`;
+    return;
   }
 
-  $("goMenu").onclick = () => window.location.href = MON_ESPACE_MENU;
-
-  // ✅ ZÉRO FRICTION : si session existe → menu direct (pas d'OTP)
-  const { data: sessData } = await client.auth.getSession();
-  if (sessData?.session) {
-    localStorage.setItem("digiy_last_module", "loc");
-    return go(MON_ESPACE_MENU);
+  // 2) user
+  const { data:u } = await client.auth.getUser();
+  const user = u?.user;
+  if(!user?.id){
+    whoEl.textContent = "Session invalide";
+    statusEl.innerHTML = "<span class='err'>Accès refusé.</span>";
+    return;
   }
 
-  let currentPhone = "";
-  let resendLock = false;
+  // 3) DB tranche : is_active + module loc
+  const { data:pro, error } = await client
+    .from("pros")
+    .select("display_name,business_name,is_active,modules")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
 
-  btnBack.onclick = () => {
-    currentPhone = "";
-    otpEl.value = "";
-    phoneEl.value = "";
-    phoneEl.removeAttribute("readonly");
-    msg("");
-    setStep(1);
-    phoneEl.focus();
-  };
-
-  async function routeAfterLogin(){
-    // DB tranche LOC, sinon menu
-    const { data: userData } = await client.auth.getUser();
-    const user = userData?.user;
-    if(!user?.id) return go(MON_ESPACE_MENU);
-
-    const { data: pro } = await client
-      .from("pros")
-      .select("modules,is_active")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
-
-    const modules = (pro?.modules || []).map(m => String(m).toLowerCase());
-    if(!pro?.is_active) return go(MON_ESPACE_MENU);
-    if(!modules.includes("loc")) return go(MON_ESPACE_MENU);
-
-    localStorage.setItem("digiy_last_module", "loc");
-    return go(MON_ESPACE_MENU);
+  if(error || !pro){
+    whoEl.textContent = "Profil PRO introuvable";
+    statusEl.innerHTML = "<span class='err'>Ton profil PRO n’est pas reconnu.</span>";
+    chipsEl.innerHTML = `<div class="chip">Retour menu</div>`;
+    metaEl.innerHTML = `Session: <span class="ok">OK</span> • DB: <span class="err">PRO introuvable</span>`;
+    return;
   }
 
-  let redirectArmed = false;
-  client.auth.onAuthStateChange(async (event, session) => {
-    if(session && redirectArmed){
-      redirectArmed = false;
-      await routeAfterLogin();
-    }
-  });
+  const name = pro.display_name || pro.business_name || "PRO";
+  whoEl.textContent = "Bienvenue, " + name;
 
-  btnSend.addEventListener("click", async () => {
-    msg("");
-    const phone = normalizePhone(phoneEl.value);
-    if(!phone || phone.length < 10 || !phone.startsWith("+")) return msg("Numéro invalide (ex: +221771342889)", "err");
+  const modules = (pro.modules || []).map(m=>String(m).toLowerCase());
 
-    currentPhone = phone;
-    phoneEl.value = currentPhone;
-    phoneEl.setAttribute("readonly","readonly");
+  metaEl.innerHTML =
+    `Session: <span class="ok">OK</span> • ` +
+    `Actif: <span class="${pro.is_active ? "ok":"err"}">${pro.is_active ? "OUI":"NON"}</span>`;
 
-    setLoading(btnSend, true);
-    try{
-      const { error } = await client.auth.signInWithOtp({ phone: currentPhone, options: { channel: "sms" } });
-      if(error){ phoneEl.removeAttribute("readonly"); return msg("Erreur OTP : " + (error.message||""), "err"); }
-      sentTo.textContent = "Code envoyé au " + currentPhone + " (utilise le dernier SMS)";
-      msg("📲 Code envoyé. Entre les 6 chiffres.", "ok");
-      setStep(2); otpEl.focus();
-    }catch(e){
-      console.error(e);
-      phoneEl.removeAttribute("readonly");
-      msg("Erreur technique OTP (console).", "err");
-    }finally{
-      setLoading(btnSend, false);
-    }
-  });
+  if(!pro.is_active){
+    statusEl.innerHTML = "<span class='err'>Compte en attente d’activation.</span> (Admin DIGIY)";
+    chipsEl.innerHTML = `<div class="chip">Statut: attente</div>`;
+    return;
+  }
 
-  btnResend.addEventListener("click", async () => {
-    if(resendLock) return;
-    if(!currentPhone) return msg("Entre ton numéro d’abord.", "err");
+  if(!modules.includes("loc")){
+    statusEl.innerHTML = "<span class='err'>Accès LOC non autorisé.</span> Active le module dans ton compte.";
+    chipsEl.innerHTML = `<div class="chip">Modules: ${modules.join(", ") || "—"}</div>`;
+    return;
+  }
 
-    resendLock = true;
-    btnResend.disabled = true;
-    msg("Renvoi en cours…", "");
+  // ✅ OK : LOC autorisé -> tu restes ici (pas de boucle)
+  localStorage.setItem("digiy_last_module","loc");
 
-    try{
-      const { error } = await client.auth.signInWithOtp({ phone: currentPhone, options: { channel: "sms" } });
-      if(error) msg("Erreur renvoi : " + (error.message||""), "err");
-      else msg("✅ Nouveau code envoyé (utilise le dernier).", "ok");
-    }catch(e){
-      console.error(e);
-      msg("Erreur renvoi (console).", "err");
-    }
+  statusEl.innerHTML = "<span class='ok'>Accès LOC validé ✅</span> Tu es dans LOC PRO.";
+  chipsEl.innerHTML = `
+    <div class="chip">Module: LOC</div>
+    <div class="chip">Actif</div>
+    <div class="chip">Multi-modules OK</div>
+  `;
 
-    setTimeout(()=>{
-      resendLock = false;
-      btnResend.disabled = false;
-      btnResend.textContent = "🔁 Renvoyer";
-    }, 30000);
-  });
-
-  btnVerify.addEventListener("click", async () => {
-    msg("");
-    const token = String(otpEl.value||"").trim();
-    if(!currentPhone) return msg("Téléphone manquant. Reviens en arrière.", "err");
-    if(!token || token.length !== 6) return msg("Code invalide (6 chiffres).", "err");
-
-    setLoading(btnVerify, true);
-    try{
-      const { error } = await client.auth.verifyOtp({ phone: currentPhone, token, type:"sms" });
-      if(error) return msg("OTP invalide/expiré : " + (error.message||""), "err");
-
-      msg("✅ Connecté. Vérification accès LOC…", "ok");
-      redirectArmed = true;
-
-      setTimeout(() => {
-        if(redirectArmed){
-          redirectArmed = false;
-          routeAfterLogin();
-        }
-      }, 900);
-
-    }catch(e){
-      console.error(e);
-      msg("Erreur validation (console).", "err");
-    }finally{
-      setLoading(btnVerify, false);
-    }
-  });
-
-  phoneEl.focus();
+  // placeholders
+  document.getElementById("planning").onclick = ()=>alert("Planning LOC — on le branche juste après, frérot ✅");
+  document.getElementById("resas").onclick = ()=>alert("Réservations LOC — on le branche juste après ✅");
 })();
 </script>
 </body>
