@@ -12,20 +12,21 @@
     :root{
       --green:#16a34a; --bg:#061b14; --card:#0b2a1f;
       --line:rgba(255,255,255,.14); --text:#eafff1; --muted:rgba(234,255,241,.78);
-      --danger:#ef4444; --warn:#f59e0b; --ok:#22c55e;
+      --danger:#ef4444; --warn:#f59e0b;
       --radius:18px;
     }
     *{box-sizing:border-box}
     body{
       margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%),
-                 radial-gradient(900px 500px at 90% 0%, rgba(250,204,21,.10), transparent 55%),
-                 var(--bg);
+      background:
+        radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%),
+        radial-gradient(900px 500px at 90% 0%, rgba(250,204,21,.10), transparent 55%),
+        var(--bg);
       color:var(--text);
       display:flex; justify-content:center;
       padding:18px 12px;
     }
-    .wrap{width:min(1100px,100%);}
+    .wrap{width:min(1180px,100%);}
     .top{
       padding:16px; border:1px solid var(--line); border-radius:22px;
       background:linear-gradient(180deg, rgba(22,163,74,.14), rgba(11,42,31,.92));
@@ -33,15 +34,16 @@
       display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
     }
     .title{margin:0; font-size:20px; font-weight:950}
-    .sub{margin:4px 0 0; color:var(--muted); font-size:13px}
+    .sub{margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    input, select{
+    input, select, textarea{
       padding:12px 12px; border-radius:14px;
       border:1px solid rgba(255,255,255,.18);
       background:rgba(0,0,0,.22);
       color:var(--text); outline:none;
       font-size:14px;
     }
+    textarea{min-height:80px; resize:vertical}
     button{
       border:0; border-radius:14px; padding:12px 14px;
       font-weight:950; cursor:pointer;
@@ -62,7 +64,7 @@
       grid-template-columns: 1fr;
       gap:14px;
     }
-    @media(min-width:980px){
+    @media(min-width:1040px){
       .grid{grid-template-columns: 1.2fr .8fr;}
     }
     .card{
@@ -71,7 +73,8 @@
       box-shadow:0 10px 40px rgba(0,0,0,.28);
     }
     .h2{margin:0 0 10px; font-size:16px; font-weight:950}
-    .muted{color:var(--muted); font-size:12px}
+    .muted{color:var(--muted); font-size:12px; line-height:1.35}
+    .sep{height:1px; background:rgba(255,255,255,.10); margin:12px 0}
 
     .dbg{
       margin-top:10px; padding:10px 12px; border-radius:14px;
@@ -85,14 +88,14 @@
     }
 
     .calTop{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
-    .calNav{display:flex; gap:8px; align-items:center}
+    .calNav{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .pill{
       display:inline-block; padding:6px 10px; border-radius:999px;
       border:1px solid rgba(255,255,255,.18);
       background:rgba(0,0,0,.18);
       font-size:12px; font-weight:950;
     }
-    .legend{display:flex; gap:8px; flex-wrap:wrap}
+    .legend{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
     .cal{
       margin-top:12px;
       display:grid;
@@ -137,7 +140,7 @@
     }
     .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
     .itemTitle{font-weight:950}
-    .itemMeta{color:var(--muted); font-size:12px; margin-top:6px}
+    .itemMeta{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.35}
     .itemBtns{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
 
     /* modal */
@@ -145,9 +148,10 @@
       position:fixed; inset:0; background:rgba(0,0,0,.55);
       display:none; align-items:center; justify-content:center;
       padding:16px;
+      z-index:9999;
     }
     .modal{
-      width:min(520px, 100%);
+      width:min(560px, 100%);
       border:1px solid rgba(255,255,255,.16);
       background:rgba(11,42,31,.96);
       border-radius:22px;
@@ -158,6 +162,11 @@
     .modalTitle{margin:0; font-size:15px; font-weight:950}
     .modalGrid{display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px}
     .modalNote{font-size:12px; color:var(--muted); line-height:1.4}
+
+    .two{display:grid; grid-template-columns:1fr; gap:10px}
+    @media(min-width:720px){ .two{grid-template-columns:1fr 1fr;} }
+
+    .okline{color:rgba(234,255,241,.92); font-weight:900}
   </style>
 </head>
 
@@ -166,12 +175,14 @@
   <div class="top">
     <div>
       <h1 class="title">DIGIY LOC — PRO</h1>
-      <div class="sub">Multi-logements (hôtel / chambres). Prix par jour + Open/Closed + Occupied auto.</div>
+      <div class="sub">
+        Multi-logements (hôtel / chambres). Calendrier toujours visible + open/closed + prix par jour + édition en masse + réservations en attente.
+      </div>
     </div>
 
     <div class="row" id="authBox">
       <input id="email" placeholder="Email (OTP)" autocomplete="email">
-      <button id="btnOtp">Recevoir le code (OTP)</button>
+      <button id="btnOtp">Recevoir le lien</button>
       <button id="btnLogout" class="secondary" style="display:none">Logout</button>
     </div>
   </div>
@@ -179,46 +190,93 @@
   <div id="dbg" class="dbg"></div>
 
   <div class="grid">
+    <!-- LEFT: CALENDAR -->
     <div class="card">
       <div class="calTop">
-  <div class="row">
-    <div>
-      <div class="muted">Logement</div>
-      <select id="selLogement"></select>
-    </div>
+        <div class="row">
+          <div>
+            <div class="muted">Logement</div>
+            <select id="selLogement"></select>
+          </div>
 
-    <div class="legend">
-      <span class="pill">open</span>
-      <span class="pill">closed</span>
-      <span class="pill">occupied (auto)</span>
-      <span class="pill">prix override</span>
-    </div>
-  </div>
+          <div class="legend">
+            <span class="pill">open</span>
+            <span class="pill">closed</span>
+            <span class="pill">occupied (auto)</span>
+            <span class="pill">prix override</span>
+          </div>
+        </div>
 
-  <div class="calNav">
-    <button class="secondary" id="prevMonth">◀</button>
-    <span class="pill" id="monthLabel">—</span>
-    <button class="secondary" id="nextMonth">▶</button>
+        <div class="calNav">
+          <button class="secondary" id="prevMonth">◀</button>
+          <span class="pill" id="monthLabel">—</span>
+          <button class="secondary" id="nextMonth">▶</button>
 
-    <!-- ✅ LE BOUTON EST ICI, POINT -->
-    <button class="secondary" id="btnBulk">📅 Appliquer sur une période</button>
-  </div>
-</div>
-      <div class="cal" id="cal">
-        <!-- calendar -->
+          <button class="secondary" id="btnBulk">📅 Appliquer sur une période</button>
+        </div>
+      </div>
+
+      <div class="cal" id="cal"></div>
+
+      <div class="sep"></div>
+      <div class="muted">
+        Astuce : <span class="okline">occupied</span> est automatique (réservations <b>confirmées</b>). Tu gères seulement <b>open/closed</b> + prix.
       </div>
     </div>
 
+    <!-- RIGHT: ADD LOGEMENT + RESAS -->
     <div class="card">
+      <div class="h2">Ajouter un logement / chambre</div>
+      <div class="muted">Tu peux créer autant d’unités que tu veux (ex: Chambre 101, 102, Suite…).</div>
+      <div class="sep"></div>
+
+      <div class="two">
+        <div>
+          <div class="muted">Nom</div>
+          <input id="new_nom" placeholder="Chambre 101" />
+        </div>
+        <div>
+          <div class="muted">Ville</div>
+          <input id="new_ville" placeholder="Saly" value="Saly"/>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="two">
+        <div>
+          <div class="muted">Adresse</div>
+          <input id="new_adresse" placeholder="Quartier / Rue" />
+        </div>
+        <div>
+          <div class="muted">Prix nuit (FCFA)</div>
+          <input id="new_prix" placeholder="30000" inputmode="numeric"/>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div>
+        <div class="muted">Description</div>
+        <textarea id="new_desc" placeholder="Optionnel"></textarea>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="row">
+        <button id="btnAddLogement">+ Ajouter</button>
+        <button class="secondary" id="btnResetForm" type="button">Effacer</button>
+      </div>
+
+      <div class="sep"></div>
+
       <div class="h2">Réservations en attente</div>
-      <div class="muted">Tu confirmes → ça bloque les dates + met occupied auto.</div>
+      <div class="muted">Tu confirmes → ça bloque les dates (anti double-booking) + met occupied auto.</div>
       <div style="height:10px"></div>
       <div class="list" id="resaList"></div>
     </div>
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal jour -->
 <div class="modalBack" id="modalBack">
   <div class="modal">
     <div class="modalTop">
@@ -250,6 +308,48 @@
   </div>
 </div>
 
+<!-- Modal BULK -->
+<div class="modalBack" id="bulkBack">
+  <div class="modal">
+    <div class="modalTop">
+      <h3 class="modalTitle">Appliquer sur une période</h3>
+      <button class="secondary" onclick="closeBulk()">Fermer</button>
+    </div>
+
+    <div class="modalGrid">
+      <div class="two">
+        <div>
+          <div class="muted">Du</div>
+          <input id="bStart" type="date">
+        </div>
+        <div>
+          <div class="muted">Au</div>
+          <input id="bEnd" type="date">
+        </div>
+      </div>
+
+      <div>
+        <div class="muted">État</div>
+        <select id="bState">
+          <option value="open">open (disponible)</option>
+          <option value="closed">closed (fermé)</option>
+        </select>
+      </div>
+
+      <div>
+        <div class="muted">Prix nuit (optionnel)</div>
+        <input id="bPrice" placeholder="ex: 25000" inputmode="numeric">
+      </div>
+
+      <button onclick="applyBulk()">✅ Appliquer</button>
+
+      <div class="modalNote">
+        Les jours <b>occupied</b> (réservations confirmées) ne sont jamais modifiés.
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================
    CONFIG SUPABASE (public)
@@ -265,10 +365,11 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = (id)=>document.getElementById(id);
 const dbg = (msg)=>{
   const el = $("dbg");
+  if(!el) return;
   el.style.display = "block";
   el.textContent += msg + "\n";
 };
-const dbgClear = ()=>{ $("dbg").textContent=""; $("dbg").style.display="none"; };
+const dbgClear = ()=>{ const el=$("dbg"); if(el){ el.textContent=""; el.style.display="none"; } };
 
 function isoDate(d){
   const y = d.getFullYear();
@@ -283,39 +384,44 @@ function clampInt(v){
   const n = Number(String(v||"").trim());
   return Number.isFinite(n) ? Math.floor(n) : null;
 }
+function escapeHtml(s){
+  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+}
+function setBusy(btn, busy){
+  if(!btn) return;
+  btn.disabled = !!busy;
+}
 
+/* =========================
+   State
+========================= */
 let user = null;
 let logements = [];
 let selectedLogementId = null;
+
 let monthCursor = new Date();
 monthCursor.setDate(1);
 
 let dispoMap = new Map(); // key=YYYY-MM-DD -> row
 let logementPrix = null;  // prix_nuit standard
 
-  /* =========================
+/* =========================
    BULK (édition en masse)
 ========================= */
 function openBulk(){
   const b = $("bulkBack");
   if (b) b.style.display = "flex";
 }
-
 function closeBulk(){
   const b = $("bulkBack");
   if (b) b.style.display = "none";
 }
-
-// Ouvrir le modal via le bouton
-const bulkBtn = document.getElementById("btnBulk");
-if (bulkBtn) bulkBtn.addEventListener("click", openBulk);
-
-// Fermer si clic sur le fond
 document.addEventListener("click", (e)=>{
   if (e.target && e.target.id === "bulkBack") closeBulk();
 });
+const bulkBtn = document.getElementById("btnBulk");
+if (bulkBtn) bulkBtn.addEventListener("click", openBulk);
 
-// Appliquer une plage (ignore occupied)
 async function applyBulk(){
   dbgClear();
   try{
@@ -350,7 +456,7 @@ async function applyBulk(){
         date: key,
         state: state,
         disponible: (state === "open"),
-        prix_nuit: price,  // null = pas d'override
+        prix_nuit: price,
         notes: null
       });
 
@@ -390,8 +496,7 @@ $("btnOtp").addEventListener("click", async ()=>{
     if(!email) throw new Error("Email requis.");
     const { error } = await sb.auth.signInWithOtp({ email });
     if(error) throw error;
-    dbg("OTP envoyé. Ouvre ta boîte mail et clique le lien.");
-    dbg("Ensuite reviens ici: ça se connecte automatiquement.");
+    dbg("OTP envoyé. Clique le lien dans l'email puis reviens sur cette page.");
   }catch(e){
     dbg("ERROR: " + (e.message || e));
   }
@@ -405,14 +510,21 @@ $("btnLogout").addEventListener("click", async ()=>{
 });
 
 /* =========================
-   Load logements (multi)
+   Logements (multi)
 ========================= */
 async function loadLogements(){
-  if(!user) return;
+  if(!user){
+    logements = [];
+    selectedLogementId = null;
+    logementPrix = null;
+    const sel = $("selLogement");
+    sel.innerHTML = `<option value="">(connecte-toi)</option>`;
+    return;
+  }
 
   const { data, error } = await sb
     .from("digiy_logements")
-    .select("id, nom, prix_nuit, status")
+    .select("id, nom, prix_nuit, status, ville, adresse")
     .eq("owner_id", user.id)
     .neq("status", "archive")
     .order("created_at", { ascending:false });
@@ -422,10 +534,11 @@ async function loadLogements(){
 
   const sel = $("selLogement");
   sel.innerHTML = "";
+
   if(!logements.length){
     const opt = document.createElement("option");
     opt.value = "";
-    opt.textContent = "Aucun logement";
+    opt.textContent = "Aucun logement (ajoute-en un)";
     sel.appendChild(opt);
     selectedLogementId = null;
     logementPrix = null;
@@ -439,7 +552,9 @@ async function loadLogements(){
     sel.appendChild(opt);
   }
 
-  selectedLogementId = sel.value;
+  selectedLogementId = sel.value || logements[0].id;
+  sel.value = selectedLogementId;
+
   logementPrix = logements.find(x=>x.id===selectedLogementId)?.prix_nuit ?? null;
 }
 
@@ -450,7 +565,75 @@ $("selLogement").addEventListener("change", async ()=>{
 });
 
 /* =========================
-   Load disponibilités for month
+   Add logement (NEW)
+========================= */
+$("btnResetForm").addEventListener("click", ()=>{
+  $("new_nom").value = "";
+  $("new_ville").value = "Saly";
+  $("new_adresse").value = "";
+  $("new_prix").value = "";
+  $("new_desc").value = "";
+});
+
+$("btnAddLogement").addEventListener("click", async ()=>{
+  dbgClear();
+  const btn = $("btnAddLogement");
+  try{
+    if(!user) throw new Error("Connecte-toi d'abord (OTP).");
+
+    const nom = String($("new_nom").value||"").trim();
+    const ville = String($("new_ville").value||"").trim() || "Saly";
+    const adresse = String($("new_adresse").value||"").trim();
+    const prix = clampInt($("new_prix").value);
+    const description = String($("new_desc").value||"").trim() || null;
+
+    if(!nom) throw new Error("Nom requis.");
+    if(!adresse) throw new Error("Adresse requise.");
+    if(!prix || prix <= 0) throw new Error("Prix nuit requis.");
+
+    setBusy(btn, true);
+
+    // IMPORTANT: owner_id doit être la colonne NOT NULL dans ta table digiy_logements
+    const payload = {
+      owner_id: user.id,
+      proprietaire_phone: user.phone || "+221000000000", // fallback si tu n'utilises pas auth phone
+      nom,
+      ville,
+      adresse,
+      description,
+      prix_nuit: prix,
+      status: "actif"
+    };
+
+    const { data, error } = await sb
+      .from("digiy_logements")
+      .insert(payload)
+      .select("id")
+      .single();
+
+    if(error) throw error;
+
+    dbg("OK: logement ajouté.");
+    await loadLogements();
+
+    // sélectionner automatiquement le nouveau si possible
+    if(data?.id){
+      selectedLogementId = data.id;
+      $("selLogement").value = selectedLogementId;
+      logementPrix = logements.find(x=>x.id===selectedLogementId)?.prix_nuit ?? prix;
+    }
+
+    await reloadAll();
+    $("btnResetForm").click();
+  }catch(e){
+    dbg("ERROR: " + (e.message || e));
+  }finally{
+    setBusy(btn, false);
+  }
+});
+
+/* =========================
+   Dispo (month range)
 ========================= */
 function monthRange(d){
   const start = new Date(d.getFullYear(), d.getMonth(), 1);
@@ -465,7 +648,7 @@ async function loadDispo(){
   const { start, end } = monthRange(monthCursor);
   const startISO = isoDate(start);
   const endISO = isoDate(new Date(end.getTime()-86400000)); // last day
-  // fetch range inclusive
+
   const { data, error } = await sb
     .from("digiy_disponibilites")
     .select("id, date, state, disponible, prix_nuit, notes, owner_id")
@@ -478,12 +661,20 @@ async function loadDispo(){
 }
 
 /* =========================
-   Load reservations en_attente for logement
+   Reservations (en_attente)
 ========================= */
 async function loadResaEnAttente(){
   const box = $("resaList");
   box.innerHTML = "";
-  if(!selectedLogementId || !user) return;
+
+  if(!user){
+    box.innerHTML = `<div class="muted">Connecte-toi pour voir les réservations.</div>`;
+    return;
+  }
+  if(!selectedLogementId){
+    box.innerHTML = `<div class="muted">Ajoute un logement puis sélectionne-le.</div>`;
+    return;
+  }
 
   const { data, error } = await sb
     .from("digiy_reservations")
@@ -495,17 +686,13 @@ async function loadResaEnAttente(){
   if(error) throw error;
 
   if(!data || !data.length){
-    const div = document.createElement("div");
-    div.className = "muted";
-    div.textContent = "Aucune réservation en attente.";
-    box.appendChild(div);
+    box.innerHTML = `<div class="muted">Aucune réservation en attente.</div>`;
     return;
   }
 
   for(const r of data){
     const el = document.createElement("div");
     el.className = "item";
-
     el.innerHTML = `
       <div class="itemTop">
         <div class="itemTitle">${escapeHtml(r.client_nom || "Client")} — <span class="pill">${r.tracking_code || "—"}</span></div>
@@ -540,19 +727,22 @@ async function confirmReservation(resaId){
 
     if(error) throw error;
     dbg("OK: réservation confirmée.");
-    await reloadAll(); // recharge list + calendrier (occupied auto)
+    await reloadAll();
   }catch(e){
     dbg("ERROR: " + (e.message || e));
   }
 }
 
 /* =========================
-   Calendar render
+   Calendar render (ALWAYS)
 ========================= */
 function renderCalendar(){
   const cal = $("cal");
+  if(!cal) return;
+
   cal.innerHTML = "";
 
+  // header DOW
   const dows = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
   for(const w of dows){
     const el = document.createElement("div");
@@ -563,12 +753,12 @@ function renderCalendar(){
 
   $("monthLabel").textContent = monthLabel(monthCursor);
 
-  const { start, end } = monthRange(monthCursor);
+  const { start } = monthRange(monthCursor);
   const firstDay = new Date(start);
-  // JS: 0=Sun ... 6=Sat, we want Monday first
+
   const jsDow = firstDay.getDay(); // 0..6
   const offset = (jsDow + 6) % 7; // Mon=0, Sun=6
-  // blanks
+
   for(let i=0;i<offset;i++){
     const b = document.createElement("div");
     b.className = "day disabled";
@@ -581,23 +771,18 @@ function renderCalendar(){
   for(let day=1; day<=daysInMonth; day++){
     const d = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), day);
     const key = isoDate(d);
+
     const row = dispoMap.get(key);
 
     let state = row?.state || "open";
-    // default: open unless explicitly closed/occupied
-    if(row && row.state) state = row.state;
-
-    const overridePrice = row?.prix_nuit ?? null;
+    const overridePrice = (row?.prix_nuit ?? null);
 
     const el = document.createElement("div");
     el.className = "day";
     el.dataset.date = key;
     el.dataset.state = state;
 
-    const tagClass = state;
-    const dispoText = state === "open" ? "open"
-                    : state === "closed" ? "closed"
-                    : "occupied";
+    const dispoText = state === "open" ? "open" : state === "closed" ? "closed" : "occupied";
 
     const priceText = overridePrice != null
       ? `override: ${Number(overridePrice).toLocaleString("fr-FR")} F`
@@ -606,13 +791,12 @@ function renderCalendar(){
     el.innerHTML = `
       <div class="dnum">${day}</div>
       <div class="dmeta">
-        <span class="tag ${tagClass}">${dispoText}</span>
+        <span class="tag ${state}">${dispoText}</span>
         ${overridePrice != null ? `<span class="tag">prix*</span>` : ``}
       </div>
       <div class="price">${priceText}</div>
     `;
 
-    // Occupied = lock editing (auto)
     if(state === "occupied"){
       el.style.cursor = "not-allowed";
       el.title = "occupied (auto via réservations confirmées)";
@@ -624,12 +808,8 @@ function renderCalendar(){
   }
 }
 
-function escapeHtml(s){
-  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-}
-
 /* =========================
-   Modal: set open/closed + price override
+   Modal day edit
 ========================= */
 let modalDate = null;
 let modalRow = null;
@@ -644,21 +824,16 @@ function openModal(dateISO, row){
 
   $("modalBack").style.display = "flex";
 }
-
 function closeModal(){
   $("modalBack").style.display = "none";
   modalDate = null;
   modalRow = null;
 }
-
 $("mClose").addEventListener("click", closeModal);
 $("modalBack").addEventListener("click", (e)=>{
-  if(e.target === $("modalBack")) closeModal();
+  if(e.target && e.target.id === "modalBack") closeModal();
 });
-
-$("mClear").addEventListener("click", ()=>{
-  $("mPrice").value = "";
-});
+$("mClear").addEventListener("click", ()=>{ $("mPrice").value = ""; });
 
 $("mSave").addEventListener("click", async ()=>{
   dbgClear();
@@ -669,9 +844,6 @@ $("mSave").addEventListener("click", async ()=>{
 
     const state = $("mState").value;
     const price = clampInt($("mPrice").value);
-
-    // state -> disponible
-    // open => true, closed => false
     const disponible = (state === "open");
 
     const payload = {
@@ -680,18 +852,17 @@ $("mSave").addEventListener("click", async ()=>{
       date: modalDate,
       state,
       disponible,
-      prix_nuit: price, // null ok
+      prix_nuit: price,
       notes: null
     };
 
-    // upsert
     const { error } = await sb
       .from("digiy_disponibilites")
       .upsert(payload, { onConflict: "logement_id,date" });
 
     if(error) throw error;
 
-    dbg("OK: disponibilité mise à jour.");
+    dbg("OK: jour mis à jour.");
     closeModal();
     await loadDispo();
     renderCalendar();
@@ -713,26 +884,32 @@ $("nextMonth").addEventListener("click", async ()=>{
 });
 
 async function reloadAll(){
+  // CALENDRIER TOUJOURS VISIBLE
   if(!user){
     resetUI();
-    return;
-  }
-  await loadLogements();
-  if(!selectedLogementId){
     renderCalendar();
-    $("resaList").innerHTML = `<div class="muted">Ajoute un logement pour gérer le calendrier.</div>`;
     return;
   }
+
+  await loadLogements();
+
+  if(!selectedLogementId){
+    dispoMap.clear();
+    renderCalendar();
+    $("resaList").innerHTML = `<div class="muted">Ajoute un logement puis sélectionne-le.</div>`;
+    return;
+  }
+
   await loadDispo();
   renderCalendar();
   await loadResaEnAttente();
 }
 
 function resetUI(){
-  $("selLogement").innerHTML = `<option value="">(connecte-toi)</option>`;
-  $("resaList").innerHTML = `<div class="muted">Connecte-toi pour voir tes réservations.</div>`;
+  const sel = $("selLogement");
+  sel.innerHTML = `<option value="">(connecte-toi)</option>`;
+  $("resaList").innerHTML = `<div class="muted">Connecte-toi pour voir les réservations.</div>`;
   dispoMap.clear();
-  renderCalendar();
 }
 
 /* =========================
@@ -743,49 +920,12 @@ sb.auth.onAuthStateChange(async ()=>{
   await reloadAll();
 });
 
+// BOOT INITIAL (même avant login, on affiche le calendrier)
 (async function(){
+  renderCalendar();
   await refreshAuth();
   await reloadAll();
 })();
 </script>
-  <div class="modalBack" id="bulkBack">
-  <div class="modal">
-    <div class="modalTop">
-      <h3 class="modalTitle">Appliquer sur une période</h3>
-      <button class="secondary" onclick="closeBulk()">Fermer</button>
-    </div>
-
-    <div class="modalGrid">
-      <div>
-        <div class="muted">Du</div>
-        <input id="bStart" type="date">
-      </div>
-
-      <div>
-        <div class="muted">Au</div>
-        <input id="bEnd" type="date">
-      </div>
-
-      <div>
-        <div class="muted">État</div>
-        <select id="bState">
-          <option value="open">open (disponible)</option>
-          <option value="closed">closed (fermé)</option>
-        </select>
-      </div>
-
-      <div>
-        <div class="muted">Prix nuit (optionnel)</div>
-        <input id="bPrice" placeholder="ex: 25000" inputmode="numeric">
-      </div>
-
-      <button onclick="applyBulk()">✅ Appliquer</button>
-
-      <div class="modalNote">
-        Les jours <b>occupied</b> (réservations confirmées) ne sont jamais modifiés.
-      </div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
