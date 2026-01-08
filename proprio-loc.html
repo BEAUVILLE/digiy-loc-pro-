@@ -293,6 +293,87 @@ monthCursor.setDate(1);
 let dispoMap = new Map(); // key=YYYY-MM-DD -> row
 let logementPrix = null;  // prix_nuit standard
 
+  /* =========================
+   BULK (édition en masse)
+========================= */
+function openBulk(){
+  const b = $("bulkBack");
+  if (b) b.style.display = "flex";
+}
+
+function closeBulk(){
+  const b = $("bulkBack");
+  if (b) b.style.display = "none";
+}
+
+// Ouvrir le modal via le bouton
+const bulkBtn = document.getElementById("btnBulk");
+if (bulkBtn) bulkBtn.addEventListener("click", openBulk);
+
+// Fermer si clic sur le fond
+document.addEventListener("click", (e)=>{
+  if (e.target && e.target.id === "bulkBack") closeBulk();
+});
+
+// Appliquer une plage (ignore occupied)
+async function applyBulk(){
+  dbgClear();
+  try{
+    if(!user) throw new Error("Non connecté.");
+    if(!selectedLogementId) throw new Error("Choisir un logement.");
+
+    const start = document.getElementById("bStart")?.value;
+    const end   = document.getElementById("bEnd")?.value;
+    const state = document.getElementById("bState")?.value || "open";
+    const price = clampInt(document.getElementById("bPrice")?.value);
+
+    if(!start || !end) throw new Error("Dates requises.");
+    if(start > end) throw new Error("Plage invalide.");
+
+    const rows = [];
+    let d = new Date(start);
+    const dEnd = new Date(end);
+
+    while(d <= dEnd){
+      const key = isoDate(d);
+      const existing = dispoMap.get(key);
+
+      // Ne jamais modifier occupied (auto)
+      if(existing?.state === "occupied"){
+        d.setDate(d.getDate()+1);
+        continue;
+      }
+
+      rows.push({
+        logement_id: selectedLogementId,
+        owner_id: user.id,
+        date: key,
+        state: state,
+        disponible: (state === "open"),
+        prix_nuit: price,  // null = pas d'override
+        notes: null
+      });
+
+      d.setDate(d.getDate()+1);
+    }
+
+    if(!rows.length) throw new Error("Aucun jour modifiable (tous occupied ?).");
+
+    const { error } = await sb
+      .from("digiy_disponibilites")
+      .upsert(rows, { onConflict:"logement_id,date" });
+
+    if(error) throw error;
+
+    dbg(`OK: ${rows.length} jours mis à jour`);
+    closeBulk();
+    await loadDispo();
+    renderCalendar();
+  }catch(e){
+    dbg("ERROR: " + (e.message || e));
+  }
+}
+
 /* =========================
    Auth
 ========================= */
