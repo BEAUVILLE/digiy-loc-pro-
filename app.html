@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DIGIY LOC PRO — Gestion Location</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    :root{
+      --bg:#061b14;
+      --bg2:#0a2820;
+      --card:#052e16;
+      --accent:#facc15;
+      --success:#22c55e;
+      --danger:#ef4444;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:rgba(148,163,184,0.2);
+    }
+    
+    *{box-sizing:border-box;margin:0;padding:0}
+    
+    body{
+      margin:0;
+      font-family:system-ui,sans-serif;
+      background:linear-gradient(135deg,var(--bg),var(--bg2));
+      color:var(--text);
+      min-height:100vh;
+    }
+    
+    .container{max-width:1400px;margin:0 auto;padding:1rem}
+    
+    /* HEADER */
+    .header{
+      background:rgba(255,255,255,0.05);
+      backdrop-filter:blur(20px);
+      padding:1.5rem;
+      border-radius:16px;
+      margin-bottom:1.5rem;
+      border:1px solid var(--border);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:1rem;
+    }
+    
+    .header h1{
+      font-size:1.8rem;
+      margin:0;
+      background:linear-gradient(135deg,#10b981,#06d6a0);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    
+    .header-actions{
+      display:flex;
+      gap:0.5rem;
+      flex-wrap:wrap;
+    }
+    
+    /* TABS */
+    .tabs{
+      display:flex;
+      gap:0.5rem;
+      margin-bottom:1.5rem;
+      overflow-x:auto;
+      padding-bottom:0.5rem;
+    }
+    
+    .tab{
+      padding:0.75rem 1.5rem;
+      background:rgba(255,255,255,0.05);
+      border:1px solid var(--border);
+      border-radius:12px;
+      cursor:pointer;
+      transition:all 0.2s;
+      white-space:nowrap;
+      font-weight:600;
+      font-size:0.9rem;
+    }
+    
+    .tab:hover{
+      background:rgba(255,255,255,0.1);
+      border-color:var(--accent);
+    }
+    
+    .tab.active{
+      background:var(--accent);
+      color:#000;
+      border-color:var(--accent);
+    }
+    
+    /* CONTENT */
+    .content{display:none}
+    .content.active{display:block}
+    
+    /* CARDS */
+    .card{
+      background:rgba(255,255,255,0.05);
+      backdrop-filter:blur(20px);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:1.5rem;
+      margin-bottom:1rem;
+    }
+    
+    .card h2{
+      font-size:1.3rem;
+      margin:0 0 1rem;
+      color:var(--accent);
+    }
+    
+    /* STATS */
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:1rem;
+      margin-bottom:1.5rem;
+    }
+    
+    .stat-card{
+      background:rgba(255,255,255,0.05);
+      padding:1.5rem;
+      border-radius:12px;
+      border:1px solid var(--border);
+    }
+    
+    .stat-label{
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-bottom:0.5rem;
+      font-weight:600;
+      text-transform:uppercase;
+    }
+    
+    .stat-value{
+      font-size:2rem;
+      font-weight:900;
+      color:var(--accent);
+    }
+    
+    /* BUTTONS */
+    .btn{
+      padding:0.75rem 1.5rem;
+      border:none;
+      border-radius:10px;
+      font-size:0.9rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:all 0.2s;
+      display:inline-flex;
+      align-items:center;
+      gap:0.5rem;
+    }
+    
+    .btn-primary{
+      background:var(--accent);
+      color:#000;
+    }
+    
+    .btn-primary:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 16px rgba(250,204,21,0.3);
+    }
+    
+    .btn-success{
+      background:var(--success);
+      color:#fff;
+    }
+    
+    .btn-danger{
+      background:var(--danger);
+      color:#fff;
+    }
+    
+    .btn-secondary{
+      background:rgba(255,255,255,0.1);
+      color:var(--text);
+      border:1px solid var(--border);
+    }
+    
+    /* TABLE */
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    
+    th,td{
+      padding:1rem;
+      text-align:left;
+      border-bottom:1px solid var(--border);
+    }
+    
+    th{
+      font-size:0.85rem;
+      color:var(--muted);
+      font-weight:700;
+      text-transform:uppercase;
+    }
+    
+    td{
+      font-size:0.95rem;
+    }
+    
+    tr:hover{
+      background:rgba(255,255,255,0.05);
+    }
+    
+    /* FORM */
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:1rem;
+    }
+    
+    .form-group{
+      display:flex;
+      flex-direction:column;
+      gap:0.5rem;
+    }
+    
+    label{
+      font-size:0.85rem;
+      color:var(--muted);
+      font-weight:600;
+      text-transform:uppercase;
+    }
+    
+    input,textarea,select{
+      padding:0.75rem;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,0.8);
+      color:var(--text);
+      font-size:0.95rem;
+      outline:none;
+      transition:all 0.2s;
+    }
+    
+    input:focus,textarea:focus,select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 2px rgba(250,204,21,0.2);
+    }
+    
+    textarea{
+      resize:vertical;
+      min-height:100px;
+    }
+    
+    /* BADGE */
+    .badge{
+      display:inline-block;
+      padding:0.25rem 0.75rem;
+      border-radius:6px;
+      font-size:0.75rem;
+      font-weight:700;
+    }
+    
+    .badge-success{
+      background:rgba(34,197,94,0.2);
+      color:var(--success);
+    }
+    
+    .badge-warning{
+      background:rgba(250,204,21,0.2);
+      color:var(--accent);
+    }
+    
+    .badge-danger{
+      background:rgba(239,68,68,0.2);
+      color:var(--danger);
+    }
+    
+    /* MODAL */
+    .modal{
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.8);
+      z-index:1000;
+      padding:2rem;
+      overflow-y:auto;
+    }
+    
+    .modal.active{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    
+    .modal-content{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:2rem;
+      max-width:800px;
+      width:100%;
+      max-height:90vh;
+      overflow-y:auto;
+    }
+    
+    .modal-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:1.5rem;
+    }
+    
+    .modal-header h3{
+      font-size:1.5rem;
+      color:var(--accent);
+      margin:0;
+    }
+    
+    .modal-close{
+      font-size:1.5rem;
+      cursor:pointer;
+      color:var(--muted);
+      background:none;
+      border:none;
+      padding:0.5rem;
+    }
+    
+    .modal-close:hover{
+      color:var(--text);
+    }
+    
+    /* CALENDAR */
+    .calendar{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:0.5rem;
+    }
+    
+    .calendar-day{
+      aspect-ratio:1;
+      padding:0.5rem;
+      background:rgba(255,255,255,0.05);
+      border:1px solid var(--border);
+      border-radius:8px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:all 0.2s;
+      font-size:0.9rem;
+    }
+    
+    .calendar-day:hover{
+      background:rgba(255,255,255,0.1);
+      border-color:var(--accent);
+    }
+    
+    .calendar-day.reserved{
+      background:rgba(239,68,68,0.2);
+      border-color:var(--danger);
+    }
+    
+    .calendar-day.available{
+      background:rgba(34,197,94,0.2);
+      border-color:var(--success);
+    }
+    
+    /* LOGEMENT CARD */
+    .logement-card{
+      background:rgba(255,255,255,0.05);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:1.5rem;
+      margin-bottom:1rem;
+      display:grid;
+      grid-template-columns:200px 1fr auto;
+      gap:1.5rem;
+      align-items:start;
+    }
+    
+    .logement-img{
+      width:200px;
+      height:150px;
+      object-fit:cover;
+      border-radius:8px;
+    }
+    
+    .logement-info h3{
+      margin:0 0 0.5rem;
+      color:var(--accent);
+      font-size:1.2rem;
+    }
+    
+    .logement-info p{
+      margin:0.25rem 0;
+      color:var(--muted);
+      font-size:0.9rem;
+    }
+    
+    .logement-actions{
+      display:flex;
+      flex-direction:column;
+      gap:0.5rem;
+    }
+    
+    @media(max-width:768px){
+      .container{padding:0.5rem}
+      .header{padding:1rem}
+      .header h1{font-size:1.3rem}
+      .stats-grid{grid-template-columns:1fr}
+      .logement-card{
+        grid-template-columns:1fr;
+        gap:1rem;
+      }
+      .logement-img{width:100%;height:200px}
+      .form-grid{grid-template-columns:1fr}
+      table{font-size:0.85rem}
+      th,td{padding:0.5rem}
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>🏠 DIGIY LOC PRO</h1>
+      <p style="margin:0.5rem 0 0;color:var(--muted);font-size:0.9rem">
+        <span id="userName">Jean Baptiste Beauville</span> · 
+        <span id="userPhone">+221 77 134 28 89</span>
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openAddLogement()">
+        ➕ Ajouter un logement
+      </button>
+      <button class="btn btn-secondary" onclick="logout()">
+        🚪 Déconnexion
+      </button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+    <div class="tab" onclick="switchTab('logements')">🏠 Mes logements</div>
+    <div class="tab" onclick="switchTab('reservations')">📅 Réservations</div>
+    <div class="tab" onclick="switchTab('calendrier')">📆 Calendrier</div>
+    <div class="tab" onclick="switchTab('stats')">📈 Statistiques</div>
+  </div>
+
+  <!-- CONTENT: DASHBOARD -->
+  <div id="dashboard" class="content active">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Revenus ce mois</div>
+        <div class="stat-value" id="revenusMois">0 F</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Taux d'occupation</div>
+        <div class="stat-value" id="tauxOccupation">0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Réservations actives</div>
+        <div class="stat-value" id="resasActives">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Logements actifs</div>
+        <div class="stat-value" id="logementsActifs">1</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📅 Prochaines arrivées</h2>
+      <div id="prochainesArrivees">
+        <p style="color:var(--muted)">Aucune réservation à venir</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⏳ Demandes en attente</h2>
+      <div id="demandesAttente">
+        <p style="color:var(--muted)">Aucune demande en attente</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT: LOGEMENTS -->
+  <div id="logements" class="content">
+    <div class="card">
+      <h2>🏠 Mes logements</h2>
+      <div id="listeLogements">
+        <!-- Logements chargés dynamiquement -->
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT: RÉSERVATIONS -->
+  <div id="reservations" class="content">
+    <div class="card">
+      <h2>📅 Toutes les réservations</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Logement</th>
+              <th>Dates</th>
+              <th>Montant</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableReservations">
+            <tr>
+              <td colspan="6" style="text-align:center;color:var(--muted)">
+                Aucune réservation
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT: CALENDRIER -->
+  <div id="calendrier" class="content">
+    <div class="card">
+      <h2>📆 Calendrier de disponibilité</h2>
+      <div id="calendarView">
+        <!-- Calendrier généré dynamiquement -->
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT: STATS -->
+  <div id="stats" class="content">
+    <div class="card">
+      <h2>📈 Statistiques détaillées</h2>
+      <div id="statsDetails">
+        <p>Statistiques à venir...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AJOUTER LOGEMENT -->
+<div id="modalAddLogement" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>➕ Ajouter un logement</h3>
+      <button class="modal-close" onclick="closeModal('modalAddLogement')">✕</button>
+    </div>
+    
+    <form id="formAddLogement" onsubmit="saveLogement(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom du logement *</label>
+          <input type="text" name="nom" required placeholder="Ex: CHEZ BAPTISTE">
+        </div>
+        
+        <div class="form-group">
+          <label>Adresse *</label>
+          <input type="text" name="adresse" required placeholder="Saly, Sénégal">
+        </div>
+        
+        <div class="form-group">
+          <label>Personnes max *</label>
+          <input type="number" name="personnes_max" required min="1" value="4">
+        </div>
+        
+        <div class="form-group">
+          <label>Prix nuit (FCFA) *</label>
+          <input type="number" name="prix_nuit" required placeholder="30000">
+        </div>
+        
+        <div class="form-group">
+          <label>Prix semaine (FCFA)</label>
+          <input type="number" name="prix_semaine" placeholder="175000">
+        </div>
+        
+        <div class="form-group">
+          <label>Prix mois (FCFA)</label>
+          <input type="number" name="prix_mois" placeholder="550000">
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-top:1rem">
+        <label>Description</label>
+        <textarea name="description" placeholder="Quartier calme, Sénélec en sus, etc."></textarea>
+      </div>
+      
+      <div class="form-group" style="margin-top:1rem">
+        <label>URL Photo</label>
+        <input type="url" name="photo_url" placeholder="https://...">
+      </div>
+      
+      <div style="margin-top:1.5rem;display:flex;gap:0.5rem;justify-content:flex-end">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalAddLogement')">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary">
+          💾 Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const SUPABASE_CONFIG = {
+  url: "https://wesqmwjjtsefyjnluosj.supabase.co",
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA"
+};
+
+const sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+const userPhone = localStorage.getItem('digiy_auth_phone') || '+221771342889';
+
+// Init
+window.addEventListener('load', () => {
+  loadDashboard();
+  loadLogements();
+});
+
+// Switch tabs
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+  
+  if (tabName === 'logements') loadLogements();
+  if (tabName === 'reservations') loadReservations();
+  if (tabName === 'calendrier') loadCalendar();
+}
+
+// Dashboard
+async function loadDashboard() {
+  // Stats fictives pour le moment
+  document.getElementById('revenusMois').textContent = '0 F';
+  document.getElementById('tauxOccupation').textContent = '0%';
+  document.getElementById('resasActives').textContent = '0';
+  document.getElementById('logementsActifs').textContent = '1';
+}
+
+// Logements
+async function loadLogements() {
+  const container = document.getElementById('listeLogements');
+  
+  // Logement exemple CHEZ BAPTISTE
+  const logementBaptiste = {
+    nom: 'CHEZ BAPTISTE',
+    adresse: 'Saly, Sénégal',
+    description: 'Quartier calme · 4 personnes max · Sénélec en sus',
+    prix_nuit: 30000,
+    prix_semaine: 175000,
+    prix_mois: 550000,
+    personnes_max: 4,
+    photo_url: 'https://via.placeholder.com/200x150?text=CHEZ+BAPTISTE',
+    status: 'actif'
+  };
+  
+  container.innerHTML = `
+    <div class="logement-card">
+      <img src="${logementBaptiste.photo_url}" alt="${logementBaptiste.nom}" class="logement-img">
+      <div class="logement-info">
+        <h3>${logementBaptiste.nom}</h3>
+        <p>📍 ${logementBaptiste.adresse}</p>
+        <p>👥 ${logementBaptiste.personnes_max} personnes max</p>
+        <p>${logementBaptiste.description}</p>
+        <p style="margin-top:0.5rem">
+          <strong>Tarifs:</strong><br>
+          Nuit: ${logementBaptiste.prix_nuit.toLocaleString('fr-FR')} F<br>
+          Semaine: ${logementBaptiste.prix_semaine.toLocaleString('fr-FR')} F<br>
+          Mois: ${logementBaptiste.prix_mois.toLocaleString('fr-FR')} F
+        </p>
+        <p style="margin-top:0.5rem">
+          <span class="badge badge-success">Actif</span>
+        </p>
+      </div>
+      <div class="logement-actions">
+        <button class="btn btn-secondary">✏️ Modifier</button>
+        <button class="btn btn-secondary">📅 Calendrier</button>
+        <button class="btn btn-danger">🗑️ Supprimer</button>
+      </div>
+    </div>
+  `;
+}
+
+// Réservations
+async function loadReservations() {
+  // À implémenter avec vraies données
+}
+
+// Calendrier
+async function loadCalendar() {
+  // À implémenter
+}
+
+// Modal
+function openAddLogement() {
+  document.getElementById('modalAddLogement').classList.add('active');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Save logement
+async function saveLogement(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData);
+  
+  console.log('Nouveau logement:', data);
+  alert('✅ Logement enregistré ! (Fonctionnalité à finaliser)');
+  closeModal('modalAddLogement');
+  loadLogements();
+}
+
+// Logout
+function logout() {
+  if (confirm('Se déconnecter ?')) {
+    localStorage.removeItem('digiy_auth_phone');
+    sessionStorage.removeItem('digiy_auth_phone');
+    window.location.href = 'login.html';
+  }
+}
+</script>
+
+</body>
+</html>
