@@ -129,6 +129,14 @@
       // 4) Check subscription active by auth user id
       const ok = await isActiveByUser(user.id, module);
 
+      // ✅ DEBUG TEMPORAIRE (à enlever quand c’est validé)
+      console.log("LOC GUARD", {
+        phone: phone,
+        user: user.id,
+        module: module,
+        active: ok
+      });
+
       if(!ok){
         const from = location.href;
         go(
@@ -152,4 +160,3 @@
 
   window.DIGIY_GUARD = { boot, getPhone, setPhone, normPhone };
 })();
-
