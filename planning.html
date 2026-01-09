@@ -32,7 +32,7 @@
     <a href="reservations.html">🧾 Réservations</a>
     <a href="encaissements.html">💸 Encaissements</a>
     <a href="tarifs.html">🏷️ Tarifs</a>
-    <a href="medias.html">📸 Photos</a>
+    <a href="media.html">📸 Photos</a>
     <a href="fiche.html">👤 Fiche</a>
   </div>
 
@@ -168,6 +168,18 @@ document.querySelectorAll(".cal-day").forEach(day=>{
     }
   });
 });
+</script>
+  <!-- ✅ SUPABASE + GUARD (LOC PRO sécurisé) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./guard.js"></script>
+<script>
+  // Verrouille la page: Auth + abonnement LOC obligatoire
+  DIGIY_GUARD.boot({
+    module: "LOC",
+    dashboard: location.href,         // reste sur la page si OK
+    login: "./login.html",
+    pay: "https://beauville.github.io/commencer-a-payer/"
+  });
 </script>
 
 <script src="./ui.js"></script>
