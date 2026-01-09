@@ -1,451 +1,866 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>DIGIY LOC PRO — Gestion Location</title>
-  
-  <!-- SUPABASE -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- GUARD INLINE -->
-  <script>
-    (function() {
-      'use strict';
-      const SUPABASE_CONFIG = {
-        url: "https://wesqmwjjtsefyjnluosj.supabase.co",
-        key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA"
-      };
-      const sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-      
-      async function guardOrPay(moduleCode, loginPath) {
-        let phone = localStorage.getItem('digiy_auth_phone') || sessionStorage.getItem('digiy_auth_phone');
-        if (!phone) {
-          window.location.href = loginPath;
-          return false;
-        }
-        const { data, error } = await sb.from('digiy_subscriptions').select('*').eq('phone', phone).eq('module', moduleCode).eq('status', 'active').gt('current_period_end', new Date().toISOString()).single();
-        if (error || !data) {
-          window.location.href = loginPath;
-          return false;
-        }
-        return true;
-      }
-      
-      window.DIGIY = {
-        guardOrPay: guardOrPay,
-        getPhone: () => localStorage.getItem('digiy_auth_phone') || sessionStorage.getItem('digiy_auth_phone')
-      };
-    })();
-  </script>
-  
-  <style>
-    :root{
-      --bg:#061b14;
-      --bg2:#0a2820;
-      --card:#052e16;
-      --accent:#facc15;
-      --success:#22c55e;
-      --danger:#ef4444;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --border:rgba(148,163,184,0.2);
-    }
-    
-    *{box-sizing:border-box;margin:0;padding:0}
-    
-    body{
-      margin:0;
-      font-family:system-ui,sans-serif;
-      background:linear-gradient(135deg,var(--bg),var(--bg2));
-      color:var(--text);
-      min-height:100vh;
-    }
-    
-    #guard_status{
-      position:fixed;
-      top:20px;
-      right:20px;
-      padding:12px 20px;
-      background:rgba(0,0,0,0.9);
-      color:white;
-      border-radius:10px;
-      font-weight:700;
-      font-size:14px;
-      z-index:9999;
-      border:1px solid rgba(255,255,255,0.1);
-    }
-    
-    .app{display:none}
-    html.access-ok .app{display:block}
-    
-    .container{max-width:1400px;margin:0 auto;padding:1rem}
-    
-    .header{
-      background:rgba(255,255,255,0.05);
-      backdrop-filter:blur(20px);
-      padding:1.5rem;
-      border-radius:16px;
-      margin-bottom:1.5rem;
-      border:1px solid var(--border);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:1rem;
-    }
-    
-    .header h1{
-      font-size:1.8rem;
-      margin:0;
-      background:linear-gradient(135deg,#10b981,#06d6a0);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    
-    .header-actions{
-      display:flex;
-      gap:0.5rem;
-      flex-wrap:wrap;
-    }
-    
-    .tabs{
-      display:flex;
-      gap:0.5rem;
-      margin-bottom:1.5rem;
-      overflow-x:auto;
-      padding-bottom:0.5rem;
-    }
-    
-    .tab{
-      padding:0.75rem 1.5rem;
-      background:rgba(255,255,255,0.05);
-      border:1px solid var(--border);
-      border-radius:12px;
-      cursor:pointer;
-      transition:all 0.2s;
-      white-space:nowrap;
-      font-weight:600;
-      font-size:0.9rem;
-    }
-    
-    .tab:hover{
-      background:rgba(255,255,255,0.1);
-      border-color:var(--accent);
-    }
-    
-    .tab.active{
-      background:var(--accent);
-      color:#000;
-      border-color:var(--accent);
-    }
-    
-    .content{display:none}
-    .content.active{display:block}
-    
-    .card{
-      background:rgba(255,255,255,0.05);
-      backdrop-filter:blur(20px);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:1.5rem;
-      margin-bottom:1rem;
-    }
-    
-    .card h2{
-      font-size:1.3rem;
-      margin:0 0 1rem;
-      color:var(--accent);
-    }
-    
-    .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:1rem;
-      margin-bottom:1.5rem;
-    }
-    
-    .stat-card{
-      background:rgba(255,255,255,0.05);
-      padding:1.5rem;
-      border-radius:12px;
-      border:1px solid var(--border);
-    }
-    
-    .stat-label{
-      font-size:0.85rem;
-      color:var(--muted);
-      margin-bottom:0.5rem;
-      font-weight:600;
-      text-transform:uppercase;
-    }
-    
-    .stat-value{
-      font-size:2rem;
-      font-weight:900;
-      color:var(--accent);
-    }
-    
-    .btn{
-      padding:0.75rem 1.5rem;
-      border:none;
-      border-radius:10px;
-      font-size:0.9rem;
-      font-weight:700;
-      cursor:pointer;
-      transition:all 0.2s;
-      display:inline-flex;
-      align-items:center;
-      gap:0.5rem;
-    }
-    
-    .btn-primary{
-      background:var(--accent);
-      color:#000;
-    }
-    
-    .btn-primary:hover{
-      transform:translateY(-2px);
-      box-shadow:0 8px 16px rgba(250,204,21,0.3);
-    }
-    
-    .btn-success{background:var(--success);color:#fff}
-    .btn-danger{background:var(--danger);color:#fff}
-    .btn-secondary{
-      background:rgba(255,255,255,0.1);
-      color:var(--text);
-      border:1px solid var(--border);
-    }
-    
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
-    th{font-size:0.85rem;color:var(--muted);font-weight:700;text-transform:uppercase}
-    td{font-size:0.95rem}
-    tr:hover{background:rgba(255,255,255,0.05)}
-    
-    .logement-card{
-      background:rgba(255,255,255,0.05);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:1.5rem;
-      margin-bottom:1rem;
-      display:grid;
-      grid-template-columns:200px 1fr auto;
-      gap:1.5rem;
-      align-items:start;
-    }
-    
-    .logement-img{
-      width:200px;
-      height:150px;
-      object-fit:cover;
-      border-radius:8px;
-      background:rgba(255,255,255,0.1);
-    }
-    
-    .logement-info h3{
-      margin:0 0 0.5rem;
-      color:var(--accent);
-      font-size:1.2rem;
-    }
-    
-    .logement-info p{
-      margin:0.25rem 0;
-      color:var(--muted);
-      font-size:0.9rem;
-    }
-    
-    .logement-actions{
-      display:flex;
-      flex-direction:column;
-      gap:0.5rem;
-    }
-    
-    .badge{
-      display:inline-block;
-      padding:0.25rem 0.75rem;
-      border-radius:6px;
-      font-size:0.75rem;
-      font-weight:700;
-    }
-    
-    .badge-success{
-      background:rgba(34,197,94,0.2);
-      color:var(--success);
-    }
-    
-    @media(max-width:768px){
-      .container{padding:0.5rem}
-      .header{padding:1rem}
-      .header h1{font-size:1.3rem}
-      .stats-grid{grid-template-columns:1fr}
-      .logement-card{grid-template-columns:1fr;gap:1rem}
-      .logement-img{width:100%;height:200px}
-      table{font-size:0.85rem}
-      th,td{padding:0.5rem}
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>DIGIY LOC PRO — Cockpit Propriétaire</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#020617;
+  --bg2:#0b1020;
+  --card:#0b1220;
+  --line:#1f2937;
+  --ink:#f9fafb;
+  --muted:#cbd5f5;
+  --gold:#facc15;
+  --gold2:#f97316;
+  --green:#22c55e;
+  --danger:#ef4444;
+  --soft:rgba(255,255,255,.04);
+  --shadow:0 22px 50px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:
+    radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
+    radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg2), var(--bg));
+}
+a{color:inherit}
+.wrap{max-width:1150px;margin:0 auto;padding:14px}
+.top{
+  display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);
+  box-shadow:var(--shadow);
+}
+.brand{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.logo{
+  width:40px;height:40px;border-radius:14px;
+  background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
+  border:1px solid rgba(250,204,21,.35);
+  box-shadow:0 0 22px rgba(250,204,21,.12);
+}
+.brand h1{margin:0;font-size:1.05rem;letter-spacing:.2px}
+.brand .sub{color:var(--muted);font-weight:800;font-size:.92rem}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+  border:1px solid rgba(148,163,184,.35);
+  padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
+  color:var(--muted);font-weight:900;font-size:.86rem;
+}
+.pill strong{color:#fff}
+.pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+.pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+
+.grid{
+  display:grid;grid-template-columns:1fr 1.1fr;gap:14px;margin-top:14px;
+}
+@media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+.card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.cardHead{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+}
+.cardHead h2{margin:0;font-size:1.02rem}
+.cardHead small{color:var(--muted);font-weight:800}
+.cardBody{padding:14px}
+hr.sep{border:none;border-top:1px solid rgba(148,163,184,.18);margin:12px 0}
+
+.btnRow{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  border:0; cursor:pointer;
+  border-radius:14px;
+  padding:11px 12px;
+  font-weight:1000;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  color:var(--muted);
+}
+.btn:hover{filter:brightness(1.08)}
+.btn.primary{background:var(--green);border-color:rgba(34,197,94,.25);color:#022c22}
+.btn.gold{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.35);color:#fde68a}
+.btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fecaca}
+.btn.ghost{background:rgba(255,255,255,.02)}
+
+.note{
+  margin-top:10px;
+  padding:10px 12px;border-radius:14px;
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.03);
+  color:var(--muted);
+  white-space:pre-wrap;
+  display:none;
+}
+.note.ok{border-color:rgba(34,197,94,.35);color:#bbf7d0;background:rgba(34,197,94,.09)}
+.note.bad{border-color:rgba(239,68,68,.35);color:#fecaca;background:rgba(239,68,68,.09)}
+
+.fieldGrid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+@media (max-width: 720px){ .fieldGrid{grid-template-columns:1fr} }
+
+label{display:block;font-size:.86rem;font-weight:950;color:#fff;margin:10px 0 6px}
+input, textarea, select{
+  width:100%;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.18);
+  color:var(--ink);
+  padding:11px 12px;
+  font-weight:850;
+  outline:none;
+}
+textarea{min-height:110px;resize:vertical}
+small.hint{display:block;color:var(--muted);font-weight:800;margin-top:6px;line-height:1.35}
+.kbd{
+  display:inline-block;padding:2px 7px;border-radius:8px;
+  border:1px solid rgba(148,163,184,.35);
+  background:rgba(255,255,255,.03);
+  font-weight:950;color:#e5e7eb;font-size:.8rem;
+}
+
+.list{
+  display:flex;flex-direction:column;gap:10px;
+}
+.item{
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.02);
+  border-radius:16px;
+  padding:12px;
+  display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
+}
+.itemLeft{min-width:0}
+.itemTitle{font-weight:1000}
+.itemMeta{color:var(--muted);font-weight:800;font-size:.92rem;margin-top:3px}
+.tag{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 9px;border-radius:999px;
+  border:1px solid rgba(148,163,184,.25);
+  color:var(--muted);font-weight:950;font-size:.82rem;
+}
+.tag.dot::before{
+  content:"";width:9px;height:9px;border-radius:99px;background:#94a3b8;display:inline-block;
+}
+.tag.live{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+.tag.live.dot::before{background:var(--green);box-shadow:0 0 10px rgba(34,197,94,.75)}
+.tag.draft{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+.tag.draft.dot::before{background:var(--gold)}
+.itemBtns{display:flex;flex-direction:column;gap:8px}
+.itemBtns .btn{padding:9px 10px;border-radius:12px}
+
+.previewBox{
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.02);
+  border-radius:18px;
+  padding:12px;
+}
+.previewImg{
+  width:100%;height:210px;object-fit:cover;border-radius:16px;
+  border:1px solid rgba(148,163,184,.22);
+  background:rgba(255,255,255,.03);
+  display:block;
+}
+.videoWrap{
+  margin-top:10px;border-radius:16px;overflow:hidden;
+  border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.03);
+  display:none;
+}
+.videoWrap iframe{width:100%;height:230px;border:0;display:block}
+.miniRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.mini{
+  border:1px solid rgba(148,163,184,.25);
+  border-radius:999px;
+  padding:8px 10px;
+  font-weight:950;
+  color:var(--muted);
+  background:rgba(255,255,255,.02);
+}
+.mini strong{color:#fff}
+</style>
 </head>
+
 <body>
+<div class="wrap">
 
-<div id="guard_status">🔐 Vérification...</div>
-
-<div class="app">
-  <div class="container">
-    <!-- HEADER -->
-    <div class="header">
+  <div class="top">
+    <div class="brand">
+      <div class="logo"></div>
       <div>
-        <h1>🏠 DIGIY LOC PRO</h1>
-        <p style="margin:0.5rem 0 0;color:var(--muted);font-size:0.9rem">
-          <span id="userName">Jean Baptiste Beauville</span> · 
-          <span id="userPhone">+221 77 134 28 89</span>
-        </p>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-primary" onclick="alert('Fonctionnalité à venir')">
-          ➕ Ajouter un logement
-        </button>
-        <button class="btn btn-secondary" onclick="logout()">
-          🚪 Déconnexion
-        </button>
+        <h1>DIGIY LOC PRO</h1>
+        <div class="sub">Cockpit propriétaire • publier une fiche qui donne envie</div>
       </div>
     </div>
-
-    <!-- TABS -->
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
-      <div class="tab" onclick="switchTab('logements')">🏠 Mes logements</div>
-      <div class="tab" onclick="switchTab('reservations')">📅 Réservations</div>
-      <div class="tab" onclick="switchTab('calendrier')">📆 Calendrier</div>
+    <div class="pills">
+      <div class="pill" id="pillUser">👤 <strong>—</strong></div>
+      <div class="pill warn" id="pillState">🔒 Déconnecté</div>
+      <button class="btn ghost" id="btnLogout" style="display:none">Se déconnecter</button>
     </div>
+  </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard" class="content active">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Revenus ce mois</div>
-          <div class="stat-value">0 F</div>
+  <div class="grid">
+    <!-- LEFT: LISTE -->
+    <section class="card">
+      <div class="cardHead">
+        <div>
+          <h2>🏡 Mes logements</h2>
+          <small>Crée, édite, publie. Simple et carré.</small>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Taux d'occupation</div>
-          <div class="stat-value">0%</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Réservations actives</div>
-          <div class="stat-value">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Logements actifs</div>
-          <div class="stat-value">1</div>
+        <div class="btnRow">
+          <button class="btn gold" id="btnNew">+ Nouveau logement</button>
+          <button class="btn" id="btnRefresh">↻ Actualiser</button>
         </div>
       </div>
+      <div class="cardBody">
+        <!-- LOGIN -->
+        <div id="authBox">
+          <div class="previewBox">
+            <div style="font-weight:1000;font-size:1.05rem;margin-bottom:6px;">Connexion PRO</div>
+            <div style="color:var(--muted);font-weight:800;">
+              Connexion par email (OTP). Tu reçois un lien magique, tu entres, fin de l’histoire.
+            </div>
 
-      <div class="card">
-        <h2>📅 Prochaines arrivées</h2>
-        <p style="color:var(--muted)">Aucune réservation à venir</p>
-      </div>
-    </div>
+            <label>Email PRO</label>
+            <input id="authEmail" type="email" placeholder="ex: proprio@exemple.com" />
 
-    <!-- LOGEMENTS -->
-    <div id="logements" class="content">
-      <div class="card">
-        <h2>🏠 Mes logements</h2>
-        
-        <div class="logement-card">
-          <img src="https://via.placeholder.com/200x150?text=CHEZ+BAPTISTE" alt="CHEZ BAPTISTE" class="logement-img">
-          <div class="logement-info">
-            <h3>CHEZ BAPTISTE</h3>
-            <p>📍 Saly, Sénégal</p>
-            <p>👥 4 personnes max</p>
-            <p>Quartier calme · Sénélec en sus · Réservation directe</p>
-            <p style="margin-top:0.5rem">
-              <strong>Tarifs:</strong><br>
-              Nuit: 30,000 F · Semaine: 175,000 F · Mois: 550,000 F
-            </p>
-            <p style="margin-top:0.5rem">
-              <span class="badge badge-success">✅ Actif</span>
-            </p>
-          </div>
-          <div class="logement-actions">
-            <button class="btn btn-secondary" onclick="alert('Fonctionnalité à venir')">✏️ Modifier</button>
-            <button class="btn btn-secondary" onclick="alert('Fonctionnalité à venir')">📅 Calendrier</button>
-            <button class="btn btn-secondary" onclick="window.open('https://wa.me/221771342889', '_blank')">💬 WhatsApp</button>
+            <div class="btnRow" style="margin-top:12px">
+              <button class="btn primary" id="btnSendOtp">📩 Envoyer le lien</button>
+              <button class="btn" id="btnDemoFill">⚡ Demo</button>
+            </div>
+            <small class="hint">Astuce : ouvre ton email sur le même navigateur. Sinon, tu recopies le lien.</small>
+
+            <div class="note" id="authNote"></div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- RÉSERVATIONS -->
-    <div id="reservations" class="content">
-      <div class="card">
-        <h2>📅 Toutes les réservations</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Logement</th>
-              <th>Dates</th>
-              <th>Montant</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="5" style="text-align:center;color:var(--muted)">Aucune réservation</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- LIST -->
+        <div id="listBox" style="display:none">
+          <div class="list" id="list"></div>
+          <div class="note" id="listNote"></div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- CALENDRIER -->
-    <div id="calendrier" class="content">
-      <div class="card">
-        <h2>📆 Calendrier de disponibilité</h2>
-        <p style="color:var(--muted)">Calendrier à venir...</p>
+    <!-- RIGHT: EDITOR -->
+    <section class="card">
+      <div class="cardHead">
+        <div>
+          <h2>✨ Éditeur premium</h2>
+          <small>Photo + vidéo + Wave + tarifs + statut</small>
+        </div>
+        <div class="btnRow">
+          <button class="btn primary" id="btnSave" disabled>💾 Enregistrer</button>
+          <button class="btn gold" id="btnPublish" disabled>🚀 Publier</button>
+          <button class="btn" id="btnDraft" disabled>📝 Brouillon</button>
+        </div>
       </div>
-    </div>
+
+      <div class="cardBody">
+        <div class="previewBox">
+          <div style="font-weight:1000;margin-bottom:8px;">Prévisualisation</div>
+          <img id="pvImg" class="previewImg" alt="photo logement" />
+          <div class="videoWrap" id="pvVideoWrap">
+            <iframe id="pvVideo" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          </div>
+
+          <div class="miniRow">
+            <div class="mini">📍 <strong id="pvVille">—</strong></div>
+            <div class="mini">💳 Wave: <strong id="pvWave">—</strong></div>
+            <div class="mini">🏷️ Statut: <strong id="pvStatus">—</strong></div>
+          </div>
+
+          <div class="btnRow" style="margin-top:10px">
+            <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir la fiche</button>
+            <button class="btn" id="btnTestMedia" disabled>🔎 Tester médias</button>
+          </div>
+
+          <div class="note" id="editNote"></div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="fieldGrid">
+          <div>
+            <label>Nom du logement</label>
+            <input id="f_nom" placeholder="ex: CHEZ BAPTISTE" />
+            <small class="hint">Nom court, qui claque.</small>
+          </div>
+          <div>
+            <label>Ville</label>
+            <input id="f_ville" placeholder="ex: Saly" />
+            <small class="hint">Le terrain d’abord.</small>
+          </div>
+        </div>
+
+        <label>Adresse (optionnel)</label>
+        <input id="f_adresse" placeholder="ex: Quartier calme / repère" />
+
+        <label>Description</label>
+        <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant."></textarea>
+
+        <div class="fieldGrid">
+          <div>
+            <label>Photo principale (URL)</label>
+            <input id="f_photo" placeholder="https://..." />
+            <small class="hint">Astuce : URL directe image (jpg/png). Pas de placeholder du type <span class="kbd">800x600</span>.</small>
+          </div>
+          <div>
+            <label>Vidéo (Drive / YouTube / Vimeo)</label>
+            <input id="f_video" placeholder="https://drive.google.com/file/d/..." />
+            <small class="hint">Drive ok si partage : “Toute personne avec le lien”.</small>
+          </div>
+        </div>
+
+        <div class="fieldGrid">
+          <div>
+            <label>Tarif nuit (FCFA)</label>
+            <input id="f_prix_nuit" type="number" min="0" step="1" placeholder="30000" />
+          </div>
+          <div>
+            <label>Tarif semaine (FCFA)</label>
+            <input id="f_prix_semaine" type="number" min="0" step="1" placeholder="175000" />
+          </div>
+        </div>
+
+        <div class="fieldGrid">
+          <div>
+            <label>Tarif mois (FCFA)</label>
+            <input id="f_prix_mois" type="number" min="0" step="1" placeholder="550000" />
+          </div>
+          <div>
+            <label>Suppléments / notes (ex: Sénélec en sus)</label>
+            <input id="f_frais" placeholder="ex: Sénélec en sus selon conso" />
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="fieldGrid">
+          <div>
+            <label>Wave — Numéro (ex: +221...)</label>
+            <input id="f_wave_phone" placeholder="+221 77 ..." />
+          </div>
+          <div>
+            <label>Wave — Nom affiché</label>
+            <input id="f_wave_name" placeholder="ex: JB BEAUVILLE" />
+            <small class="hint">Règle d’or : toujours afficher le nom (confiance).</small>
+          </div>
+        </div>
+
+        <div class="fieldGrid">
+          <div>
+            <label>Lien Wave (optionnel)</label>
+            <input id="f_wave_link" placeholder="https://pay.wave.com/..." />
+            <small class="hint">Si tu as un lien de paiement Wave, mets-le ici (bouton “payer acompte”).</small>
+          </div>
+          <div>
+            <label>Acompte (%)</label>
+            <input id="f_deposit" type="number" min="0" max="100" step="1" placeholder="30" />
+          </div>
+        </div>
+
+        <label>Statut</label>
+        <select id="f_status">
+          <option value="brouillon">brouillon</option>
+          <option value="actif">actif</option>
+        </select>
+
+        <div class="note" id="saveNote"></div>
+      </div>
+    </section>
   </div>
 </div>
 
 <script>
-(async () => {
-  if (!window.DIGIY) {
-    alert('Erreur. Rafraîchissez.');
+/* =========================
+   SUPABASE
+========================= */
+const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+const SUPABASE_ANON_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* =========================
+   DOM
+========================= */
+const authBox = document.getElementById("authBox");
+const listBox = document.getElementById("listBox");
+const listEl = document.getElementById("list");
+const pillUser = document.getElementById("pillUser");
+const pillState = document.getElementById("pillState");
+const btnLogout = document.getElementById("btnLogout");
+
+const authEmail = document.getElementById("authEmail");
+const btnSendOtp = document.getElementById("btnSendOtp");
+const btnDemoFill = document.getElementById("btnDemoFill");
+const authNote = document.getElementById("authNote");
+
+const btnNew = document.getElementById("btnNew");
+const btnRefresh = document.getElementById("btnRefresh");
+const listNote = document.getElementById("listNote");
+
+const btnSave = document.getElementById("btnSave");
+const btnPublish = document.getElementById("btnPublish");
+const btnDraft = document.getElementById("btnDraft");
+const btnOpenPublic = document.getElementById("btnOpenPublic");
+const btnTestMedia = document.getElementById("btnTestMedia");
+
+const pvImg = document.getElementById("pvImg");
+const pvVille = document.getElementById("pvVille");
+const pvWave = document.getElementById("pvWave");
+const pvStatus = document.getElementById("pvStatus");
+const pvVideoWrap = document.getElementById("pvVideoWrap");
+const pvVideo = document.getElementById("pvVideo");
+const editNote = document.getElementById("editNote");
+const saveNote = document.getElementById("saveNote");
+
+const f_nom = document.getElementById("f_nom");
+const f_ville = document.getElementById("f_ville");
+const f_adresse = document.getElementById("f_adresse");
+const f_desc = document.getElementById("f_desc");
+const f_photo = document.getElementById("f_photo");
+const f_video = document.getElementById("f_video");
+const f_prix_nuit = document.getElementById("f_prix_nuit");
+const f_prix_semaine = document.getElementById("f_prix_semaine");
+const f_prix_mois = document.getElementById("f_prix_mois");
+const f_frais = document.getElementById("f_frais");
+const f_wave_phone = document.getElementById("f_wave_phone");
+const f_wave_name = document.getElementById("f_wave_name");
+const f_wave_link = document.getElementById("f_wave_link");
+const f_deposit = document.getElementById("f_deposit");
+const f_status = document.getElementById("f_status");
+
+/* =========================
+   STATE
+========================= */
+let sessionUser = null;
+let current = null; // current logement record
+
+const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAPTISTE.png";
+
+function showNote(el, msg, type){
+  el.style.display = "block";
+  el.classList.remove("ok","bad");
+  if(type) el.classList.add(type);
+  el.textContent = msg;
+}
+function hideNote(el){ el.style.display="none"; el.textContent=""; el.classList.remove("ok","bad"); }
+function cleanPhone(p){ return String(p||"").replace(/\D/g,""); }
+
+function toEmbedUrl(u){
+  const s = String(u||"").trim();
+  if(!s) return "";
+  // YouTube
+  let m = s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]+)/);
+  if(m && m[1]) return "https://www.youtube.com/embed/" + m[1];
+  // Vimeo
+  m = s.match(/vimeo\.com\/(\d+)/);
+  if(m && m[1]) return "https://player.vimeo.com/video/" + m[1];
+  // Drive /file/d/ID/...
+  m = s.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if(m && m[1]) return "https://drive.google.com/file/d/" + m[1] + "/preview";
+  // Drive open?id=ID
+  m = s.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if(m && m[1]) return "https://drive.google.com/file/d/" + m[1] + "/preview";
+  return "";
+}
+
+function setConnectedUI(user){
+  sessionUser = user || null;
+  pillUser.innerHTML = `👤 <strong>${user ? (user.email || "PRO") : "—"}</strong>`;
+  if(user){
+    pillState.textContent = "✅ Connecté";
+    pillState.classList.remove("warn");
+    pillState.classList.add("ok");
+    btnLogout.style.display = "inline-flex";
+    authBox.style.display = "none";
+    listBox.style.display = "block";
+    btnSave.disabled = false;
+    btnPublish.disabled = false;
+    btnDraft.disabled = false;
+    btnOpenPublic.disabled = false;
+    btnTestMedia.disabled = false;
+  }else{
+    pillState.textContent = "🔒 Déconnecté";
+    pillState.classList.remove("ok");
+    pillState.classList.add("warn");
+    btnLogout.style.display = "none";
+    authBox.style.display = "block";
+    listBox.style.display = "none";
+    btnSave.disabled = true;
+    btnPublish.disabled = true;
+    btnDraft.disabled = true;
+    btnOpenPublic.disabled = true;
+    btnTestMedia.disabled = true;
+  }
+}
+
+async function refreshSession(){
+  const { data } = await SB.auth.getSession();
+  setConnectedUI(data?.session?.user || null);
+  if(data?.session?.user) await loadList();
+}
+
+btnDemoFill.onclick = ()=>{
+  authEmail.value = "jb@digiylyfe.com";
+  showNote(authNote, "Demo rempli. Mets ton vrai email PRO et clique “Envoyer le lien”.", "ok");
+};
+
+btnSendOtp.onclick = async ()=>{
+  hideNote(authNote);
+  const email = authEmail.value.trim();
+  if(!email) return showNote(authNote, "Mets un email valide.", "bad");
+
+  try{
+    const { error } = await SB.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: location.origin + location.pathname
+      }
+    });
+    if(error) return showNote(authNote, "Erreur: " + error.message, "bad");
+    showNote(authNote, "Lien envoyé ✅ Va dans ton email et clique le lien pour te connecter.", "ok");
+  }catch(e){
+    showNote(authNote, "Erreur: " + (e?.message || e), "bad");
+  }
+};
+
+btnLogout.onclick = async ()=>{
+  await SB.auth.signOut();
+  current = null;
+  paintEditor(null);
+  setConnectedUI(null);
+};
+
+btnRefresh.onclick = async ()=>{ await loadList(); };
+btnNew.onclick = ()=>{ newDraft(); };
+
+function rowTag(status){
+  const s = String(status||"").toLowerCase();
+  if(["actif","active","published","online"].includes(s)) return `<span class="tag dot live">Actif</span>`;
+  return `<span class="tag dot draft">Brouillon</span>`;
+}
+
+async function loadList(){
+  hideNote(listNote);
+  listEl.innerHTML = "";
+
+  try{
+    // NOTE: pour filtrer par owner_id = user.id, il faut RLS + policy.
+    // Là on tente d'abord owner filter (si ton RLS est prêt).
+    const uid = sessionUser?.id;
+
+    let q = SB.from("digiy_logements")
+      .select("id,nom,ville,status,updated_at,created_at,owner_id")
+      .order("updated_at", { ascending:false })
+      .limit(80);
+
+    // si owner_id existe et RLS ok, on filtre
+    if(uid) q = q.eq("owner_id", uid);
+
+    const { data, error } = await q;
+    if(error){
+      console.error(error);
+      return showNote(listNote,
+        "Je n’ai pas pu charger la liste.\n" +
+        "➡️ Soit RLS bloque owner_id, soit la colonne n’existe pas.\n" +
+        "Détail: " + error.message,
+        "bad"
+      );
+    }
+
+    if(!data || data.length===0){
+      return showNote(listNote, "Aucun logement. Clique “+ Nouveau logement”.", "ok");
+    }
+
+    data.forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div class="itemLeft">
+          <div class="itemTitle">${escapeHtml(item.nom || "Logement")}</div>
+          <div class="itemMeta">${escapeHtml(item.ville || "")} • ${escapeHtml(item.id)}</div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            ${rowTag(item.status)}
+            <span class="tag">🕒 ${escapeHtml((item.updated_at || item.created_at || "").toString().slice(0,19).replace("T"," "))}</span>
+          </div>
+        </div>
+        <div class="itemBtns">
+          <button class="btn" data-open="${item.id}">Éditer</button>
+          <button class="btn ghost" data-view="${item.id}">Fiche</button>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+
+    // bind buttons
+    listEl.querySelectorAll("[data-open]").forEach(b=>{
+      b.onclick = ()=> openOne(b.getAttribute("data-open"));
+    });
+    listEl.querySelectorAll("[data-view]").forEach(b=>{
+      b.onclick = ()=> window.open("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view")), "_blank");
+    });
+
+    showNote(listNote, `${data.length} logement(s) chargé(s).`, "ok");
+
+  }catch(e){
+    showNote(listNote, "Erreur: " + (e?.message || e), "bad");
+  }
+}
+
+async function openOne(id){
+  hideNote(editNote); hideNote(saveNote);
+  const { data, error } = await SB
+    .from("digiy_logements")
+    .select("id,owner_id,nom,ville,adresse,description,photo_url,video_url,prix_nuit,prix_semaine,prix_mois,frais_supplements,wave_phone,wave_name,wave_pay_link,deposit_percent,status,created_at,updated_at,proprietaire_phone,proprietaire_email")
+    .eq("id", id)
+    .single();
+
+  if(error || !data){
+    console.error(error);
+    return showNote(editNote, "Impossible d’ouvrir.\n" + (error?.message || ""), "bad");
+  }
+  current = data;
+  paintEditor(current);
+}
+
+function newDraft(){
+  const uid = sessionUser?.id || null;
+  current = {
+    id: null,
+    owner_id: uid,
+    nom: "",
+    ville: "",
+    adresse: "",
+    description: "",
+    photo_url: "",
+    video_url: "",
+    prix_nuit: 0,
+    prix_semaine: 0,
+    prix_mois: 0,
+    frais_supplements: "",
+    wave_phone: "",
+    wave_name: "",
+    wave_pay_link: "",
+    deposit_percent: 30,
+    status: "brouillon"
+  };
+  paintEditor(current);
+  showNote(editNote, "Nouveau logement prêt. Remplis puis Enregistrer.", "ok");
+}
+
+function paintEditor(x){
+  hideNote(editNote); hideNote(saveNote);
+  if(!x){
+    pvImg.src = FALLBACK_PHOTO;
+    pvVille.textContent = "—";
+    pvWave.textContent = "—";
+    pvStatus.textContent = "—";
+    pvVideoWrap.style.display = "none";
+    pvVideo.src = "";
+    [f_nom,f_ville,f_adresse,f_desc,f_photo,f_video,f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_wave_link,f_deposit].forEach(i=>i.value="");
+    f_status.value = "brouillon";
     return;
   }
-  
-  const ok = await window.DIGIY.guardOrPay("LOC", "./login.html");
-  if (!ok) return;
-  
-  document.documentElement.classList.add('access-ok');
-  
-  const phone = window.DIGIY.getPhone();
-  if (phone) {
-    document.getElementById('userPhone').textContent = phone;
-  }
-  
-  setTimeout(() => {
-    document.getElementById('guard_status').style.display = 'none';
-  }, 1200);
-})();
 
-function switchTab(tabName) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-  
-  event.target.classList.add('active');
-  document.getElementById(tabName).classList.add('active');
+  f_nom.value = x.nom || "";
+  f_ville.value = x.ville || "";
+  f_adresse.value = x.adresse || "";
+  f_desc.value = x.description || "";
+  f_photo.value = x.photo_url || "";
+  f_video.value = x.video_url || "";
+  f_prix_nuit.value = Number(x.prix_nuit || 0);
+  f_prix_semaine.value = Number(x.prix_semaine || 0);
+  f_prix_mois.value = Number(x.prix_mois || 0);
+  f_frais.value = x.frais_supplements || "";
+  f_wave_phone.value = x.wave_phone || x.proprietaire_phone || "";
+  f_wave_name.value = x.wave_name || "";
+  f_wave_link.value = x.wave_pay_link || "";
+  f_deposit.value = Number(x.deposit_percent || 30);
+  f_status.value = normalizeStatus(x.status);
+
+  // preview
+  const imgUrl = (x.photo_url && String(x.photo_url).startsWith("http")) ? x.photo_url : FALLBACK_PHOTO;
+  pvImg.src = imgUrl;
+
+  pvVille.textContent = x.ville || "—";
+  const wn = (x.wave_name || "").trim();
+  const wp = (x.wave_phone || x.proprietaire_phone || "").trim();
+  pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
+  pvStatus.textContent = normalizeStatus(x.status);
+
+  const embed = toEmbedUrl(x.video_url);
+  if(embed){
+    pvVideo.src = embed;
+    pvVideoWrap.style.display = "block";
+  }else{
+    pvVideo.src = "";
+    pvVideoWrap.style.display = "none";
+  }
 }
 
-function logout() {
-  if (confirm('Se déconnecter ?')) {
-    localStorage.removeItem('digiy_auth_phone');
-    sessionStorage.removeItem('digiy_auth_phone');
-    window.location.href = 'login.html';
+function normalizeStatus(s){
+  const v = String(s||"").toLowerCase().trim();
+  if(["actif","active","published","online"].includes(v)) return "actif";
+  if(v==="brouillon" || v==="draft") return "brouillon";
+  return "brouillon";
+}
+
+function collectForm(){
+  const uid = sessionUser?.id || null;
+  const status = normalizeStatus(f_status.value);
+
+  return {
+    owner_id: uid,
+    nom: f_nom.value.trim(),
+    ville: f_ville.value.trim(),
+    adresse: f_adresse.value.trim(),
+    description: f_desc.value.trim(),
+    photo_url: f_photo.value.trim(),
+    video_url: f_video.value.trim(),
+    prix_nuit: Number(f_prix_nuit.value || 0),
+    prix_semaine: Number(f_prix_semaine.value || 0),
+    prix_mois: Number(f_prix_mois.value || 0),
+    frais_supplements: f_frais.value.trim(),
+    wave_phone: f_wave_phone.value.trim(),
+    wave_name: f_wave_name.value.trim(),
+    wave_pay_link: f_wave_link.value.trim(),
+    deposit_percent: Number(f_deposit.value || 30),
+    status
+  };
+}
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+async function saveRecord(mode){
+  hideNote(saveNote);
+
+  if(!sessionUser) return showNote(saveNote, "Connecte-toi d’abord.", "bad");
+
+  const payload = collectForm();
+
+  if(!payload.nom || !payload.ville){
+    return showNote(saveNote, "Nom + ville obligatoires.", "bad");
+  }
+  if(payload.photo_url && !payload.photo_url.startsWith("http")){
+    return showNote(saveNote, "Photo URL invalide (doit commencer par http).", "bad");
+  }
+
+  // mode: "save" | "publish" | "draft"
+  if(mode==="publish") payload.status = "actif";
+  if(mode==="draft") payload.status = "brouillon";
+
+  try{
+    if(!current || !current.id){
+      // insert
+      const { data, error } = await SB
+        .from("digiy_logements")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if(error){
+        console.error(error);
+        return showNote(saveNote, "Insert refusé:\n" + error.message, "bad");
+      }
+      current.id = data.id;
+      showNote(saveNote, "Créé ✅ ID: " + current.id, "ok");
+    }else{
+      // update
+      const { error } = await SB
+        .from("digiy_logements")
+        .update(payload)
+        .eq("id", current.id);
+
+      if(error){
+        console.error(error);
+        return showNote(saveNote, "Update refusé:\n" + error.message, "bad");
+      }
+      showNote(saveNote, "Sauvegardé ✅", "ok");
+    }
+
+    // refresh current view (re-open)
+    await openOne(current.id);
+    await loadList();
+
+  }catch(e){
+    showNote(saveNote, "Erreur: " + (e?.message || e), "bad");
   }
 }
+
+btnSave.onclick = ()=> saveRecord("save");
+btnPublish.onclick = ()=> saveRecord("publish");
+btnDraft.onclick = ()=> saveRecord("draft");
+
+btnOpenPublic.onclick = ()=>{
+  if(!current || !current.id) return showNote(editNote, "Sauvegarde d’abord (pas d’ID).", "bad");
+  window.open("loc.html?id=" + encodeURIComponent(current.id), "_blank");
+};
+
+btnTestMedia.onclick = ()=>{
+  if(!current) return;
+  const payload = collectForm();
+  // quick preview test
+  const imgUrl = (payload.photo_url && payload.photo_url.startsWith("http")) ? payload.photo_url : FALLBACK_PHOTO;
+  pvImg.src = imgUrl;
+
+  const embed = toEmbedUrl(payload.video_url);
+  if(embed){
+    pvVideo.src = embed;
+    pvVideoWrap.style.display = "block";
+    showNote(editNote, "Médias OK ✅ (si Drive, vérifie partage “toute personne avec le lien”).", "ok");
+  }else{
+    pvVideo.src = "";
+    pvVideoWrap.style.display = "none";
+    showNote(editNote, "Vidéo non reconnue. Mets un lien Drive/YouTube/Vimeo valide.", "bad");
+  }
+
+  const wn = payload.wave_name.trim();
+  const wp = payload.wave_phone.trim();
+  pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
+  pvVille.textContent = payload.ville || "—";
+  pvStatus.textContent = payload.status || "—";
+};
+
+// Live preview while typing (light)
+[f_nom,f_ville,f_photo,f_video,f_wave_phone,f_wave_name,f_status].forEach(el=>{
+  el.addEventListener("input", ()=>btnTestMedia.click());
+  el.addEventListener("change", ()=>btnTestMedia.click());
+});
+
+// Auth state listener
+SB.auth.onAuthStateChange((_event, session)=>{
+  setConnectedUI(session?.user || null);
+  if(session?.user){
+    loadList();
+  }else{
+    current = null;
+    paintEditor(null);
+  }
+});
+
+// init
+refreshSession();
+paintEditor(null);
 </script>
-
 </body>
 </html>
