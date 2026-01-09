@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>DIGIY LOC • PRO — Connexion</title>
+  <title>DIGIY LOC • PRO — Connexion (PIN)</title>
   <meta name="theme-color" content="#16a34a"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
@@ -40,7 +41,8 @@
       background:rgba(0,0,0,.18);
       color:var(--text);
       outline:none;
-      font-weight:700;
+      font-weight:800;
+      letter-spacing:.2px;
     }
     input::placeholder{color:rgba(234,255,241,.55)}
     button{
@@ -64,7 +66,7 @@
       border:1px solid var(--line);
       background:rgba(0,0,0,.18);
       font-size:12px;
-      font-weight:800;
+      font-weight:900;
     }
     .ok{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.12)}
     .bad{border-color:rgba(239,68,68,.55); background:rgba(239,68,68,.12)}
@@ -73,29 +75,23 @@
     .sep{height:1px; background:var(--line); margin:14px 0}
     code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px}
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🔐 DIGIY LOC • PRO — Connexion</h1>
+      <h1>🔐 DIGIY LOC • PRO — Accès par PIN</h1>
       <div class="muted">
-        Connexion sécurisée par <b>Magic Link</b> (email) + téléphone.
-        Une fois connecté, LOC est verrouillé par abonnement.
+        Connexion terrain : <b>téléphone WhatsApp</b> + <b>PIN</b>.
+        Pas d’email. Pas de magie. Juste du solide.
       </div>
 
       <div class="sep"></div>
 
       <div class="grid">
         <div class="row">
-          <div class="pill" id="authPill">Auth: …</div>
-          <div class="pill warn" id="hintPill">Astuce: utilise ton email pro</div>
-        </div>
-
-        <div>
-          <label class="small muted">Email</label>
-          <input id="email" type="email" placeholder="ex: toi@domaine.com" autocomplete="email"/>
+          <div class="pill" id="pill">État: …</div>
+          <div class="pill warn" id="hint">Astuce: PIN 4–6 chiffres</div>
         </div>
 
         <div>
@@ -104,9 +100,15 @@
           <div class="muted small">Format conseillé: <code>+221XXXXXXXXX</code></div>
         </div>
 
+        <div>
+          <label class="small muted">PIN</label>
+          <input id="pin" type="password" placeholder="••••" inputmode="numeric" autocomplete="current-password"/>
+        </div>
+
         <div class="row">
-          <button class="primary" id="btnSend">📩 Envoyer le Magic Link</button>
-          <button id="btnLogout">🚪 Logout</button>
+          <button class="primary" id="btnLogin">✅ Entrer</button>
+          <button id="btnReset">🔁 Créer/Changer PIN</button>
+          <button id="btnClear">🧹 Clear</button>
         </div>
 
         <div class="muted small" id="msg"></div>
@@ -114,8 +116,8 @@
         <div class="sep"></div>
 
         <div class="muted small">
-          Après clic sur le lien reçu, tu reviens ici <b>1 seconde</b> (pour créer la session),
-          puis redirection automatique vers <code>planning.html</code>.
+          <b>Entrer</b> ouvre LOC PRO si ton abonnement est actif.
+          <br/>Si tu dois définir ton PIN, clique <b>Créer/Changer PIN</b>.
         </div>
       </div>
     </div>
@@ -125,36 +127,23 @@
 (function(){
   "use strict";
 
-  // =============================
-  // SUPABASE
-  // =============================
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // =============================
-  // UI
-  // =============================
   const $ = (id)=>document.getElementById(id);
-  const emailInput = $("email");
-  const phoneInput = $("phone");
+  const phoneEl = $("phone");
+  const pinEl = $("pin");
+  const pill = $("pill");
   const msg = $("msg");
-  const authPill = $("authPill");
-  const btnSend = $("btnSend");
-  const btnLogout = $("btnLogout");
 
   function setPill(ok, text){
-    authPill.className = "pill " + (ok ? "ok" : "bad");
-    authPill.textContent = text;
+    pill.className = "pill " + (ok ? "ok" : "bad");
+    pill.textContent = text;
   }
 
-  function goPlanning(){ location.replace("./planning.html"); }
-
-  // =============================
-  // PHONE CACHE (local)
-  // =============================
   function normPhone(p){
     p = String(p||"").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
     if(p.startsWith("00221")) p = "+221" + p.slice(5);
@@ -162,6 +151,7 @@
     if(!p.startsWith("+221") && /^\d{9}$/.test(p)) p = "+221" + p;
     return p;
   }
+
   function savePhone(phone){
     const p = normPhone(phone);
     sessionStorage.setItem("digiy_phone", p);
@@ -172,6 +162,7 @@
     }catch(_){}
     return p;
   }
+
   function loadPhone(){
     const s = sessionStorage.getItem("digiy_phone") || sessionStorage.getItem("digiy_driver_phone");
     if(s) return s;
@@ -181,99 +172,100 @@
     }catch(_){ return ""; }
   }
 
-  // =============================
-  // MAGIC LINK: consume ?code=
-  // =============================
-  async function consumeMagicLinkIfAny(){
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get("code");
-    if(!code) return false;
-
-    msg.textContent = "Validation du lien…";
-    const { error } = await sb.auth.exchangeCodeForSession(window.location.href);
-
-    if(error){
-      msg.textContent = "Erreur validation: " + error.message;
-      return false;
-    }
-
-    // Nettoie URL
-    url.searchParams.delete("code");
-    window.history.replaceState({}, "", url.toString());
-
-    msg.textContent = "Connexion réussie ✅";
-    return true;
+  async function checkPin(phone, pin){
+    const { data, error } = await sb.rpc("check_pin", { p_phone: phone, p_pin: pin });
+    if(error) throw error;
+    return !!data;
   }
 
-  // =============================
-  // SESSION CHECK
-  // =============================
-  async function refreshAuth(){
-    const { data } = await sb.auth.getSession();
-    if(data?.session){
-      setPill(true, "Auth: ✅ connecté");
-      msg.textContent = "Session OK. Redirection…";
-      setTimeout(goPlanning, 350);
-      return true;
-    }
-    setPill(false, "Auth: ❌ Auth session missing!");
-    return false;
+  async function setPin(phone, pin){
+    const { data, error } = await sb.rpc("set_pin", { p_phone: phone, p_pin: pin });
+    if(error) throw error;
+    return data;
   }
 
-  // =============================
-  // SEND MAGIC LINK
-  // =============================
-  async function sendMagicLink(){
-    const email = (emailInput.value || "").trim();
-    const phoneRaw = (phoneInput.value || "").trim();
+  async function isActive(phone){
+    const { data, error } = await sb.rpc("is_module_active", { p_phone: phone, p_module: "LOC" });
+    if(error) throw error;
+    return !!data;
+  }
 
-    if(!email) return alert("Email requis");
-    if(!phoneRaw) return alert("Téléphone requis");
+  async function login(){
+    const phone = savePhone(phoneEl.value || "");
+    const pin = (pinEl.value || "").trim();
 
-    const phone = savePhone(phoneRaw);
-    msg.textContent = "Envoi du lien… (" + phone + ")";
+    if(!phone) return alert("Téléphone requis");
+    if(!pin) return alert("PIN requis");
 
-    btnSend.disabled = true;
+    msg.textContent = "Vérification PIN…";
+    setPill(false, "État: vérification…");
 
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: {
-        // ✅ Forcer le retour exact sur LOC PRO (GitHub Pages)
-        emailRedirectTo: "https://beauville.github.io/digiy-loc-pro/login.html"
-      }
-    });
-
-    btnSend.disabled = false;
-
-    if(error){
-      msg.textContent = "Erreur: " + error.message;
+    const ok = await checkPin(phone, pin);
+    if(!ok){
+      msg.textContent = "PIN incorrect. Si tu n’as pas de PIN, clique “Créer/Changer PIN”.";
+      setPill(false, "État: ❌ PIN incorrect");
       return;
     }
-    msg.textContent = "Lien envoyé ✅ Ouvre ton email et clique.";
+
+    msg.textContent = "PIN OK ✅ Vérification abonnement LOC…";
+    const active = await isActive(phone);
+
+    if(!active){
+      msg.textContent = "Abonnement LOC inactif → redirection paiement…";
+      setPill(false, "État: ⚠️ abonnement inactif");
+      const from = location.href;
+      location.replace("https://beauville.github.io/commencer-a-payer/"
+        + "?module=LOC&phone=" + encodeURIComponent(phone)
+        + "&from=" + encodeURIComponent(from));
+      return;
+    }
+
+    msg.textContent = "Accès accordé ✅ Redirection planning…";
+    setPill(true, "État: ✅ OK");
+    setTimeout(()=>location.replace("./planning.html"), 350);
   }
 
-  // =============================
-  // LOGOUT
-  // =============================
-  async function logout(){
-    await sb.auth.signOut();
-    setPill(false, "Auth: ❌ déconnecté");
-    msg.textContent = "Déconnecté.";
+  async function resetPin(){
+    const phone = savePhone(phoneEl.value || "");
+    const pin = (pinEl.value || "").trim();
+    if(!phone) return alert("Téléphone requis");
+    if(!pin) return alert("PIN requis (4 à 8 chiffres)");
+
+    msg.textContent = "Enregistrement du PIN…";
+    setPill(false, "État: enregistrement…");
+    await setPin(phone, pin);
+    msg.textContent = "PIN enregistré ✅ Tu peux cliquer “Entrer”.";
+    setPill(true, "État: ✅ PIN OK");
   }
 
-  // =============================
-  // INIT
-  // =============================
-  btnSend.addEventListener("click", sendMagicLink);
-  btnLogout.addEventListener("click", logout);
+  function clearAll(){
+    sessionStorage.removeItem("digiy_phone");
+    sessionStorage.removeItem("digiy_driver_phone");
+    localStorage.removeItem("digiy_access_pin");
+    localStorage.removeItem("digiy_driver_access_pin");
+    phoneEl.value = "";
+    pinEl.value = "";
+    msg.textContent = "Cache vidé.";
+    setPill(false, "État: …");
+  }
 
-  phoneInput.value = loadPhone();
+  $("btnLogin").addEventListener("click", ()=>login().catch(e=>{
+    console.warn(e);
+    msg.textContent = "Erreur: " + (e?.message || e);
+    setPill(false, "État: ❌ erreur");
+  }));
 
-  (async ()=>{
-    await consumeMagicLinkIfAny(); // crée la session si ?code=
-    await refreshAuth();           // redirige planning si session
-  })();
+  $("btnReset").addEventListener("click", ()=>resetPin().catch(e=>{
+    console.warn(e);
+    msg.textContent = "Erreur: " + (e?.message || e);
+    setPill(false, "État: ❌ erreur");
+  }));
 
+  $("btnClear").addEventListener("click", clearAll);
+
+  // init
+  phoneEl.value = loadPhone();
+  setPill(false, "État: PIN requis");
 })();
 </script>
 </body>
