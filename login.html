@@ -6,8 +6,6 @@
   <title>DIGIY LOC • PRO — Connexion</title>
   <meta name="theme-color" content="#16a34a"/>
 
-  <link rel="stylesheet" href="./ui.css"/>
-
   <style>
     :root{
       --bg:#061b14; --card:#0b2a1f; --line:rgba(255,255,255,.14);
@@ -82,7 +80,10 @@
   <div class="wrap">
     <div class="card">
       <h1>🔐 DIGIY LOC • PRO — Connexion</h1>
-      <div class="muted">Connexion sécurisée par <b>Magic Link</b> (email). Une fois connecté, LOC est verrouillé par abonnement.</div>
+      <div class="muted">
+        Connexion sécurisée par <b>Magic Link</b> (email) + téléphone.
+        Une fois connecté, LOC est verrouillé par abonnement.
+      </div>
 
       <div class="sep"></div>
 
@@ -95,6 +96,12 @@
         <div>
           <label class="small muted">Email</label>
           <input id="email" type="email" placeholder="ex: toi@domaine.com" autocomplete="email"/>
+        </div>
+
+        <div>
+          <label class="small muted">Téléphone (Sénégal)</label>
+          <input id="phone" type="tel" placeholder="+221771234567" inputmode="tel" autocomplete="tel"/>
+          <div class="muted small">Format conseillé: <code>+221XXXXXXXXX</code></div>
         </div>
 
         <div class="row">
@@ -129,6 +136,36 @@
   const btnSend = $("btnSend");
   const btnLogout = $("btnLogout");
   const emailInput = $("email");
+  const phoneInput = $("phone");
+
+  function normPhone(p){
+    p = String(p||"").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
+    if(p.startsWith("00221")) p = "+221" + p.slice(5);
+    if(!p.startsWith("+") && p.startsWith("221")) p = "+" + p;
+    if(!p.startsWith("+221") && /^\d{9}$/.test(p)) p = "+221" + p;
+    return p;
+  }
+
+  function savePhone(phone){
+    const p = normPhone(phone);
+    sessionStorage.setItem("digiy_phone", p);
+    sessionStorage.setItem("digiy_driver_phone", p);
+    try{
+      localStorage.setItem("digiy_access_pin", JSON.stringify({ phone: p }));
+      localStorage.setItem("digiy_driver_access_pin", JSON.stringify({ phone: p }));
+    }catch(_){}
+    return p;
+  }
+
+  function loadPhone(){
+    const s = sessionStorage.getItem("digiy_phone") || sessionStorage.getItem("digiy_driver_phone");
+    if(s) return s;
+    try{
+      const a = JSON.parse(localStorage.getItem("digiy_access_pin")||"null");
+      if(a?.phone) return a.phone;
+    }catch(_){}
+    return "";
+  }
 
   function setPill(ok, text){
     authPill.className = "pill " + (ok ? "ok" : "bad");
@@ -157,11 +194,15 @@
     const email = (emailInput.value || "").trim();
     if(!email) return alert("Mets ton email");
 
-    btnSend.disabled = true;
-    msg.textContent = "Envoi du lien…";
+    const phoneRaw = (phoneInput.value || "").trim();
+    if(!phoneRaw) return alert("Mets ton téléphone");
+    const phone = savePhone(phoneRaw);
 
-    // ✅ Important: redirect back to THIS login page
-    const emailRedirectTo = location.origin + location.pathname; // .../login.html
+    btnSend.disabled = true;
+    msg.textContent = "Envoi du lien… (téléphone enregistré: " + phone + ")";
+
+    // redirect back to this page
+    const emailRedirectTo = location.origin + location.pathname;
 
     const { error } = await sb.auth.signInWithOtp({
       email,
@@ -184,11 +225,10 @@
     alert("Déconnecté.");
   }
 
-  // Listen: after magic link callback, session becomes available
+  // after magic link callback, session becomes available
   sb.auth.onAuthStateChange(async (_event, _session) => {
     const user = await refreshAuth();
     if(user){
-      // petite pause pour afficher "connecté", puis go planning
       setTimeout(()=> location.replace("./planning.html"), 600);
     }
   });
@@ -197,6 +237,7 @@
   btnLogout.addEventListener("click", logout);
 
   // init
+  phoneInput.value = loadPhone();
   refreshAuth();
 })();
 </script>
