@@ -1,305 +1,204 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connexion DIGIY LOC</title>
-  
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>DIGIY LOC • PRO — Connexion</title>
+  <meta name="theme-color" content="#16a34a"/>
+
+  <link rel="stylesheet" href="./ui.css"/>
+
   <style>
     :root{
-      --bg:#022c22;
-      --accent:#facc15;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --success:#22c55e;
-      --danger:#ef4444;
+      --bg:#061b14; --card:#0b2a1f; --line:rgba(255,255,255,.14);
+      --text:#eafff1; --muted:rgba(234,255,241,.75);
+      --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+      --radius:18px;
     }
-    
-    *{box-sizing:border-box;margin:0;padding:0}
-    
     body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg,#022c22,#065f46);
+      margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%), var(--bg);
       color:var(--text);
-      font-family:system-ui,sans-serif;
-      padding:20px;
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
     }
-    
-    .login-card{
-      background:rgba(5,46,22,0.95);
-      backdrop-filter:blur(10px);
-      padding:40px 30px;
-      border-radius:20px;
-      border:1px solid rgba(15,118,110,0.7);
-      max-width:400px;
-      width:100%;
-      box-shadow:0 20px 60px rgba(0,0,0,0.7);
+    .wrap{width:min(720px, 100%);}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:0 20px 55px rgba(0,0,0,.35);
     }
-    
-    .logo{
-      width:80px;
-      height:80px;
-      background:linear-gradient(135deg,#facc15,#eab308);
-      border-radius:20px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:40px;
-      margin:0 auto 24px;
-      box-shadow:0 0 30px rgba(250,204,21,0.4);
-    }
-    
-    h1{
-      text-align:center;
-      font-size:28px;
-      font-weight:900;
-      margin-bottom:8px;
-    }
-    
-    .subtitle{
-      text-align:center;
-      color:var(--muted);
-      font-size:14px;
-      margin-bottom:32px;
-      line-height:1.5;
-    }
-    
-    .form-group{
-      margin-bottom:20px;
-    }
-    
-    label{
-      display:block;
-      font-size:13px;
-      font-weight:700;
-      color:var(--muted);
-      margin-bottom:8px;
-      text-transform:uppercase;
-      letter-spacing:0.05em;
-    }
-    
+    h1{margin:4px 0 6px; font-size:20px}
+    .muted{color:var(--muted)}
+    .grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
     input{
       width:100%;
-      padding:16px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,0.3);
-      background:rgba(15,23,42,0.8);
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
       color:var(--text);
-      font-size:18px;
-      font-weight:600;
       outline:none;
-      transition:all .2s;
-    }
-    
-    input:focus{
-      border-color:var(--accent);
-      box-shadow:0 0 0 3px rgba(250,204,21,0.2);
-      background:rgba(15,23,42,0.95);
-    }
-    
-    .btn{
-      width:100%;
-      padding:18px;
-      border:none;
-      border-radius:12px;
-      background:linear-gradient(135deg,#facc15,#eab308);
-      color:#022c22;
-      font-size:16px;
-      font-weight:900;
-      cursor:pointer;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      transition:all .2s;
-      margin-top:8px;
-    }
-    
-    .btn:hover{
-      transform:translateY(-2px);
-      box-shadow:0 12px 28px rgba(250,204,21,0.4);
-    }
-    
-    .btn:disabled{
-      opacity:0.6;
-      cursor:not-allowed;
-      transform:none;
-    }
-    
-    .message{
-      padding:12px;
-      border-radius:10px;
-      font-size:14px;
-      font-weight:600;
-      margin-bottom:20px;
-      display:none;
-    }
-    
-    .message.show{
-      display:block;
-    }
-    
-    .message.error{
-      background:rgba(239,68,68,0.1);
-      border:1px solid rgba(239,68,68,0.3);
-      color:#ef4444;
-    }
-    
-    .message.success{
-      background:rgba(34,197,94,0.1);
-      border:1px solid rgba(34,197,94,0.3);
-      color:#22c55e;
-    }
-    
-    .hint{
-      text-align:center;
-      font-size:12px;
-      color:var(--muted);
-      margin-top:16px;
-    }
-    
-    .link{
-      color:var(--accent);
-      text-decoration:none;
       font-weight:700;
     }
-    
-    .link:hover{
-      text-decoration:underline;
+    input::placeholder{color:rgba(234,255,241,.55)}
+    button{
+      cursor:pointer;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-weight:900;
     }
-    
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-10px); }
-      75% { transform: translateX(10px); }
+    button.primary{
+      border-color:rgba(34,197,94,.55);
+      background:rgba(34,197,94,.16);
     }
-    
-    @media(max-width:500px){
-      .login-card{padding:30px 20px}
-      h1{font-size:24px}
+    button:disabled{opacity:.55; cursor:not-allowed}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      font-size:12px;
+      font-weight:800;
     }
+    .ok{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.12)}
+    .bad{border-color:rgba(239,68,68,.55); background:rgba(239,68,68,.12)}
+    .warn{border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.12)}
+    .small{font-size:12px}
+    .sep{height:1px; background:var(--line); margin:14px 0}
+    code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px}
   </style>
-  
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-  <div class="login-card">
-    <div class="logo">🏠</div>
-    <h1>DIGIY LOC</h1>
-    <div class="subtitle">Entrez votre numéro pour accéder</div>
-    
-    <div class="message" id="message"></div>
-    
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="phone">Téléphone WhatsApp</label>
-        <input 
-          type="tel" 
-          id="phone" 
-          placeholder="+221 77 123 45 67"
-          autocomplete="tel"
-          required
-        >
+  <div class="wrap">
+    <div class="card">
+      <h1>🔐 DIGIY LOC • PRO — Connexion</h1>
+      <div class="muted">Connexion sécurisée par <b>Magic Link</b> (email). Une fois connecté, LOC est verrouillé par abonnement.</div>
+
+      <div class="sep"></div>
+
+      <div class="grid">
+        <div class="row">
+          <div class="pill" id="authPill">Auth: …</div>
+          <div class="pill warn" id="hintPill">Astuce: utilise ton email pro</div>
+        </div>
+
+        <div>
+          <label class="small muted">Email</label>
+          <input id="email" type="email" placeholder="ex: toi@domaine.com" autocomplete="email"/>
+        </div>
+
+        <div class="row">
+          <button class="primary" id="btnSend">📩 Envoyer le Magic Link</button>
+          <button id="btnLogout">🚪 Logout</button>
+        </div>
+
+        <div class="muted small" id="msg"></div>
+
+        <div class="sep"></div>
+
+        <div class="muted small">
+          Après clic sur le lien reçu, tu reviens automatiquement ici puis tu seras redirigé vers <code>planning.html</code>.
+        </div>
       </div>
-      
-      <button type="submit" class="btn" id="loginBtn">
-        🔓 Se connecter
-      </button>
-    </form>
-    
-    <div class="hint">
-      Pas encore inscrit ? <a href="https://beauville.github.io/page-inscription-digiy/" class="link">S'inscrire maintenant</a>
     </div>
   </div>
 
-  <script>
-    const SUPABASE_CONFIG = {
-      url: "https://wesqmwjjtsefyjnluosj.supabase.co",
-      key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA"
-    };
+<script>
+(function(){
+  "use strict";
 
-    const sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-    
-    const form = document.getElementById('loginForm');
-    const phoneInput = document.getElementById('phone');
-    const loginBtn = document.getElementById('loginBtn');
-    const message = document.getElementById('message');
-    
-    // Focus automatique
-    phoneInput.focus();
-    
-    function showMessage(text, type) {
-      message.textContent = text;
-      message.className = 'message show ' + type;
-      
-      if (type === 'error') {
-        phoneInput.style.animation = 'shake 0.5s';
-        setTimeout(() => {
-          phoneInput.style.animation = '';
-        }, 500);
-      }
+  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const $ = (id)=>document.getElementById(id);
+  const authPill = $("authPill");
+  const msg = $("msg");
+  const btnSend = $("btnSend");
+  const btnLogout = $("btnLogout");
+  const emailInput = $("email");
+
+  function setPill(ok, text){
+    authPill.className = "pill " + (ok ? "ok" : "bad");
+    authPill.textContent = text;
+  }
+
+  async function refreshAuth(){
+    const { data, error } = await sb.auth.getUser();
+    if(error){
+      setPill(false, "Auth: ❌ " + (error.message || "KO"));
+      return null;
     }
-    
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const phone = phoneInput.value.trim();
-      
-      if (!phone) {
-        showMessage('⚠️ Veuillez entrer votre numéro', 'error');
-        return;
-      }
-      
-      loginBtn.disabled = true;
-      loginBtn.textContent = '⏳ Vérification...';
-      message.style.display = 'none';
-      
-      try {
-        // Vérifier l'abonnement
-        const { data, error } = await sb
-          .from('digiy_subscriptions')
-          .select('*')
-          .eq('phone', phone)
-          .eq('module', 'LOC')
-          .eq('status', 'active')
-          .gt('current_period_end', new Date().toISOString())
-          .single();
-        
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // Aucun abonnement trouvé
-            showMessage('❌ Aucun abonnement actif pour ce numéro', 'error');
-            loginBtn.disabled = false;
-            loginBtn.textContent = '🔓 Se connecter';
-            return;
-          }
-          throw error;
-        }
-        
-        if (data) {
-          // Abonnement valide !
-          showMessage('✅ Connexion réussie...', 'success');
-          
-          // Stocker le phone pour le guard
-          localStorage.setItem('digiy_auth_phone', phone);
-          sessionStorage.setItem('digiy_auth_phone', phone);
-          
-          // Rediriger vers l'app
-          setTimeout(() => {
-            window.location.href = 'index.html';
-          }, 1000);
-        }
-        
-      } catch (err) {
-        console.error('Erreur:', err);
-        showMessage('❌ Erreur de connexion. Réessayez.', 'error');
-        loginBtn.disabled = false;
-        loginBtn.textContent = '🔓 Se connecter';
-      }
+    const user = data?.user || null;
+    if(user){
+      setPill(true, "Auth: ✅ connecté");
+      msg.textContent = "Connecté en tant que: " + (user.email || user.id);
+      return user;
+    } else {
+      setPill(false, "Auth: ❌ non connecté");
+      msg.textContent = "";
+      return null;
+    }
+  }
+
+  async function sendMagicLink(){
+    const email = (emailInput.value || "").trim();
+    if(!email) return alert("Mets ton email");
+
+    btnSend.disabled = true;
+    msg.textContent = "Envoi du lien…";
+
+    // ✅ Important: redirect back to THIS login page
+    const emailRedirectTo = location.origin + location.pathname; // .../login.html
+
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo }
     });
-  </script>
+
+    btnSend.disabled = false;
+
+    if(error){
+      msg.textContent = "Erreur: " + error.message;
+      return;
+    }
+
+    msg.textContent = "✅ Lien envoyé. Ouvre ton email, clique le lien, puis reviens ici.";
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    await refreshAuth();
+    alert("Déconnecté.");
+  }
+
+  // Listen: after magic link callback, session becomes available
+  sb.auth.onAuthStateChange(async (_event, _session) => {
+    const user = await refreshAuth();
+    if(user){
+      // petite pause pour afficher "connecté", puis go planning
+      setTimeout(()=> location.replace("./planning.html"), 600);
+    }
+  });
+
+  btnSend.addEventListener("click", sendMagicLink);
+  btnLogout.addEventListener("click", logout);
+
+  // init
+  refreshAuth();
+})();
+</script>
 </body>
 </html>
