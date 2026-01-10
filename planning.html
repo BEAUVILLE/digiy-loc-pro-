@@ -121,10 +121,20 @@
     loading.style.display = "none";
     app.style.display = "block";
   })();
-})();
 </script>
-
 <script src="./ui.js"></script>
+  <script>console.log("PLANNING: start");</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./guard.js"></script>
+<script>
+  console.log("PLANNING: guard loaded", typeof window.DIGIY_GUARD);
+  DIGIY_GUARD.boot({
+    module: "LOC",
+    dashboard: "./planning.html",
+    login: "./login.html",
+    pay: "https://beauville.github.io/commencer-a-payer/"
+  });
+</script>
 </body>
 </html>
 
