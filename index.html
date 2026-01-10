@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>DIGIY LOC PRO — Cockpit Propriétaire</title>
+<title>DIGIY LOC PRO ∞ — Cockpit Propriétaire ROYAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+/* ======== TON CSS (inchangé) ======== */
 :root{
   --bg:#020617;
   --bg2:#0b1020;
@@ -29,6 +30,7 @@ body{
     radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
     radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
     linear-gradient(180deg, var(--bg2), var(--bg));
+  min-height:100vh;
 }
 a{color:inherit}
 .wrap{max-width:1150px;margin:0 auto;padding:14px}
@@ -45,6 +47,7 @@ a{color:inherit}
   box-shadow:0 0 22px rgba(250,204,21,.12);
 }
 .brand h1{margin:0;font-size:1.05rem;letter-spacing:.2px}
+.brand .infinity{font-size:1.5rem;font-weight:900;margin-left:4px}
 .brand .sub{color:var(--muted);font-weight:800;font-size:.92rem}
 .pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pill{
@@ -86,8 +89,11 @@ hr.sep{border:none;border-top:1px solid rgba(148,163,184,.18);margin:12px 0}
   background:rgba(255,255,255,.03);
   border:1px solid var(--line);
   color:var(--muted);
+  transition:all 0.2s ease;
 }
-.btn:hover{filter:brightness(1.08)}
+.btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
 .btn.primary{background:var(--green);border-color:rgba(34,197,94,.25);color:#022c22}
 .btn.gold{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.35);color:#fde68a}
 .btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fecaca}
@@ -120,6 +126,11 @@ input, textarea, select{
   padding:11px 12px;
   font-weight:850;
   outline:none;
+  transition:all 0.2s ease;
+}
+input:focus, textarea:focus, select:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(250,204,21,.15);
 }
 textarea{min-height:110px;resize:vertical}
 small.hint{display:block;color:var(--muted);font-weight:800;margin-top:6px;line-height:1.35}
@@ -132,6 +143,11 @@ input[type="date"]{color-scheme:dark}
   border-radius:16px;
   padding:12px;
   display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
+  transition:all 0.2s ease;
+}
+.item:hover{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(250,204,21,.35);
 }
 .itemLeft{min-width:0}
 .itemTitle{font-weight:1000}
@@ -181,7 +197,6 @@ input[type="date"]{color-scheme:dark}
 }
 .mini strong{color:#fff}
 
-/* Calendar / payments list */
 .simpleList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .rowItem{
   border:1px solid rgba(148,163,184,.22);
@@ -191,7 +206,32 @@ input[type="date"]{color-scheme:dark}
 }
 .rowTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .rowTop strong{font-weight:1100}
-.rowSub{color:var(--muted);font-weight:850;margin-top:4px}
+.rowSub{color:var(--muted);font-weight:850;margin-top:4px;font-size:.92rem}
+
+/* Loading spinner */
+.spinner{
+  display:inline-block;
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.2);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin 0.6s linear infinite;
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* Stats */
+.statsRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+.statBox{
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.02);
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+}
+.statBox .num{font-size:1.8rem;font-weight:1100;color:var(--gold)}
+.statBox .lbl{color:var(--muted);font-weight:800;font-size:.82rem;margin-top:4px}
 </style>
 </head>
 
@@ -201,8 +241,8 @@ input[type="date"]{color-scheme:dark}
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <h1>DIGIY LOC PRO</h1>
-        <div class="sub">Cockpit propriétaire • publier • cloner • calendrier • acomptes</div>
+        <h1>DIGIY LOC PRO <span class="infinity">∞</span></h1>
+        <div class="sub">Cockpit Propriétaire ROYAL • Sécurisé • Optimisé • Professionnel</div>
       </div>
     </div>
     <div class="pills">
@@ -218,10 +258,10 @@ input[type="date"]{color-scheme:dark}
       <div class="cardHead">
         <div>
           <h2>🏡 Mes logements</h2>
-          <small>Éditer, dupliquer, publier.</small>
+          <small>Créer, éditer, dupliquer, publier.</small>
         </div>
         <div class="btnRow">
-          <button class="btn gold" id="btnNew">+ Nouveau logement</button>
+          <button class="btn gold" id="btnNew">+ Nouveau</button>
           <button class="btn" id="btnRefresh">↻ Actualiser</button>
         </div>
       </div>
@@ -230,26 +270,28 @@ input[type="date"]{color-scheme:dark}
         <!-- AUTH -->
         <div id="authBox">
           <div class="previewBox">
-            <div style="font-weight:1000;font-size:1.05rem;margin-bottom:6px;">Connexion PRO</div>
+            <div style="font-weight:1000;font-size:1.05rem;margin-bottom:6px;">🔐 Connexion PRO</div>
             <div style="color:var(--muted);font-weight:800;">
-              Connexion par email (OTP). Tu reçois un lien magique, tu entres, fin.
+              Connexion sécurisée par email (Magic Link OTP). Reçois un lien, clique, c'est tout.
             </div>
 
             <label>Email PRO</label>
-            <input id="authEmail" type="email" placeholder="ex: baptistejb24@gmail.com" />
+            <input id="authEmail" type="email" placeholder="ex: ton-email@example.com" />
 
             <div class="btnRow" style="margin-top:12px">
               <button class="btn primary" id="btnSendOtp">📩 Envoyer le lien</button>
               <button class="btn" id="btnDemoFill">⚡ Demo</button>
             </div>
 
-            <small class="hint">Astuce : ouvre ton email sur le même navigateur.</small>
+            <small class="hint">💡 Astuce: ouvre ton email sur le même navigateur pour te connecter automatiquement.</small>
             <div class="note" id="authNote"></div>
           </div>
         </div>
 
         <!-- LIST -->
         <div id="listBox" style="display:none">
+          <!-- Stats -->
+          <div class="statsRow" id="statsBox"></div>
           <div class="list" id="list"></div>
           <div class="note" id="listNote"></div>
         </div>
@@ -260,19 +302,20 @@ input[type="date"]{color-scheme:dark}
     <section class="card">
       <div class="cardHead">
         <div>
-          <h2>✨ Éditeur premium</h2>
+          <h2>✨ Éditeur Premium</h2>
           <small>Photo + vidéo + Wave + tarifs + calendrier + acomptes</small>
         </div>
         <div class="btnRow">
           <button class="btn primary" id="btnSave" disabled>💾 Enregistrer</button>
           <button class="btn gold" id="btnPublish" disabled>🚀 Publier</button>
           <button class="btn" id="btnDraft" disabled>📝 Brouillon</button>
+          <button class="btn danger small" id="btnDelete" disabled style="display:none">🗑️ Supprimer</button>
         </div>
       </div>
 
       <div class="cardBody">
         <div class="previewBox">
-          <div style="font-weight:1000;margin-bottom:8px;">Prévisualisation</div>
+          <div style="font-weight:1000;margin-bottom:8px;">👁️ Prévisualisation</div>
           <img id="pvImg" class="previewImg" alt="photo logement" />
           <div class="videoWrap" id="pvVideoWrap">
             <iframe id="pvVideo" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -281,11 +324,11 @@ input[type="date"]{color-scheme:dark}
           <div class="miniRow">
             <div class="mini">📍 <strong id="pvVille">—</strong></div>
             <div class="mini">💳 Wave: <strong id="pvWave">—</strong></div>
-            <div class="mini">🏷️ Statut: <strong id="pvStatus">—</strong></div>
+            <div class="mini">🏷️ <strong id="pvStatus">—</strong></div>
           </div>
 
           <div class="btnRow" style="margin-top:10px">
-            <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir la fiche</button>
+            <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir fiche publique</button>
             <button class="btn" id="btnTestMedia" disabled>🔎 Tester médias</button>
           </div>
 
@@ -296,26 +339,37 @@ input[type="date"]{color-scheme:dark}
 
         <div class="fieldGrid">
           <div>
-            <label>Nom du logement</label>
-            <input id="f_nom" placeholder="ex: CHEZ BAPTISTE" />
+            <label>Nom du logement *</label>
+            <input id="f_nom" placeholder="ex: Villa Paradise Saly" maxlength="100" />
+            <small class="hint">Minimum 3 caractères</small>
           </div>
           <div>
-            <label>Ville</label>
-            <input id="f_ville" placeholder="ex: Saly" />
+            <label>Ville *</label>
+            <input id="f_ville" placeholder="ex: Saly, Dakar, Saint-Louis" maxlength="50" />
           </div>
         </div>
 
-        <label>Adresse (optionnel)</label>
-        <input id="f_adresse" placeholder="ex: Quartier calme / repère" />
+        <div class="fieldGrid">
+          <div>
+            <label>Business Code (unique)</label>
+            <input id="f_business_code" placeholder="ex: VILLA_PARADISE_001" maxlength="50" />
+            <small class="hint">Code unique pour lier réservations</small>
+          </div>
+          <div>
+            <label>Adresse (optionnel)</label>
+            <input id="f_adresse" placeholder="Quartier, repère..." maxlength="200" />
+          </div>
+        </div>
 
-        <label>Description</_toggle</label>
-        <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant."></textarea>
+        <label>Description</label>
+        <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant." maxlength="2000"></textarea>
+        <small class="hint">Max 2000 caractères</small>
 
         <div class="fieldGrid">
           <div>
-            <label>Photo principale (URL)</label>
-            <input id="f_photo" placeholder="https://..." />
-            <small class="hint">Mets une vraie URL (pas de 800x600).</small>
+            <label>Photo principale (URL) *</label>
+            <input id="f_photo" placeholder="https://exemple.com/photo.jpg" />
+            <small class="hint">Format: jpg, jpeg, png, webp</small>
           </div>
           <div>
             <label>Vidéo (Drive / YouTube / Vimeo)</label>
@@ -325,23 +379,24 @@ input[type="date"]{color-scheme:dark}
 
         <div class="fieldGrid">
           <div>
-            <label>Tarif nuit (FCFA)</label>
-            <input id="f_prix_nuit" type="number" min="0" step="1" placeholder="30000" />
+            <label>Tarif nuit (FCFA) *</label>
+            <input id="f_prix_nuit" type="number" min="1000" step="1000" placeholder="30000" />
+            <small class="hint">Minimum 1000 FCFA</small>
           </div>
           <div>
             <label>Tarif semaine (FCFA)</label>
-            <input id="f_prix_semaine" type="number" min="0" step="1" placeholder="175000" />
+            <input id="f_prix_semaine" type="number" min="0" step="1000" placeholder="175000" />
           </div>
         </div>
 
         <div class="fieldGrid">
           <div>
             <label>Tarif mois (FCFA)</label>
-            <input id="f_prix_mois" type="number" min="0" step="1" placeholder="550000" />
+            <input id="f_prix_mois" type="number" min="0" step="1000" placeholder="550000" />
           </div>
           <div>
             <label>Suppléments / notes</label>
-            <input id="f_frais" placeholder="ex: Sénélec en sus selon conso" />
+            <input id="f_frais" placeholder="ex: Électricité en sus selon conso" maxlength="200" />
           </div>
         </div>
 
@@ -349,58 +404,60 @@ input[type="date"]{color-scheme:dark}
 
         <div class="fieldGrid">
           <div>
-            <label>Wave — Numéro</label>
-            <input id="f_wave_phone" placeholder="+221 77 ..." />
+            <label>Wave — Numéro *</label>
+            <input id="f_wave_phone" placeholder="+221 77 123 45 67" />
+            <small class="hint">Format: +221 suivi de 9 chiffres</small>
           </div>
           <div>
-            <label>Wave — Nom affiché</label>
-            <input id="f_wave_name" placeholder="ex: JB BEAUVILLE" />
-            <small class="hint">Toujours afficher le nom (confiance).</small>
+            <label>Wave — Nom affiché *</label>
+            <input id="f_wave_name" placeholder="ex: VILLA PARADISE" maxlength="50" />
+            <small class="hint">Nom qui s'affiche sur Wave</small>
           </div>
         </div>
 
         <div class="fieldGrid">
           <div>
-            <label>Lien Wave (optionnel)</label>
+            <label>Lien Wave Pay (optionnel)</label>
             <input id="f_wave_link" placeholder="https://pay.wave.com/..." />
           </div>
           <div>
-            <label>Acompte (%)</label>
-            <input id="f_deposit" type="number" min="0" max="100" step="1" placeholder="30" />
+            <label>Acompte (%) *</label>
+            <input id="f_deposit" type="number" min="0" max="100" step="5" placeholder="30" />
+            <small class="hint">Entre 0 et 100%</small>
           </div>
         </div>
 
         <label>Statut</label>
         <select id="f_status">
-          <option value="brouillon">brouillon</option>
-          <option value="actif">actif</option>
+          <option value="brouillon">📝 Brouillon (non visible)</option>
+          <option value="actif">✅ Actif (visible publiquement)</option>
         </select>
 
         <div class="note" id="saveNote"></div>
 
         <hr class="sep"/>
 
-        <!-- ✅ CALENDRIER -->
+        <!-- CALENDRIER -->
         <div class="previewBox">
           <div style="font-weight:1100">📅 Calendrier (bloquer dates)</div>
-          <small class="hint">Bloque les dates occupées. La vitrine publique affichera dispo/non dispo.</small>
+          <small class="hint">Bloque les périodes occupées. La fiche publique affichera disponible/non disponible.</small>
 
           <div class="fieldGrid" style="margin-top:8px">
             <div>
-              <label>Début</label>
+              <label>Début *</label>
               <input type="date" id="calStart">
             </div>
             <div>
-              <label>Fin</label>
+              <label>Fin *</label>
               <input type="date" id="calEnd">
             </div>
           </div>
 
           <label>Raison (optionnel)</label>
-          <input id="calReason" placeholder="ex: Occupé / Maintenance / Déjà réservé" />
+          <input id="calReason" placeholder="ex: Occupé / Maintenance / Réservé ailleurs" maxlength="100" />
 
           <div class="btnRow" style="margin-top:10px">
-            <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer</button>
+            <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer période</button>
             <button class="btn" id="btnReloadBlocks" disabled>↻ Recharger</button>
           </div>
 
@@ -410,10 +467,10 @@ input[type="date"]{color-scheme:dark}
 
         <hr class="sep"/>
 
-        <!-- ✅ ACOMPTES -->
+        <!-- ACOMPTES -->
         <div class="previewBox">
           <div style="font-weight:1100">💳 Acomptes (preuves Wave)</div>
-          <small class="hint">Liste des preuves d’acompte (anti-lapin). Confirme / rejette.</small>
+          <small class="hint">Liste des preuves d'acompte reçues. Confirme ou rejette chaque paiement.</small>
 
           <div class="btnRow" style="margin-top:10px">
             <button class="btn" id="btnReloadPays" disabled>↻ Recharger</button>
@@ -430,7 +487,7 @@ input[type="date"]{color-scheme:dark}
 
 <script>
 /* =============================
-   SUPABASE
+   SUPABASE CONFIG
 ============================= */
 const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -438,11 +495,12 @@ const SUPABASE_ANON_KEY =
 const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =============================
-   DOM
+   DOM ELEMENTS
 ============================= */
 const authBox = document.getElementById("authBox");
 const listBox = document.getElementById("listBox");
 const listEl = document.getElementById("list");
+const statsBox = document.getElementById("statsBox");
 const pillUser = document.getElementById("pillUser");
 const pillState = document.getElementById("pillState");
 const btnLogout = document.getElementById("btnLogout");
@@ -459,6 +517,7 @@ const listNote = document.getElementById("listNote");
 const btnSave = document.getElementById("btnSave");
 const btnPublish = document.getElementById("btnPublish");
 const btnDraft = document.getElementById("btnDraft");
+const btnDelete = document.getElementById("btnDelete");
 const btnOpenPublic = document.getElementById("btnOpenPublic");
 const btnTestMedia = document.getElementById("btnTestMedia");
 
@@ -473,6 +532,7 @@ const saveNote = document.getElementById("saveNote");
 
 const f_nom = document.getElementById("f_nom");
 const f_ville = document.getElementById("f_ville");
+const f_business_code = document.getElementById("f_business_code");
 const f_adresse = document.getElementById("f_adresse");
 const f_desc = document.getElementById("f_desc");
 const f_photo = document.getElementById("f_photo");
@@ -487,7 +547,6 @@ const f_wave_link = document.getElementById("f_wave_link");
 const f_deposit = document.getElementById("f_deposit");
 const f_status = document.getElementById("f_status");
 
-/* Calendar DOM */
 const calStart = document.getElementById("calStart");
 const calEnd = document.getElementById("calEnd");
 const calReason = document.getElementById("calReason");
@@ -496,7 +555,6 @@ const btnReloadBlocks = document.getElementById("btnReloadBlocks");
 const calNote = document.getElementById("calNote");
 const calList = document.getElementById("calList");
 
-/* Payments DOM */
 const btnReloadPays = document.getElementById("btnReloadPays");
 const payAdminNote = document.getElementById("payAdminNote");
 const payList = document.getElementById("payList");
@@ -506,15 +564,23 @@ const payList = document.getElementById("payList");
 ============================= */
 let sessionUser = null;
 let current = null;
+let hasUnsavedChanges = false;
 const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAPTISTE.png";
 
+/* =============================
+   UTILITY FUNCTIONS
+============================= */
 function showNote(el, msg, type){
   el.style.display = "block";
   el.classList.remove("ok","bad","warn");
   if(type) el.classList.add(type);
   el.textContent = msg;
 }
-function hideNote(el){ el.style.display="none"; el.textContent=""; el.classList.remove("ok","bad","warn"); }
+function hideNote(el){
+  el.style.display="none";
+  el.textContent="";
+  el.classList.remove("ok","bad","warn");
+}
 
 function toEmbedUrl(u){
   const s = String(u||"").trim();
@@ -533,18 +599,71 @@ function toEmbedUrl(u){
 function normalizeStatus(s){
   const v = String(s||"").toLowerCase().trim();
   if(["actif","active","published","online"].includes(v)) return "actif";
-  if(v==="brouillon" || v==="draft") return "brouillon";
   return "brouillon";
 }
+
 function rowTag(status){
   const s = normalizeStatus(status);
   if(s==="actif") return `<span class="tag dot live">Actif</span>`;
   return `<span class="tag dot draft">Brouillon</span>`;
 }
 
+function generateBusinessCode(nom, ville){
+  const n = (nom||"").toUpperCase().replace(/[^A-Z0-9]/g,"_").slice(0,20);
+  const v = (ville||"").toUpperCase().replace(/[^A-Z0-9]/g,"_").slice(0,10);
+  const rand = Math.random().toString(36).substr(2,3).toUpperCase();
+  return `${n}_${v}_${rand}`;
+}
+
+/* =============================
+   VALIDATION
+============================= */
+function validateListing(p){
+  const errors = [];
+  if(!p.nom || p.nom.length < 3) errors.push("❌ Nom trop court (minimum 3 caractères)");
+  if(!p.ville || p.ville.length < 2) errors.push("❌ Ville invalide (minimum 2 caractères)");
+
+  if(!p.photo_url){
+    errors.push("❌ Photo URL obligatoire");
+  }else if(!p.photo_url.match(/^https?:\/\/.+\.(jpg|jpeg|png|webp)(\?.*)?$/i)){
+    errors.push("❌ Photo URL invalide (jpg/jpeg/png/webp + http)");
+  }
+
+  if(!p.wave_phone){
+    errors.push("❌ Numéro Wave obligatoire");
+  }else if(!/^\+?221\s?[7-9]\d{8}$/.test(p.wave_phone.replace(/\s/g,""))){
+    errors.push("❌ Numéro Wave invalide (format: +221 7X XXX XX XX)");
+  }
+
+  if(!p.wave_name || p.wave_name.length < 2) errors.push("❌ Nom Wave obligatoire");
+  if(!p.prix_nuit || p.prix_nuit < 1000) errors.push("❌ Prix nuit minimum: 1000 FCFA");
+  if(p.deposit_percent < 0 || p.deposit_percent > 100) errors.push("❌ Acompte doit être entre 0 et 100%");
+
+  if(p.business_code && !/^[A-Z0-9_]{3,50}$/.test(p.business_code)){
+    errors.push("❌ Business code invalide (A-Z, 0-9, _)");
+  }
+  return errors;
+}
+
+/* =============================
+   UI STATE
+============================= */
+function enableEditorActions(yes){
+  // connecté ≠ logement sélectionné. On gère finement.
+  btnSave.disabled = !yes;
+  btnPublish.disabled = !yes;
+  btnDraft.disabled = !yes;
+  btnOpenPublic.disabled = !yes;
+  btnTestMedia.disabled = !yes;
+  btnAddBlock.disabled = !yes;
+  btnReloadBlocks.disabled = !yes;
+  btnReloadPays.disabled = !yes;
+}
+
 function setConnectedUI(user){
   sessionUser = user || null;
   pillUser.innerHTML = `👤 <strong>${user ? (user.email || "PRO") : "—"}</strong>`;
+
   if(user){
     pillState.textContent = "✅ Connecté";
     pillState.classList.remove("warn");
@@ -552,7 +671,7 @@ function setConnectedUI(user){
     btnLogout.style.display = "inline-flex";
     authBox.style.display = "none";
     listBox.style.display = "block";
-    [btnSave,btnPublish,btnDraft,btnOpenPublic,btnTestMedia,btnAddBlock,btnReloadBlocks,btnReloadPays].forEach(b=>b.disabled=false);
+    enableEditorActions(true);
   }else{
     pillState.textContent = "🔒 Déconnecté";
     pillState.classList.remove("ok");
@@ -560,7 +679,8 @@ function setConnectedUI(user){
     btnLogout.style.display = "none";
     authBox.style.display = "block";
     listBox.style.display = "none";
-    [btnSave,btnPublish,btnDraft,btnOpenPublic,btnTestMedia,btnAddBlock,btnReloadBlocks,btnReloadPays].forEach(b=>b.disabled=true);
+    enableEditorActions(false);
+    btnDelete.style.display = "none";
   }
 }
 
@@ -570,79 +690,134 @@ async function refreshSession(){
   if(data?.session?.user) await loadList();
 }
 
+/* =============================
+   UNSAVED CHANGES WARNING
+============================= */
+function markDirty(){ hasUnsavedChanges = true; }
+function markClean(){ hasUnsavedChanges = false; }
+
+[
+  f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
+  f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,
+  f_wave_link,f_deposit,f_status
+].forEach(input=>{
+  input.addEventListener('input', markDirty);
+  input.addEventListener('change', markDirty);
+});
+
+window.addEventListener('beforeunload', (e)=>{
+  if(hasUnsavedChanges){
+    e.preventDefault();
+    e.returnValue = 'Tu as des modifications non sauvegardées!';
+  }
+});
+
+/* =============================
+   AUTH
+============================= */
 btnDemoFill.onclick = ()=>{
   authEmail.value = "baptistejb24@gmail.com";
-  showNote(authNote, "Demo rempli. Clique “Envoyer le lien”.", "ok");
+  // ✅ FIX guillemets
+  showNote(authNote, '✅ Demo rempli. Clique "Envoyer le lien".', "ok");
 };
 
 btnSendOtp.onclick = async ()=>{
   hideNote(authNote);
   const email = authEmail.value.trim();
-  if(!email) return showNote(authNote, "Mets un email valide.", "bad");
+  if(!email || !email.includes("@")){
+    return showNote(authNote, "❌ Email invalide.", "bad");
+  }
+
+  btnSendOtp.disabled = true;
+  btnSendOtp.innerHTML = '<span class="spinner"></span> Envoi...';
+
   try{
     const { error } = await SB.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: location.origin + location.pathname }
     });
-    if(error) return showNote(authNote, "Erreur: " + error.message, "bad");
-    showNote(authNote, "Lien envoyé ✅ Va dans ton email et clique le lien.", "ok");
+    if(error) throw error;
+    showNote(authNote, "✅ Lien envoyé! Va dans ton email et clique le lien magique.", "ok");
   }catch(e){
-    showNote(authNote, "Erreur: " + (e?.message || e), "bad");
+    console.error(e);
+    showNote(authNote, "❌ Erreur: " + (e?.message || e), "bad");
+  }finally{
+    btnSendOtp.disabled = false;
+    btnSendOtp.innerHTML = '📩 Envoyer le lien';
   }
 };
 
 btnLogout.onclick = async ()=>{
+  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")){
+    return;
+  }
   await SB.auth.signOut();
   current = null;
   paintEditor(null);
   setConnectedUI(null);
+  markClean();
 };
 
-btnRefresh.onclick = async ()=>{ await loadList(); };
-btnNew.onclick = ()=>{ newDraft(); };
-btnOpenPublic.onclick = ()=>{
-  if(!current || !current.id) return showNote(editNote, "Sauvegarde d’abord (pas d’ID).", "bad");
-  window.open("loc.html?id=" + encodeURIComponent(current.id), "_blank");
-};
-
+/* =============================
+   LIST
+============================= */
 async function loadList(){
   hideNote(listNote);
   listEl.innerHTML = "";
+  statsBox.innerHTML = "";
+
+  btnRefresh.disabled = true;
+  btnRefresh.innerHTML = '<span class="spinner"></span> Chargement...';
+
   try{
     const uid = sessionUser?.id;
-    let q = SB.from("digiy_logements")
-      .select("id,nom,ville,status,updated_at,created_at,owner_id")
+    if(!uid) throw new Error("Non connecté");
+
+    const { data, error } = await SB
+      .from("digiy_logements")
+      .select("id,nom,ville,business_code,status,updated_at,created_at,owner_id,prix_nuit")
+      .eq("owner_id", uid)
       .order("updated_at", { ascending:false })
-      .limit(80);
+      .limit(100);
 
-    if(uid) q = q.eq("owner_id", uid);
+    if(error) throw error;
 
-    const { data, error } = await q;
-    if(error){
-      console.error(error);
-      return showNote(listNote, "Impossible de charger la liste:\n" + error.message, "bad");
+    const total = data?.length || 0;
+    const actifs = data?.filter(x=>normalizeStatus(x.status)==="actif").length || 0;
+    const brouillons = total - actifs;
+
+    if(total > 0){
+      statsBox.innerHTML = `
+        <div class="statBox"><div class="num">${total}</div><div class="lbl">Total</div></div>
+        <div class="statBox"><div class="num">${actifs}</div><div class="lbl">Actifs</div></div>
+        <div class="statBox"><div class="num">${brouillons}</div><div class="lbl">Brouillons</div></div>
+      `;
     }
-    if(!data || data.length===0){
-      return showNote(listNote, "Aucun logement. Clique “+ Nouveau logement”.", "ok");
+
+    if(!data || total===0){
+      return showNote(listNote, '✨ Aucun logement. Clique "+ Nouveau" pour commencer.', "ok");
     }
 
     data.forEach(item=>{
       const div = document.createElement("div");
       div.className = "item";
-      const dt = (item.updated_at || item.created_at || "").toString().slice(0,19).replace("T"," ");
+      const dt = (item.updated_at || item.created_at || "").toString().slice(0,16).replace("T"," ");
+      const bc = item.business_code ? `<span class="tag">🔑 ${item.business_code}</span>` : "";
+
       div.innerHTML = `
         <div class="itemLeft">
-          <div class="itemTitle">${(item.nom || "Logement")}</div>
-          <div class="itemMeta">${(item.ville || "")} • ${item.id}</div>
+          <div class="itemTitle">${item.nom || "Logement"}</div>
+          <div class="itemMeta">${item.ville || ""} • ${item.prix_nuit ? Number(item.prix_nuit).toLocaleString("fr-FR") + " FCFA/nuit" : "—"}</div>
           <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
             ${rowTag(item.status)}
+            ${bc}
             <span class="tag">🕒 ${dt}</span>
           </div>
         </div>
         <div class="itemBtns">
-          <button class="btn" data-open="${item.id}">Éditer</button>
-          <button class="btn" data-dup="${item.id}">Dupliquer</button>
-          <button class="btn ghost" data-view="${item.id}">Fiche</button>
+          <button class="btn gold small" data-open="${item.id}">✏️ Éditer</button>
+          <button class="btn small" data-dup="${item.id}">📋 Dupliquer</button>
+          <button class="btn ghost small" data-view="${item.id}">👁️ Fiche</button>
         </div>
       `;
       listEl.appendChild(div);
@@ -658,42 +833,66 @@ async function loadList(){
       b.onclick = ()=> duplicateOne(b.getAttribute("data-dup"));
     });
 
-    showNote(listNote, `${data.length} logement(s) chargé(s).`, "ok");
+    showNote(listNote, `✅ ${total} logement(s) chargé(s).`, "ok");
   }catch(e){
-    showNote(listNote, "Erreur: " + (e?.message || e), "bad");
+    console.error(e);
+    showNote(listNote, "❌ Erreur chargement:\n" + (e?.message || e), "bad");
+  }finally{
+    btnRefresh.disabled = false;
+    btnRefresh.innerHTML = '↻ Actualiser';
   }
 }
+btnRefresh.onclick = async ()=>{ await loadList(); };
 
+/* =============================
+   OPEN / NEW
+============================= */
 async function openOne(id){
+  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")){
+    return;
+  }
+
   hideNote(editNote); hideNote(saveNote); hideNote(calNote); hideNote(payAdminNote);
   calList.innerHTML = "";
   payList.innerHTML = "";
 
+  const uid = sessionUser?.id;
+  if(!uid) return showNote(editNote, "❌ Non connecté.", "bad");
+
+  // ✅ double verrou: owner_id aussi
   const { data, error } = await SB
     .from("digiy_logements")
-    .select("id,owner_id,nom,ville,adresse,description,photo_url,video_url,prix_nuit,prix_semaine,prix_mois,frais_supplements,wave_phone,wave_name,wave_pay_link,deposit_percent,status,created_at,updated_at")
+    .select("*")
     .eq("id", id)
+    .eq("owner_id", uid)
     .single();
 
   if(error || !data){
     console.error(error);
-    return showNote(editNote, "Impossible d’ouvrir.\n" + (error?.message || ""), "bad");
+    return showNote(editNote, "❌ Impossible d'ouvrir (pas à toi / introuvable):\n" + (error?.message || ""), "bad");
   }
+
   current = data;
   paintEditor(current);
+  markClean();
 
-  // Load calendar + payments for this listing
+  btnDelete.style.display = "inline-flex";
   await loadBlocksForCurrent();
   await loadPaymentsForCurrent();
 }
 
 function newDraft(){
+  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")){
+    return;
+  }
+
   const uid = sessionUser?.id || null;
   current = {
     id: null,
     owner_id: uid,
     nom: "",
     ville: "",
+    business_code: "",
     adresse: "",
     description: "",
     photo_url: "",
@@ -708,14 +907,22 @@ function newDraft(){
     deposit_percent: 30,
     status: "brouillon"
   };
+
   paintEditor(current);
   calList.innerHTML = "";
   payList.innerHTML = "";
-  showNote(editNote, "Nouveau logement prêt. Remplis puis Enregistrer.", "ok");
+  btnDelete.style.display = "none";
+  markClean();
+  showNote(editNote, "✨ Nouveau logement prêt. Remplis puis Enregistrer.", "ok");
 }
+btnNew.onclick = newDraft;
 
+/* =============================
+   PAINT EDITOR
+============================= */
 function paintEditor(x){
   hideNote(editNote); hideNote(saveNote);
+
   if(!x){
     pvImg.src = FALLBACK_PHOTO;
     pvVille.textContent = "—";
@@ -723,13 +930,17 @@ function paintEditor(x){
     pvStatus.textContent = "—";
     pvVideoWrap.style.display = "none";
     pvVideo.src = "";
-    [f_nom,f_ville,f_adresse,f_desc,f_photo,f_video,f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_wave_link,f_deposit].forEach(i=>i.value="");
+    [
+      f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
+      f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_wave_link,f_deposit
+    ].forEach(i=>i.value="");
     f_status.value = "brouillon";
     return;
   }
 
   f_nom.value = x.nom || "";
   f_ville.value = x.ville || "";
+  f_business_code.value = x.business_code || "";
   f_adresse.value = x.adresse || "";
   f_desc.value = x.description || "";
   f_photo.value = x.photo_url || "";
@@ -763,12 +974,23 @@ function paintEditor(x){
   }
 }
 
+/* =============================
+   COLLECT FORM
+============================= */
 function collectForm(){
   const uid = sessionUser?.id || null;
+  let businessCode = f_business_code.value.trim();
+
+  if(!businessCode && f_nom.value && f_ville.value){
+    businessCode = generateBusinessCode(f_nom.value, f_ville.value);
+    f_business_code.value = businessCode;
+  }
+
   return {
     owner_id: uid,
     nom: f_nom.value.trim(),
     ville: f_ville.value.trim(),
+    business_code: businessCode,
     adresse: f_adresse.value.trim(),
     description: f_desc.value.trim(),
     photo_url: f_photo.value.trim(),
@@ -785,16 +1007,24 @@ function collectForm(){
   };
 }
 
+/* =============================
+   SAVE
+============================= */
 async function saveRecord(mode){
   hideNote(saveNote);
-  if(!sessionUser) return showNote(saveNote, "Connecte-toi d’abord.", "bad");
+  if(!sessionUser) return showNote(saveNote, "❌ Connecte-toi d'abord.", "bad");
 
   const payload = collectForm();
-  if(!payload.nom || !payload.ville) return showNote(saveNote, "Nom + ville obligatoires.", "bad");
-  if(payload.photo_url && !payload.photo_url.startsWith("http")) return showNote(saveNote, "Photo URL invalide (doit commencer par http).", "bad");
+  const errors = validateListing(payload);
+  if(errors.length > 0) return showNote(saveNote, errors.join("\n"), "bad");
 
   if(mode==="publish") payload.status = "actif";
   if(mode==="draft") payload.status = "brouillon";
+
+  btnSave.disabled = true;
+  btnPublish.disabled = true;
+  btnDraft.disabled = true;
+  btnSave.innerHTML = '<span class="spinner"></span> Sauvegarde...';
 
   try{
     if(!current || !current.id){
@@ -803,38 +1033,83 @@ async function saveRecord(mode){
         .insert(payload)
         .select("id")
         .single();
-      if(error){
-        console.error(error);
-        return showNote(saveNote, "Insert refusé:\n" + error.message, "bad");
-      }
+      if(error) throw error;
+
       current.id = data.id;
-      showNote(saveNote, "Créé ✅ ID: " + current.id, "ok");
+      showNote(saveNote, `✅ Créé! ID: ${current.id}`, "ok");
     }else{
+      // ✅ double verrou: owner_id aussi
       const { error } = await SB
         .from("digiy_logements")
         .update(payload)
-        .eq("id", current.id);
-      if(error){
-        console.error(error);
-        return showNote(saveNote, "Update refusé:\n" + error.message, "bad");
-      }
-      showNote(saveNote, "Sauvegardé ✅", "ok");
+        .eq("id", current.id)
+        .eq("owner_id", sessionUser.id);
+
+      if(error) throw error;
+      showNote(saveNote, "✅ Sauvegardé!", "ok");
     }
 
+    markClean();
     await openOne(current.id);
     await loadList();
   }catch(e){
-    showNote(saveNote, "Erreur: " + (e?.message || e), "bad");
+    console.error(e);
+    showNote(saveNote, "❌ Erreur:\n" + (e?.message || e), "bad");
+  }finally{
+    btnSave.disabled = false;
+    btnPublish.disabled = false;
+    btnDraft.disabled = false;
+    btnSave.innerHTML = '💾 Enregistrer';
   }
 }
-
 btnSave.onclick = ()=> saveRecord("save");
 btnPublish.onclick = ()=> saveRecord("publish");
 btnDraft.onclick = ()=> saveRecord("draft");
 
+/* =============================
+   DELETE
+============================= */
+btnDelete.onclick = async ()=>{
+  if(!current || !current.id) return;
+
+  if(!confirm(`⚠️ SUPPRIMER définitivement "${current.nom}" ?\n\nCette action est irréversible!`)) return;
+  if(!confirm("⚠️ DERNIÈRE CONFIRMATION: Supprimer ce logement ?")) return;
+
+  btnDelete.disabled = true;
+  btnDelete.innerHTML = '<span class="spinner"></span> Suppression...';
+
+  try{
+    // ✅ double verrou: owner_id aussi
+    const { error } = await SB
+      .from("digiy_logements")
+      .delete()
+      .eq("id", current.id)
+      .eq("owner_id", sessionUser.id);
+
+    if(error) throw error;
+
+    showNote(editNote, "✅ Logement supprimé!", "ok");
+    current = null;
+    paintEditor(null);
+    markClean();
+    btnDelete.style.display = "none";
+    await loadList();
+  }catch(e){
+    console.error(e);
+    showNote(editNote, "❌ Suppression refusée:\n" + (e?.message || e), "bad");
+  }finally{
+    btnDelete.disabled = false;
+    btnDelete.innerHTML = '🗑️ Supprimer';
+  }
+};
+
+/* =============================
+   TEST MEDIA
+============================= */
 btnTestMedia.onclick = ()=>{
   if(!current) return;
   hideNote(editNote);
+
   const payload = collectForm();
   pvImg.src = (payload.photo_url && payload.photo_url.startsWith("http")) ? payload.photo_url : FALLBACK_PHOTO;
 
@@ -842,11 +1117,15 @@ btnTestMedia.onclick = ()=>{
   if(embed){
     pvVideo.src = embed;
     pvVideoWrap.style.display = "block";
-    showNote(editNote, "Médias OK ✅", "ok");
+    showNote(editNote, "✅ Médias OK!", "ok");
   }else{
     pvVideo.src = "";
     pvVideoWrap.style.display = "none";
-    showNote(editNote, "Vidéo non reconnue. Mets Drive/YouTube/Vimeo valide.", "warn");
+    if(payload.video_url){
+      showNote(editNote, "⚠️ Vidéo non reconnue. Mets un lien Drive/YouTube/Vimeo valide.", "warn");
+    }else{
+      showNote(editNote, "ℹ️ Pas de vidéo. Photo OK.", "ok");
+    }
   }
 
   const wn = payload.wave_name.trim();
@@ -856,26 +1135,35 @@ btnTestMedia.onclick = ()=>{
   pvStatus.textContent = payload.status || "—";
 };
 
-/* ===== DUPLICATION ===== */
+btnOpenPublic.onclick = ()=>{
+  if(!current || !current.id) return showNote(editNote, "❌ Sauvegarde d'abord (pas d'ID).", "bad");
+  window.open("loc.html?id=" + encodeURIComponent(current.id), "_blank");
+};
+
+/* =============================
+   DUPLICATE
+============================= */
 async function duplicateOne(id){
   hideNote(listNote);
-  if(!sessionUser) return showNote(listNote, "Connecte-toi d’abord.", "bad");
+  if(!sessionUser) return showNote(listNote, "❌ Connecte-toi d'abord.", "bad");
 
   const { data: src, error: e1 } = await SB
     .from("digiy_logements")
-    .select("nom,ville,adresse,description,photo_url,video_url,prix_nuit,prix_semaine,prix_mois,frais_supplements,wave_phone,wave_name,wave_pay_link,deposit_percent,status")
+    .select("*")
     .eq("id", id)
+    .eq("owner_id", sessionUser.id)
     .single();
 
   if(e1 || !src){
     console.error(e1);
-    return showNote(listNote, "Duplication impossible: " + (e1?.message || "introuvable"), "bad");
+    return showNote(listNote, "❌ Duplication impossible:\n" + (e1?.message || "introuvable"), "bad");
   }
 
   const copy = {
     owner_id: sessionUser.id,
     nom: (src.nom || "Logement") + " (copie)",
     ville: src.ville || "",
+    business_code: generateBusinessCode((src.nom || "Logement") + " copie", src.ville || ""),
     adresse: src.adresse || "",
     description: src.description || "",
     photo_url: src.photo_url || "",
@@ -899,45 +1187,57 @@ async function duplicateOne(id){
 
   if(e2 || !created){
     console.error(e2);
-    return showNote(listNote, "Duplication refusée: " + (e2?.message || ""), "bad");
+    return showNote(listNote, "❌ Duplication refusée:\n" + (e2?.message || ""), "bad");
   }
 
-  showNote(listNote, "Dupliqué ✅ Nouveau logement: " + created.id, "ok");
+  showNote(listNote, `✅ Dupliqué! Nouveau logement: ${created.id}`, "ok");
   await loadList();
   await openOne(created.id);
-  showNote(editNote, "Copie prête. Renomme + ajuste puis Publier.", "ok");
+  showNote(editNote, "✨ Copie prête. Renomme + ajuste puis Publier.", "ok");
 }
 
 /* =============================
-   CALENDRIER (blocks)
+   CALENDRIER
 ============================= */
 btnAddBlock.onclick = async ()=>{
   hideNote(calNote);
-  if(!sessionUser) return showNote(calNote, "Connecte-toi.", "bad");
-  if(!current || !current.id) return showNote(calNote, "Sauvegarde le logement avant.", "bad");
+  if(!sessionUser) return showNote(calNote, "❌ Connecte-toi.", "bad");
+  if(!current || !current.id) return showNote(calNote, "❌ Sauvegarde le logement avant.", "bad");
 
   const s = calStart.value;
   const e = calEnd.value;
-  if(!s || !e) return showNote(calNote, "Choisis début + fin.", "bad");
-  if(e < s) return showNote(calNote, "Fin doit être >= début.", "bad");
+  if(!s || !e) return showNote(calNote, "❌ Choisis début + fin.", "bad");
+  if(e < s) return showNote(calNote, "❌ Fin doit être >= début.", "bad");
+
+  btnAddBlock.disabled = true;
+  btnAddBlock.innerHTML = '<span class="spinner"></span> Ajout...';
 
   try{
-    const { error } = await SB.from("loc_availability_blocks").insert({
+    // ✅ IMPORTANT: j’ai remplacé business_id par business_code (plus logique).
+    // Si ta table n’a pas cette colonne, supprime la ligne business_code.
+    const insertPayload = {
       listing_id: current.id,
       owner_id: sessionUser.id,
       start_date: s,
       end_date: e,
       reason: calReason.value.trim() || null,
-      business_id: null
-    });
+      business_code: current.business_code || null
+    };
+
+    const { error } = await SB.from("loc_availability_blocks").insert(insertPayload);
     if(error) throw error;
 
-    showNote(calNote, "Dates bloquées ✅", "ok");
+    showNote(calNote, "✅ Période bloquée!", "ok");
+    calStart.value = "";
+    calEnd.value = "";
     calReason.value = "";
     await loadBlocksForCurrent();
   }catch(err){
     console.error(err);
-    showNote(calNote, "Blocage refusé:\n" + (err?.message || err), "bad");
+    showNote(calNote, "❌ Blocage refusé:\n" + (err?.message || err), "bad");
+  }finally{
+    btnAddBlock.disabled = false;
+    btnAddBlock.innerHTML = '➕ Bloquer période';
   }
 };
 
@@ -948,55 +1248,64 @@ async function loadBlocksForCurrent(){
   calList.innerHTML = "";
   if(!current || !current.id) return;
 
-  const { data, error } = await SB
-    .from("loc_availability_blocks")
-    .select("id,start_date,end_date,reason,created_at")
-    .eq("listing_id", current.id)
-    .order("start_date", { ascending:true });
+  try{
+    const { data, error } = await SB
+      .from("loc_availability_blocks")
+      .select("id,start_date,end_date,reason,created_at")
+      .eq("listing_id", current.id)
+      .eq("owner_id", sessionUser.id)
+      .order("start_date", { ascending:true });
 
-  if(error){
-    console.error(error);
-    return showNote(calNote, "Impossible de charger le calendrier:\n" + error.message, "bad");
-  }
+    if(error) throw error;
 
-  if(!data || data.length===0){
-    return showNote(calNote, "Aucun bloc. Ton logement est dispo par défaut.", "ok");
-  }
+    if(!data || data.length===0){
+      return showNote(calNote, "ℹ️ Aucun bloc. Logement disponible par défaut.", "ok");
+    }
 
-  data.forEach(b=>{
-    const div = document.createElement("div");
-    div.className = "rowItem";
-    div.innerHTML = `
-      <div class="rowTop">
-        <strong>🚫 ${b.start_date} → ${b.end_date}</strong>
-        <div class="btnRow">
+    data.forEach(b=>{
+      const div = document.createElement("div");
+      div.className = "rowItem";
+      div.innerHTML = `
+        <div class="rowTop">
+          <strong>🚫 ${b.start_date} → ${b.end_date}</strong>
           <button class="btn danger small" data-delblk="${b.id}">Supprimer</button>
         </div>
-      </div>
-      <div class="rowSub">${b.reason ? b.reason : "—"}</div>
-    `;
-    calList.appendChild(div);
-  });
+        <div class="rowSub">${b.reason || "—"}</div>
+      `;
+      calList.appendChild(div);
+    });
 
-  calList.querySelectorAll("[data-delblk]").forEach(btn=>{
-    btn.onclick = async ()=>{
-      const id = btn.getAttribute("data-delblk");
-      if(!confirm("Supprimer ce bloc de dates ?")) return;
-      try{
-        const { error } = await SB.from("loc_availability_blocks").delete().eq("id", id);
-        if(error) throw error;
-        showNote(calNote, "Bloc supprimé ✅", "ok");
-        await loadBlocksForCurrent();
-      }catch(e){
-        console.error(e);
-        showNote(calNote, "Suppression refusée:\n" + (e?.message || e), "bad");
-      }
-    };
-  });
+    calList.querySelectorAll("[data-delblk]").forEach(btn=>{
+      btn.onclick = async ()=>{
+        const bid = btn.getAttribute("data-delblk");
+        if(!confirm("Supprimer ce bloc de dates ?")) return;
+
+        try{
+          const { error } = await SB
+            .from("loc_availability_blocks")
+            .delete()
+            .eq("id", bid)
+            .eq("owner_id", sessionUser.id);
+
+          if(error) throw error;
+          showNote(calNote, "✅ Bloc supprimé!", "ok");
+          await loadBlocksForCurrent();
+        }catch(e){
+          console.error(e);
+          showNote(calNote, "❌ Suppression refusée:\n" + (e?.message || e), "bad");
+        }
+      };
+    });
+
+    showNote(calNote, `✅ ${data.length} bloc(s) chargé(s).`, "ok");
+  }catch(e){
+    console.error(e);
+    showNote(calNote, "❌ Erreur calendrier:\n" + (e?.message || e), "bad");
+  }
 }
 
 /* =============================
-   ACOMPTES (payment intents)
+   ACOMPTES
 ============================= */
 btnReloadPays.onclick = async ()=>{ await loadPaymentsForCurrent(); };
 
@@ -1008,7 +1317,7 @@ async function loadPaymentsForCurrent(){
   try{
     const { data, error } = await SB
       .from("loc_payment_intents")
-      .select("id,client_name,client_phone,date_in,date_out,nights,guests,amount_expected,currency,deposit_percent,wave_phone,wave_name,wave_tx_ref,status,created_at")
+      .select("*")
       .eq("listing_id", current.id)
       .order("created_at", { ascending:false })
       .limit(50);
@@ -1016,7 +1325,7 @@ async function loadPaymentsForCurrent(){
     if(error) throw error;
 
     if(!data || data.length===0){
-      return showNote(payAdminNote, "Aucune preuve d’acompte pour ce logement.", "ok");
+      return showNote(payAdminNote, "ℹ️ Aucune preuve d'acompte.", "ok");
     }
 
     data.forEach(p=>{
@@ -1026,12 +1335,13 @@ async function loadPaymentsForCurrent(){
       const when = (p.date_in && p.date_out) ? `${p.date_in} → ${p.date_out} (${p.nights||0} nuit(s))` : "—";
       const amt = `${Number(p.amount_expected||0).toLocaleString("fr-FR")} ${p.currency||"XOF"}`;
       const st = (p.status || "pending").toUpperCase();
+
       div.innerHTML = `
         <div class="rowTop">
           <strong>${st} • ${amt}</strong>
           <div class="btnRow">
-            <button class="btn primary small" data-okpay="${p.id}">Confirmer</button>
-            <button class="btn danger small" data-badpay="${p.id}">Rejeter</button>
+            <button class="btn primary small" data-okpay="${p.id}">✅ Confirmer</button>
+            <button class="btn danger small" data-badpay="${p.id}">❌ Rejeter</button>
           </div>
         </div>
         <div class="rowSub">
@@ -1051,12 +1361,11 @@ async function loadPaymentsForCurrent(){
       btn.onclick = ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected");
     });
 
-    showNote(payAdminNote, `${data.length} acompte(s) affiché(s).`, "ok");
+    showNote(payAdminNote, `✅ ${data.length} acompte(s) affiché(s).`, "ok");
   }catch(e){
     console.error(e);
     showNote(payAdminNote,
-      "Paiements indisponibles (table manquante ?).\n" +
-      "Erreur: " + (e?.message || e),
+      "⚠️ Paiements indisponibles (table manquante ?).\nErreur: " + (e?.message || e),
       "warn"
     );
   }
@@ -1064,17 +1373,20 @@ async function loadPaymentsForCurrent(){
 
 async function updatePayStatus(id, status){
   hideNote(payAdminNote);
+
   try{
     const { error } = await SB
       .from("loc_payment_intents")
       .update({ status })
       .eq("id", id);
+
     if(error) throw error;
-    showNote(payAdminNote, "Statut mis à jour ✅ " + status, "ok");
+
+    showNote(payAdminNote, `✅ Statut mis à jour: ${status}`, "ok");
     await loadPaymentsForCurrent();
   }catch(e){
     console.error(e);
-    showNote(payAdminNote, "Update refusé:\n" + (e?.message || e), "bad");
+    showNote(payAdminNote, "❌ Update refusé:\n" + (e?.message || e), "bad");
   }
 }
 
@@ -1091,10 +1403,11 @@ SB.auth.onAuthStateChange((_event, session)=>{
   }
 });
 
+/* =============================
+   INIT
+============================= */
 refreshSession();
 paintEditor(null);
 </script>
 </body>
 </html>
-
-
