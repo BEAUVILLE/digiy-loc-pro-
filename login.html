@@ -3,9 +3,12 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>DIGIY LOC • PRO — Connexion (PIN)</title>
+  <title>DIGIY LOC • PRO — Accès par PIN</title>
   <meta name="theme-color" content="#16a34a"/>
+
+  <!-- Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./guard.js?v=locpro-1"></script>
 
   <style>
     :root{
@@ -14,369 +17,164 @@
       --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
       --radius:18px;
     }
-    body{
-      margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%), var(--bg);
-      color:var(--text);
-      display:flex; align-items:center; justify-content:center;
-      padding:18px;
-    }
-    .wrap{width:min(720px, 100%);}
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:0 20px 55px rgba(0,0,0,.35);
-    }
-    h1{margin:4px 0 6px; font-size:20px}
-    .muted{color:var(--muted)}
-    .grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px}
-    .row{display:flex; gap:10px; flex-wrap:wrap}
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text); }
+    .wrap{ max-width:860px; margin:0 auto; padding:16px; }
+    .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
+    h1{ margin:0 0 6px; font-size:18px; }
+    p{ margin:6px 0; color:var(--muted); line-height:1.35; }
+    label{ display:block; margin:10px 0 6px; color:var(--muted); font-weight:700; }
     input{
-      width:100%;
-      padding:12px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      outline:none;
-      font-weight:800;
-      letter-spacing:.2px;
+      width:100%; box-sizing:border-box;
+      border:1px solid var(--line); background:rgba(0,0,0,.15);
+      color:var(--text); padding:12px 12px; border-radius:14px;
+      outline:none; font-size:16px;
     }
-    input::placeholder{color:rgba(234,255,241,.55)}
-    button{
-      cursor:pointer;
-      padding:12px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.08);
-      color:var(--text);
-      font-weight:900;
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .btn{
+      border:1px solid var(--line); background:transparent; color:var(--text);
+      padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:800;
     }
-    button.primary{
-      border-color:rgba(34,197,94,.55);
-      background:rgba(34,197,94,.16);
-    }
-    button:disabled{opacity:.55; cursor:not-allowed}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.18);
-      font-size:12px;
-      font-weight:900;
-    }
-    .ok{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.12)}
-    .bad{border-color:rgba(239,68,68,.55); background:rgba(239,68,68,.12)}
-    .warn{border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.12)}
-    .small{font-size:12px}
-    .sep{height:1px; background:var(--line); margin:14px 0}
-    code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px}
+    .btn.ok{ border-color:rgba(34,197,94,.6); }
+    .btn.bad{ border-color:rgba(239,68,68,.55); }
+    .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:999px; }
+    .status{ margin-top:10px; font-weight:800; }
+    .status.ok{ color:var(--ok); }
+    .status.bad{ color:var(--bad); }
+    .status.warn{ color:var(--warn); }
+    a{ color:var(--text); text-decoration:none; border-bottom:1px dashed rgba(234,255,241,.45); }
+    .small{ font-size:13px; color:var(--muted); }
+    .sep{ height:10px; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🔐 DIGIY LOC • PRO — Accès par PIN</h1>
-      <div class="muted">
-        Connexion terrain : <b>téléphone WhatsApp</b> + <b>PIN</b>.
-        Pas d’email. Pas de magie. Juste du solide.
+      <div class="row">
+        <div>
+          <h1>🔐 DIGIY LOC • PRO — Accès par PIN</h1>
+          <p>Connexion terrain : téléphone WhatsApp + PIN. Pas d’email. Pas de magie. Juste du solide.</p>
+        </div>
+        <span class="pill" id="pillSlug">slug: —</span>
       </div>
 
       <div class="sep"></div>
 
-      <div class="grid">
-        <div class="row">
-          <div class="pill warn" id="pill">État: PIN requis</div>
-          <div class="pill" id="hint">Astuce: PIN 4–8 chiffres</div>
-        </div>
-
-        <div>
-          <label class="small muted">Téléphone (Sénégal)</label>
-          <input id="phone" type="tel" placeholder="+221771234567" inputmode="tel" autocomplete="tel"/>
-          <div class="muted small">Format conseillé: <code>+221XXXXXXXXX</code></div>
-        </div>
-
-        <div>
-          <label class="small muted">PIN</label>
-          <input id="pin" type="password" placeholder="••••" inputmode="numeric" autocomplete="current-password"/>
-        </div>
-
-        <div class="row">
-          <button class="primary" id="btnLogin">✅ Entrer</button>
-          <button id="btnClear">🧹 Clear</button>
-        </div>
-
-        <div class="muted small" id="msg"></div>
-
-        <div class="sep"></div>
-
-        <div class="muted small">
-          <b>Entrer</b> ouvre LOC PRO si ton abonnement est actif.
-          <br/>Si ton PIN est faux → accès refusé.
-        </div>
+      <div class="row">
+        <div class="pill">État: <span id="etat">—</span></div>
+        <div class="pill">Astuce: PIN 4–8 chiffres</div>
       </div>
+
+      <label for="phone">Téléphone (Sénégal)</label>
+      <input id="phone" inputmode="tel" autocomplete="tel" placeholder="+221771234567"/>
+      <div class="small">Format conseillé: +221XXXXXXXXX</div>
+
+      <label for="pin">PIN</label>
+      <input id="pin" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" />
+
+      <div class="sep"></div>
+
+      <div class="row">
+        <button class="btn ok" id="btnEnter">✅ Entrer</button>
+        <button class="btn" id="btnClear">🧹 Clear</button>
+        <button class="btn bad" id="btnForgot">❓ PIN oublié</button>
+      </div>
+
+      <div class="status warn" id="status">PIN requis</div>
+      <div class="small" id="hint"></div>
     </div>
   </div>
 
-<script>
-(function(){
-  "use strict";
+  <script>
+    (function(){
+      const $ = (id)=>document.getElementById(id);
 
-  // =============================
-  // SUPABASE (OK)
-  // =============================
-  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+      function setEtat(t){ $("etat").textContent = t; }
+      function setStatus(msg, cls){
+        $("status").textContent = msg;
+        $("status").className = "status " + (cls || "warn");
+      }
+      function setHint(msg){ $("hint").textContent = msg || ""; }
 
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Guard required
+      if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.loginWithPin !== "function"){
+        setEtat("Guard absent");
+        setStatus("Erreur: guard.js non chargé (DIGIY_GUARD introuvable).", "bad");
+        setHint("Vérifie que ./guard.js existe à la racine et est chargé avant ce script.");
+        return;
+      }
 
-  // =============================
-  // ROUTES
-  // =============================
-  const MODULE = "LOC";
-  const DASHBOARD_URL = "./planning.html";
-  const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
+      // Slug display + persist
+      const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
+      $("pillSlug").textContent = "slug: " + (slug || "—");
+      setEtat("Prêt");
+      setStatus("PIN requis", "warn");
 
-  // =============================
-  // STORAGE KEYS
-  // =============================
-  const KEY = {
-    phone: "digiy_phone",
-    sess:  "digiy_loc_pro_session" // { phone, exp }
-  };
+      // Prefill phone
+      try{
+        const p = window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone();
+        if(p) $("phone").value = p;
+      }catch(_){}
 
-  // =============================
-  // DOM
-  // =============================
-  const $ = (id)=>document.getElementById(id);
-  const phoneEl = $("phone");
-  const pinEl = $("pin");
-  const pill = $("pill");
-  const msg = $("msg");
-  const btnLogin = $("btnLogin");
-  const btnClear = $("btnClear");
+      // Clear
+      $("btnClear").onclick = ()=>{
+        $("pin").value = "";
+        setStatus("PIN requis", "warn");
+        setHint("");
+        $("pin").focus();
+      };
 
-  // =============================
-  // UI helpers
-  // =============================
-  function setPill(type, text){
-    pill.className = "pill " + (type || "");
-    pill.textContent = text;
-  }
-  function setMsg(t){ msg.textContent = t || ""; }
+      // PIN oublié (terrain immediate): WhatsApp Support
+      $("btnForgot").onclick = ()=>{
+        const phone = ($("phone").value || "").trim();
+        const s = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
+        const msg =
+`DIGIY LOC PRO — PIN oublié
+slug: ${s || "—"}
+téléphone: ${phone || "—"}
+Merci de reset mon PIN.`;
+        // ✅ Mets TON numéro support ici (format international)
+        const SUPPORT_WA = "+221770000000"; // <-- CHANGE ICI
+        const url = "https://wa.me/" + SUPPORT_WA.replace(/\+/g,"") + "?text=" + encodeURIComponent(msg);
+        window.location.href = url;
+      };
 
-  // =============================
-  // Utils
-  // =============================
-  function normPhone(p){
-    p = String(p||"").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
-    if(p.startsWith("00221")) p = "+221" + p.slice(5);
-    if(!p.startsWith("+") && p.startsWith("221")) p = "+" + p;
-    if(!p.startsWith("+221") && /^\d{9}$/.test(p)) p = "+221" + p;
-    return p;
-  }
+      async function doLogin(){
+        const phone = ($("phone").value || "").trim();
+        const pin = ($("pin").value || "").trim();
+        if(!phone){ setStatus("Téléphone requis.", "bad"); $("phone").focus(); return; }
+        if(!pin || pin.length < 4){ setStatus("PIN invalide (4–8 chiffres).", "bad"); $("pin").focus(); return; }
 
-  function savePhone(phone){
-    const p = normPhone(phone);
-    sessionStorage.setItem(KEY.phone, p);
-    sessionStorage.setItem("digiy_driver_phone", p); // compat
-    return p;
-  }
+        $("btnEnter").disabled = true;
+        setStatus("⏳ Vérification PIN…", "warn");
+        setHint("");
 
-  function loadPhone(){
-    const s = sessionStorage.getItem(KEY.phone) || sessionStorage.getItem("digiy_driver_phone");
-    if(s) return s;
-    try{
-      const sess = JSON.parse(localStorage.getItem(KEY.sess)||"null");
-      return sess?.phone || "";
-    }catch(_){ return ""; }
-  }
+        try{
+          const res = await window.DIGIY_GUARD.loginWithPin(phone, pin, "LOC");
+          if(!res.ok){
+            setStatus("❌ Mauvais PIN.", "bad");
+            setHint("Si tu as oublié: clique “PIN oublié”.");
+            $("btnEnter").disabled = false;
+            return;
+          }
 
-  function getSession(){
-    try{
-      const s = JSON.parse(localStorage.getItem(KEY.sess)||"null");
-      if(!s?.phone || !s?.exp) return null;
-      if(Date.now() > Number(s.exp)) return null;
-      return s;
-    }catch(_){ return null; }
-  }
+          setStatus("✅ OK. Ouverture du planning…", "ok");
+          // ✅ Always go to planning inside repo, keep slug
+          const next = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./planning.html") : "./planning.html";
+          window.location.replace(next);
+        }catch(e){
+          console.error(e);
+          setStatus("Erreur vérification (réseau / Supabase / RPC).", "bad");
+          setHint(String(e?.message || e));
+          $("btnEnter").disabled = false;
+        }
+      }
 
-  function setSession({ phone, ttl_ms }){
-    const obj = {
-      phone: normPhone(phone),
-      exp: Date.now() + Number(ttl_ms || (8*60*60*1000)) // 8h
-    };
-    localStorage.setItem(KEY.sess, JSON.stringify(obj));
-    savePhone(obj.phone);
-    return obj;
-  }
-
-  function clearAll(){
-    sessionStorage.removeItem(KEY.phone);
-    sessionStorage.removeItem("digiy_driver_phone");
-    try{ localStorage.removeItem(KEY.sess); }catch(_){}
-    phoneEl.value = "";
-    pinEl.value = "";
-    setMsg("Cache vidé.");
-    setPill("warn", "État: PIN requis");
-  }
-
-  function withQuery(url, params){
-    const u = new URL(url, location.href);
-    Object.entries(params||{}).forEach(([k,v])=>{
-      if(v===undefined || v===null || v==="") return;
-      u.searchParams.set(k, String(v));
-    });
-    return u.toString();
-  }
-
-  async function rpc(name, args){
-    const { data, error } = await sb.rpc(name, args || {});
-    if(error) throw error;
-    return data;
-  }
-
-  // =============================
-  // Anti-bruteforce UI
-  // =============================
-  let tries = 0;
-  let lockUntil = 0;
-
-  function isLocked(){
-    return Date.now() < lockUntil;
-  }
-  function onBadTry(){
-    tries += 1;
-    if(tries >= 5){
-      lockUntil = Date.now() + 30_000; // 30s
-      tries = 0;
-      return true;
-    }
-    return false;
-  }
-
-  // =============================
-  // Auto-login if session exists
-  // =============================
-  async function alreadyLoggedIn(){
-    const sess = getSession();
-    if(!sess) return false;
-
-    setPill("warn", "État: session trouvée…");
-    setMsg("Session trouvée, contrôle abonnement…");
-
-    const active = await rpc("is_module_active", { p_phone: sess.phone, p_module: MODULE })
-      .catch(()=>false);
-
-    if(!active){
-      setPill("warn", "État: abonnement inactif");
-      setMsg("Abonnement LOC inactif → redirection paiement…");
-      location.replace(withQuery(PAY_URL, { module: MODULE, phone: sess.phone, from: location.href }));
-      return true;
-    }
-
-    setPill("ok", "État: ✅ OK");
-    setMsg("OK ✅ Redirection…");
-    location.replace(DASHBOARD_URL);
-    return true;
-  }
-
-  // =============================
-  // Login flow (PIN + subscription)
-  // =============================
-  async function login(){
-    if(isLocked()){
-      const left = Math.ceil((lockUntil - Date.now())/1000);
-      setPill("bad", "État: verrouillé");
-      setMsg("Trop d'essais. Attends " + left + "s puis réessaie.");
-      return;
-    }
-
-    const phone = savePhone(phoneEl.value || "");
-    const pin = String(pinEl.value || "").trim();
-
-    if(!phone){ alert("Téléphone requis"); return; }
-    if(!pin){ alert("PIN requis"); return; }
-
-    btnLogin.disabled = true;
-    setPill("warn", "État: vérification…");
-    setMsg("Vérification accès…");
-
-    try{
-      // ✅ RPC EXISTANTE CHEZ TOI (d'après ta liste)
-      const res = await rpc("verify_access_pin", {
-        p_phone: phone,
-        p_pin: pin,
-        p_module: MODULE
+      $("btnEnter").onclick = doLogin;
+      $("pin").addEventListener("keydown", (ev)=>{
+        if(ev.key === "Enter") doLogin();
       });
-
-      // verify_access_pin retourne JSON (chez toi) => on accepte plusieurs formats
-      const ok =
-        (res === true) ||
-        (res && typeof res === "object" && (res.ok === true || res.allowed === true || res.valid === true));
-
-      if(!ok){
-        const locked = onBadTry();
-        setPill("bad", "État: ❌ PIN incorrect");
-        setMsg(locked ? "PIN incorrect. Pause 30s (sécurité)." : "PIN incorrect. Réessaie.");
-        return;
-      }
-
-      setMsg("PIN OK ✅ Vérification abonnement LOC…");
-
-      // ✅ check abonnement
-      const active = await rpc("is_module_active", { p_phone: phone, p_module: MODULE })
-        .catch(()=>false);
-
-      if(!active){
-        setPill("warn", "État: abonnement inactif");
-        setMsg("Abonnement LOC inactif → redirection paiement…");
-        location.replace(withQuery(PAY_URL, { module: MODULE, phone, from: location.href }));
-        return;
-      }
-
-      // ✅ Session locale 8h
-      setSession({ phone, ttl_ms: 8*60*60*1000 });
-
-      setPill("ok", "État: ✅ OK");
-      setMsg("Accès accordé ✅ Redirection…");
-      setTimeout(()=>location.replace(DASHBOARD_URL), 250);
-
-    }catch(e){
-      console.warn(e);
-      setPill("bad", "État: ❌ erreur");
-      setMsg("Erreur: " + (e?.message || e));
-    }finally{
-      btnLogin.disabled = false;
-    }
-  }
-
-  // =============================
-  // Events
-  // =============================
-  btnLogin.addEventListener("click", ()=>login());
-  btnClear.addEventListener("click", clearAll);
-
-  [phoneEl, pinEl].forEach(el=>{
-    el.addEventListener("keydown", (e)=>{
-      if(e.key === "Enter") login();
-    });
-  });
-
-  // =============================
-  // Init
-  // =============================
-  phoneEl.value = loadPhone();
-  setPill("warn", "État: PIN requis");
-  setMsg("");
-
-  alreadyLoggedIn().catch(()=>{});
-})();
-</script>
+    })();
+  </script>
 </body>
 </html>
