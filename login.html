@@ -16,6 +16,7 @@
       --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
       --radius:18px;
     }
+    *{box-sizing:border-box}
     body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text); }
     .wrap{ max-width:860px; margin:0 auto; padding:16px; }
     .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
@@ -23,7 +24,7 @@
     p{ margin:6px 0; color:var(--muted); line-height:1.35; }
     label{ display:block; margin:10px 0 6px; color:var(--muted); font-weight:800; }
     input{
-      width:100%; box-sizing:border-box;
+      width:100%;
       border:1px solid var(--line); background:rgba(0,0,0,.15);
       color:var(--text); padding:12px 12px; border-radius:14px;
       outline:none; font-size:16px;
@@ -32,9 +33,11 @@
     .btn{
       border:1px solid var(--line); background:transparent; color:var(--text);
       padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:900;
+      min-height:44px;
     }
     .btn.ok{ border-color:rgba(34,197,94,.6); }
     .btn.bad{ border-color:rgba(239,68,68,.55); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
     .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:999px; }
     .status{ margin-top:10px; font-weight:900; }
     .status.ok{ color:var(--ok); }
@@ -61,13 +64,13 @@
 
       <div class="row">
         <div class="pill">État: <span id="etat">—</span></div>
-        <div class="pill">Module: <span class="mono">loc</span></div>
+        <div class="pill">Module: <span class="mono" id="pillModule">LOC</span></div>
         <div class="pill">Astuce: PIN 4–8 chiffres</div>
       </div>
 
       <label for="phone">Téléphone (Sénégal)</label>
       <input id="phone" inputmode="tel" autocomplete="tel" placeholder="+221771234567"/>
-      <div class="small">Format conseillé: +221XXXXXXXXX</div>
+      <div class="small">Format conseillé: +221XXXXXXXXX (ou juste 9 chiffres)</div>
 
       <label for="pin">PIN</label>
       <input id="pin" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" />
@@ -87,8 +90,8 @@
 
   <script>
     (function(){
-      const MODULE = "loc";
-      const SUPPORT_WA = "+221771342889"; // ✅ ton support
+      const MODULE = "LOC";                 // ✅ IMPORTANT: MAJUSCULE (align RPC/DB)
+      const SUPPORT_WA = "+221771342889";   // ✅ support
 
       const $ = (id)=>document.getElementById(id);
 
@@ -98,6 +101,14 @@
         $("status").className = "status " + (cls || "warn");
       }
       function setHint(msg){ $("hint").textContent = msg || ""; }
+
+      function lock(on){
+        $("btnEnter").disabled = !!on;
+        $("btnClear").disabled = !!on;
+        $("btnForgot").disabled = !!on;
+        $("phone").disabled = !!on;
+        $("pin").disabled = !!on;
+      }
 
       if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.loginWithPin !== "function"){
         setEtat("Guard absent");
@@ -109,11 +120,22 @@
       // slug
       const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
       $("pillSlug").textContent = "slug: " + (slug || "—");
+      $("pillModule").textContent = MODULE;
+
+      // ✅ Si session existe déjà, saute le login (zéro friction)
+      try{
+        const sess = window.DIGIY_GUARD.getSession ? window.DIGIY_GUARD.getSession() : null;
+        if(sess && sess.phone){
+          const next = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./planning.html") : "./planning.html";
+          location.replace(next);
+          return;
+        }
+      }catch(_){}
 
       setEtat("Prêt");
       setStatus("PIN requis", "warn");
 
-      // Prefill phone if known
+      // Prefill phone
       try{
         const p = window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone();
         if(p) $("phone").value = p;
@@ -127,27 +149,34 @@
       };
 
       $("btnForgot").onclick = ()=>{
-        const phone = ($("phone").value || "").trim();
+        const rawPhone = ($("phone").value || "").trim();
+        const phone = window.DIGIY_GUARD.normPhone ? window.DIGIY_GUARD.normPhone(rawPhone) : rawPhone;
         const s = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
+
         const msg =
-`DIGIY LOC PRO — PIN oublié
-module: ${MODULE}
-slug: ${s || "—"}
-téléphone: ${phone || "—"}
-Merci de reset mon PIN.`;
+`DIGIY • Support LOC PRO
+Demande: Reset PIN
+
+Module: ${MODULE}
+Slug: ${s || "—"}
+Téléphone: ${phone || "—"}
+
+Merci. — DIGIY`;
 
         const url = "https://wa.me/" + SUPPORT_WA.replace(/\+/g,"") + "?text=" + encodeURIComponent(msg);
         window.location.href = url;
       };
 
       async function doLogin(){
-        const phone = ($("phone").value || "").trim();
+        const rawPhone = ($("phone").value || "").trim();
         const pin = ($("pin").value || "").trim();
+
+        const phone = window.DIGIY_GUARD.normPhone ? window.DIGIY_GUARD.normPhone(rawPhone) : rawPhone;
 
         if(!phone){ setStatus("Téléphone requis.", "bad"); $("phone").focus(); return; }
         if(!pin || pin.length < 4){ setStatus("PIN invalide (4–8 chiffres).", "bad"); $("pin").focus(); return; }
 
-        $("btnEnter").disabled = true;
+        lock(true);
         setStatus("⏳ Vérification PIN…", "warn");
         setHint("");
 
@@ -158,18 +187,19 @@ Merci de reset mon PIN.`;
             const reason = out?.res?.reason ? String(out.res.reason) : "";
             setStatus("❌ PIN incorrect. Réessaie.", "bad");
             setHint(reason ? ("Raison: " + reason) : "Si tu as oublié: clique “PIN oublié”.");
-            $("btnEnter").disabled = false;
+            lock(false);
             return;
           }
 
           setStatus("✅ OK. Ouverture du planning…", "ok");
           const next = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./planning.html") : "./planning.html";
           window.location.replace(next);
+
         }catch(e){
           console.error(e);
           setStatus("Erreur vérification (réseau / Supabase / RPC).", "bad");
           setHint(String(e?.message || e));
-          $("btnEnter").disabled = false;
+          lock(false);
         }
       }
 
