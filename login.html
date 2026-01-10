@@ -90,8 +90,8 @@
 
       <div class="grid">
         <div class="row">
-          <div class="pill" id="pill">État: …</div>
-          <div class="pill warn" id="hint">Astuce: PIN 4–6 chiffres</div>
+          <div class="pill warn" id="pill">État: PIN requis</div>
+          <div class="pill" id="hint">Astuce: PIN 4–8 chiffres</div>
         </div>
 
         <div>
@@ -107,7 +107,6 @@
 
         <div class="row">
           <button class="primary" id="btnLogin">✅ Entrer</button>
-          <button id="btnReset">🔁 Créer/Changer PIN</button>
           <button id="btnClear">🧹 Clear</button>
         </div>
 
@@ -117,7 +116,7 @@
 
         <div class="muted small">
           <b>Entrer</b> ouvre LOC PRO si ton abonnement est actif.
-          <br/>Si tu dois définir ton PIN, clique <b>Créer/Changer PIN</b>.
+          <br/>Si ton PIN est faux → accès refusé.
         </div>
       </div>
     </div>
@@ -127,23 +126,47 @@
 (function(){
   "use strict";
 
+  // =============================
+  // SUPABASE
+  // =============================
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // =============================
+  // ROUTES (adjust if needed)
+  // =============================
+  const MODULE = "LOC";
+  const DASHBOARD_URL = "./planning.html";
+  const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
+
+  // Session storage keys (shared with guard)
+  const KEY = {
+    phone: "digiy_phone",
+    sess: "digiy_loc_session" // { phone, token, exp }
+  };
 
   const $ = (id)=>document.getElementById(id);
   const phoneEl = $("phone");
   const pinEl = $("pin");
   const pill = $("pill");
   const msg = $("msg");
+  const btnLogin = $("btnLogin");
+  const btnClear = $("btnClear");
 
-  function setPill(ok, text){
-    pill.className = "pill " + (ok ? "ok" : "bad");
+  // =============================
+  // UI
+  // =============================
+  function setPill(type, text){
+    pill.className = "pill " + (type || "");
     pill.textContent = text;
   }
+  function setMsg(t){ msg.textContent = t || ""; }
 
+  // =============================
+  // UTILS
+  // =============================
   function normPhone(p){
     p = String(p||"").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
     if(p.startsWith("00221")) p = "+221" + p.slice(5);
@@ -154,119 +177,218 @@
 
   function savePhone(phone){
     const p = normPhone(phone);
-    sessionStorage.setItem("digiy_phone", p);
-    sessionStorage.setItem("digiy_driver_phone", p);
-    try{
-      localStorage.setItem("digiy_access_pin", JSON.stringify({ phone: p }));
-      localStorage.setItem("digiy_driver_access_pin", JSON.stringify({ phone: p }));
-    }catch(_){}
+    sessionStorage.setItem(KEY.phone, p);
+    sessionStorage.setItem("digiy_driver_phone", p); // compat
     return p;
   }
 
   function loadPhone(){
-    const s = sessionStorage.getItem("digiy_phone") || sessionStorage.getItem("digiy_driver_phone");
+    const s = sessionStorage.getItem(KEY.phone) || sessionStorage.getItem("digiy_driver_phone");
     if(s) return s;
     try{
-      const a = JSON.parse(localStorage.getItem("digiy_access_pin")||"null");
-      return a?.phone || "";
+      const sess = JSON.parse(localStorage.getItem(KEY.sess)||"null");
+      return sess?.phone || "";
     }catch(_){ return ""; }
   }
 
-  async function checkPin(phone, pin){
-    const { data, error } = await sb.rpc("check_pin", { p_phone: phone, p_pin: pin });
-    if(error) throw error;
-    return !!data;
+  function getSession(){
+    try{
+      const s = JSON.parse(localStorage.getItem(KEY.sess)||"null");
+      if(!s?.token || !s?.phone || !s?.exp) return null;
+      if(Date.now() > Number(s.exp)) return null;
+      return s;
+    }catch(_){ return null; }
   }
 
-  async function setPin(phone, pin){
-    const { data, error } = await sb.rpc("set_pin", { p_phone: phone, p_pin: pin });
+  function setSession({ phone, token, exp_ms }){
+    const obj = {
+      phone: normPhone(phone),
+      token: String(token),
+      exp: Date.now() + Number(exp_ms || 0)
+    };
+    localStorage.setItem(KEY.sess, JSON.stringify(obj));
+    savePhone(obj.phone);
+    return obj;
+  }
+
+  function clearAll(){
+    sessionStorage.removeItem(KEY.phone);
+    sessionStorage.removeItem("digiy_driver_phone");
+    try{ localStorage.removeItem(KEY.sess); }catch(_){}
+    phoneEl.value = "";
+    pinEl.value = "";
+    setMsg("Cache vidé.");
+    setPill("warn", "État: PIN requis");
+  }
+
+  function withQuery(url, params){
+    const u = new URL(url, location.href);
+    Object.entries(params||{}).forEach(([k,v])=>{
+      if(v===undefined || v===null || v==="") return;
+      u.searchParams.set(k, String(v));
+    });
+    return u.toString();
+  }
+
+  async function rpc(name, args){
+    const { data, error } = await sb.rpc(name, args || {});
     if(error) throw error;
     return data;
   }
 
-  async function isActive(phone){
-    const { data, error } = await sb.rpc("is_module_active", { p_phone: phone, p_module: "LOC" });
-    if(error) throw error;
-    return !!data;
+  // =============================
+  // SECURITY (small anti-bruteforce UI)
+  // =============================
+  let tries = 0;
+  let lockUntil = 0;
+  function isLocked(){
+    return Date.now() < lockUntil;
+  }
+  function lockShort(){
+    tries += 1;
+    if(tries >= 5){
+      lockUntil = Date.now() + 30_000; // 30s
+      tries = 0;
+      return true;
+    }
+    return false;
+  }
+
+  // =============================
+  // FLOW
+  // =============================
+  async function alreadyLoggedIn(){
+    const sess = getSession();
+    if(!sess) return false;
+
+    setPill("warn", "État: vérif session…");
+    setMsg("Session trouvée, vérification…");
+
+    const ok = await rpc("digiy_loc_session_validate", {
+      p_phone: sess.phone,
+      p_token: sess.token
+    }).catch(()=>false);
+
+    if(!ok){
+      try{ localStorage.removeItem(KEY.sess); }catch(_){}
+      setPill("warn", "État: PIN requis");
+      setMsg("");
+      return false;
+    }
+
+    // session OK -> check subscription
+    const active = await rpc("is_module_active", { p_phone: sess.phone, p_module: MODULE }).catch(()=>false);
+
+    if(!active){
+      setPill("warn", "État: abonnement inactif");
+      setMsg("Abonnement LOC inactif → redirection paiement…");
+      location.replace(withQuery(PAY_URL, { module: MODULE, phone: sess.phone, from: location.href }));
+      return true;
+    }
+
+    setPill("ok", "État: ✅ OK");
+    setMsg("Session OK. Redirection…");
+    location.replace(DASHBOARD_URL);
+    return true;
   }
 
   async function login(){
-    const phone = savePhone(phoneEl.value || "");
-    const pin = (pinEl.value || "").trim();
-
-    if(!phone) return alert("Téléphone requis");
-    if(!pin) return alert("PIN requis");
-
-    msg.textContent = "Vérification PIN…";
-    setPill(false, "État: vérification…");
-
-    const ok = await checkPin(phone, pin);
-    if(!ok){
-      msg.textContent = "PIN incorrect. Si tu n’as pas de PIN, clique “Créer/Changer PIN”.";
-      setPill(false, "État: ❌ PIN incorrect");
+    if(isLocked()){
+      const left = Math.ceil((lockUntil - Date.now())/1000);
+      setPill("bad", "État: verrouillé");
+      setMsg("Trop d'essais. Attends " + left + "s puis réessaie.");
       return;
     }
 
-    msg.textContent = "PIN OK ✅ Vérification abonnement LOC…";
-    const active = await isActive(phone);
-
-    if(!active){
-      msg.textContent = "Abonnement LOC inactif → redirection paiement…";
-      setPill(false, "État: ⚠️ abonnement inactif");
-      const from = location.href;
-      location.replace("https://beauville.github.io/commencer-a-payer/"
-        + "?module=LOC&phone=" + encodeURIComponent(phone)
-        + "&from=" + encodeURIComponent(from));
-      return;
-    }
-
-    msg.textContent = "Accès accordé ✅ Redirection planning…";
-    setPill(true, "État: ✅ OK");
-    setTimeout(()=>location.replace("./planning.html"), 350);
-  }
-
-  async function resetPin(){
     const phone = savePhone(phoneEl.value || "");
-    const pin = (pinEl.value || "").trim();
-    if(!phone) return alert("Téléphone requis");
-    if(!pin) return alert("PIN requis (4 à 8 chiffres)");
+    const pin = String(pinEl.value || "").trim();
 
-    msg.textContent = "Enregistrement du PIN…";
-    setPill(false, "État: enregistrement…");
-    await setPin(phone, pin);
-    msg.textContent = "PIN enregistré ✅ Tu peux cliquer “Entrer”.";
-    setPill(true, "État: ✅ PIN OK");
+    if(!phone){ alert("Téléphone requis"); return; }
+    if(!pin){ alert("PIN requis"); return; }
+
+    btnLogin.disabled = true;
+    setPill("warn", "État: vérification…");
+    setMsg("Vérification PIN…");
+
+    try{
+      // 1) verify PIN (SERVER)
+      const v = await rpc("digiy_access_pin_verify", {
+        p_phone: phone,
+        p_pin: pin,
+        p_module: MODULE
+      });
+
+      if(!v || v.ok !== true){
+        const locked = lockShort();
+        setPill("bad", "État: ❌ PIN incorrect");
+        setMsg(locked ? "PIN incorrect. Pause 30s (sécurité)." : "PIN incorrect. Réessaie.");
+        return;
+      }
+
+      // 2) create short session token (SERVER)
+      setMsg("PIN OK ✅ Création session…");
+      const s = await rpc("digiy_loc_session_create", {
+        p_phone: phone,
+        p_user_agent: (navigator.userAgent || null)
+      });
+
+      if(!s || s.ok !== true || !s.token){
+        setPill("bad", "État: ❌ session refusée");
+        setMsg("Session non créée. Réessaie.");
+        return;
+      }
+
+      setSession({ phone: s.phone || phone, token: s.token, exp_ms: s.exp_ms || (12*60*60*1000) });
+
+      // 3) subscription
+      setMsg("Session OK ✅ Vérification abonnement LOC…");
+      const active = await rpc("is_module_active", { p_phone: (s.phone || phone), p_module: MODULE }).catch(()=>false);
+
+      if(!active){
+        setPill("warn", "État: abonnement inactif");
+        setMsg("Abonnement LOC inactif → redirection paiement…");
+        location.replace(withQuery(PAY_URL, { module: MODULE, phone: (s.phone || phone), from: location.href }));
+        return;
+      }
+
+      // 4) go
+      setPill("ok", "État: ✅ OK");
+      setMsg("Accès accordé ✅ Redirection…");
+      setTimeout(()=>location.replace(DASHBOARD_URL), 250);
+
+    }catch(e){
+      console.warn(e);
+      setPill("bad", "État: ❌ erreur");
+      setMsg("Erreur: " + (e?.message || e));
+    }finally{
+      btnLogin.disabled = false;
+    }
   }
 
-  function clearAll(){
-    sessionStorage.removeItem("digiy_phone");
-    sessionStorage.removeItem("digiy_driver_phone");
-    localStorage.removeItem("digiy_access_pin");
-    localStorage.removeItem("digiy_driver_access_pin");
-    phoneEl.value = "";
-    pinEl.value = "";
-    msg.textContent = "Cache vidé.";
-    setPill(false, "État: …");
-  }
+  // =============================
+  // EVENTS
+  // =============================
+  btnLogin.addEventListener("click", ()=>login());
+  btnClear.addEventListener("click", clearAll);
 
-  $("btnLogin").addEventListener("click", ()=>login().catch(e=>{
-    console.warn(e);
-    msg.textContent = "Erreur: " + (e?.message || e);
-    setPill(false, "État: ❌ erreur");
-  }));
+  // Enter key
+  [phoneEl, pinEl].forEach(el=>{
+    el.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") login();
+    });
+  });
 
-  $("btnReset").addEventListener("click", ()=>resetPin().catch(e=>{
-    console.warn(e);
-    msg.textContent = "Erreur: " + (e?.message || e);
-    setPill(false, "État: ❌ erreur");
-  }));
-
-  $("btnClear").addEventListener("click", clearAll);
-
-  // init
+  // =============================
+  // INIT
+  // =============================
   phoneEl.value = loadPhone();
-  setPill(false, "État: PIN requis");
+  setPill("warn", "État: PIN requis");
+  setMsg("");
+
+  // Auto-redirect if already logged in
+  alreadyLoggedIn().catch(()=>{});
 })();
 </script>
 </body>
 </html>
+
