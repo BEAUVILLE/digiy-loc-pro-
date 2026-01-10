@@ -6,9 +6,8 @@
   <title>DIGIY LOC • PRO — Accès par PIN</title>
   <meta name="theme-color" content="#16a34a"/>
 
-  <!-- Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./guard.js?v=locpro-1"></script>
+  <script src="./guard.js?v=locpro-2"></script>
 
   <style>
     :root{
@@ -20,9 +19,9 @@
     body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text); }
     .wrap{ max-width:860px; margin:0 auto; padding:16px; }
     .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
-    h1{ margin:0 0 6px; font-size:18px; }
+    h1{ margin:0 0 6px; font-size:18px; font-weight:900; }
     p{ margin:6px 0; color:var(--muted); line-height:1.35; }
-    label{ display:block; margin:10px 0 6px; color:var(--muted); font-weight:700; }
+    label{ display:block; margin:10px 0 6px; color:var(--muted); font-weight:800; }
     input{
       width:100%; box-sizing:border-box;
       border:1px solid var(--line); background:rgba(0,0,0,.15);
@@ -32,18 +31,18 @@
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
     .btn{
       border:1px solid var(--line); background:transparent; color:var(--text);
-      padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:800;
+      padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:900;
     }
     .btn.ok{ border-color:rgba(34,197,94,.6); }
     .btn.bad{ border-color:rgba(239,68,68,.55); }
     .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:999px; }
-    .status{ margin-top:10px; font-weight:800; }
+    .status{ margin-top:10px; font-weight:900; }
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--bad); }
     .status.warn{ color:var(--warn); }
-    a{ color:var(--text); text-decoration:none; border-bottom:1px dashed rgba(234,255,241,.45); }
     .small{ font-size:13px; color:var(--muted); }
     .sep{ height:10px; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
   </style>
 </head>
 
@@ -55,13 +54,14 @@
           <h1>🔐 DIGIY LOC • PRO — Accès par PIN</h1>
           <p>Connexion terrain : téléphone WhatsApp + PIN. Pas d’email. Pas de magie. Juste du solide.</p>
         </div>
-        <span class="pill" id="pillSlug">slug: —</span>
+        <span class="pill mono" id="pillSlug">slug: —</span>
       </div>
 
       <div class="sep"></div>
 
       <div class="row">
         <div class="pill">État: <span id="etat">—</span></div>
+        <div class="pill">Module: <span class="mono">loc</span></div>
         <div class="pill">Astuce: PIN 4–8 chiffres</div>
       </div>
 
@@ -87,6 +87,9 @@
 
   <script>
     (function(){
+      const MODULE = "loc";
+      const SUPPORT_WA = "+221771342889"; // ✅ ton support
+
       const $ = (id)=>document.getElementById(id);
 
       function setEtat(t){ $("etat").textContent = t; }
@@ -96,27 +99,26 @@
       }
       function setHint(msg){ $("hint").textContent = msg || ""; }
 
-      // Guard required
       if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.loginWithPin !== "function"){
         setEtat("Guard absent");
         setStatus("Erreur: guard.js non chargé (DIGIY_GUARD introuvable).", "bad");
-        setHint("Vérifie que ./guard.js existe à la racine et est chargé avant ce script.");
+        setHint("Vérifie que ./guard.js existe à la racine et qu'il est chargé avant ce script.");
         return;
       }
 
-      // Slug display + persist
+      // slug
       const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
       $("pillSlug").textContent = "slug: " + (slug || "—");
+
       setEtat("Prêt");
       setStatus("PIN requis", "warn");
 
-      // Prefill phone
+      // Prefill phone if known
       try{
         const p = window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone();
         if(p) $("phone").value = p;
       }catch(_){}
 
-      // Clear
       $("btnClear").onclick = ()=>{
         $("pin").value = "";
         setStatus("PIN requis", "warn");
@@ -124,17 +126,16 @@
         $("pin").focus();
       };
 
-      // PIN oublié (terrain immediate): WhatsApp Support
       $("btnForgot").onclick = ()=>{
         const phone = ($("phone").value || "").trim();
         const s = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
         const msg =
 `DIGIY LOC PRO — PIN oublié
+module: ${MODULE}
 slug: ${s || "—"}
 téléphone: ${phone || "—"}
 Merci de reset mon PIN.`;
-        // ✅ Mets TON numéro support ici (format international)
-        const SUPPORT_WA = "+221771342889"; // <-- CHANGE ICI
+
         const url = "https://wa.me/" + SUPPORT_WA.replace(/\+/g,"") + "?text=" + encodeURIComponent(msg);
         window.location.href = url;
       };
@@ -142,6 +143,7 @@ Merci de reset mon PIN.`;
       async function doLogin(){
         const phone = ($("phone").value || "").trim();
         const pin = ($("pin").value || "").trim();
+
         if(!phone){ setStatus("Téléphone requis.", "bad"); $("phone").focus(); return; }
         if(!pin || pin.length < 4){ setStatus("PIN invalide (4–8 chiffres).", "bad"); $("pin").focus(); return; }
 
@@ -150,16 +152,17 @@ Merci de reset mon PIN.`;
         setHint("");
 
         try{
-          const res = await window.DIGIY_GUARD.loginWithPin(phone, pin, "LOC");
-          if(!res.ok){
-            setStatus("❌ Mauvais PIN.", "bad");
-            setHint("Si tu as oublié: clique “PIN oublié”.");
+          const out = await window.DIGIY_GUARD.loginWithPin(phone, pin, MODULE);
+
+          if(!out || out.ok !== true){
+            const reason = out?.res?.reason ? String(out.res.reason) : "";
+            setStatus("❌ PIN incorrect. Réessaie.", "bad");
+            setHint(reason ? ("Raison: " + reason) : "Si tu as oublié: clique “PIN oublié”.");
             $("btnEnter").disabled = false;
             return;
           }
 
           setStatus("✅ OK. Ouverture du planning…", "ok");
-          // ✅ Always go to planning inside repo, keep slug
           const next = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./planning.html") : "./planning.html";
           window.location.replace(next);
         }catch(e){
@@ -171,9 +174,7 @@ Merci de reset mon PIN.`;
       }
 
       $("btnEnter").onclick = doLogin;
-      $("pin").addEventListener("keydown", (ev)=>{
-        if(ev.key === "Enter") doLogin();
-      });
+      $("pin").addEventListener("keydown", (ev)=>{ if(ev.key === "Enter") doLogin(); });
     })();
   </script>
 </body>
