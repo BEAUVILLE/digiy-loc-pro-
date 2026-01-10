@@ -21,11 +21,12 @@
     .btn{ border:1px solid var(--line); background:transparent; color:var(--text); padding:10px 12px; border-radius:14px; cursor:pointer; }
     .btn.ok{ border-color:rgba(34,197,94,.6); }
     .pill{ display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:999px; }
-    .bad{ color:var(--bad); }
+    .bad{ color:var(--bad); font-weight:800; }
   </style>
 
-  <!-- ✅ IMPORTANT: guard.js must be loaded BEFORE any page script -->
-  <script src="./guard.js"></script>
+  <!-- ✅ GitHub Pages safe: use relative paths -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./guard.js?v=locpro-1"></script>
 </head>
 
 <body>
@@ -65,37 +66,49 @@
         $("state").textContent = JSON.stringify(obj, null, 2);
       }
 
-      // Buttons
-      $("btnGoLogin").onclick = ()=> location.href = (window.DIGIY_GUARD ? DIGIY_GUARD.withSlug("login.html") : "login.html");
+      // ✅ ALWAYS use relative login inside repo
+      function goLogin(){
+        const url = (window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug("./login.html") : "./login.html");
+        location.replace(url);
+      }
+
+      $("btnGoLogin").onclick = ()=> location.href = (window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug("./login.html") : "./login.html");
       $("btnLogout").onclick = ()=>{
-        try{ window.DIGIY_GUARD && DIGIY_GUARD.clearSession(); }catch(_){}
-        location.replace((window.DIGIY_GUARD ? DIGIY_GUARD.withSlug("login.html") : "login.html"));
+        try{ window.DIGIY_GUARD?.clearSession?.(); }catch(_){}
+        goLogin();
       };
 
-      // ✅ HARD CHECK: if guard missing, show why
-      if (!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.ensureAccess !== "function") {
-        setSub("DIGIY_GUARD introuvable (guard.js pas chargé ou mauvais objet).", true);
+      if (!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.boot !== "function") {
+        setSub("DIGIY_GUARD introuvable (guard.js non chargé / mauvais objet).", true);
         dump({
           guardFound: !!window.DIGIY_GUARD,
-          hint: "Vérifie que /guard.js n'est pas 404 et qu'il est inclus AVANT ce script.",
-          urlGuard: location.origin + location.pathname.replace(/[^\/]+$/, "") + "guard.js"
+          expected: "window.DIGIY_GUARD",
+          hint: "Vérifie que ./guard.js existe à la racine du repo",
+          here: location.href
         });
         return;
       }
 
-      // Show slug
-      const slug = DIGIY_GUARD.getSlug();
+      const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
       $("pillSlug").textContent = "slug: " + (slug || "—");
 
-      // ✅ Ensure access (slug + session)
-      DIGIY_GUARD.ensureAccess({ requireSlug:true, requireSession:true }).then((ok)=>{
-        if (!ok) return; // redirected
+      // ✅ enforce access (slug + session + optional subscription)
+      window.DIGIY_GUARD.boot({
+        module: "LOC",
+        dashboard: "./planning.html",
+        login: "./login.html",
+        requireSlug: true,
+        checkSubscription: true
+      }).then(()=>{
         setSub("✅ Accès OK. Planning prêt.", false);
         dump({
-          guardVersion: DIGIY_GUARD.version,
-          slug: DIGIY_GUARD.getSlug(),
-          session: DIGIY_GUARD.getSession()
+          slug,
+          session: window.DIGIY_GUARD.getSession ? window.DIGIY_GUARD.getSession() : null
         });
+      }).catch((e)=>{
+        setSub("Erreur guard → retour login", true);
+        dump({ error: String(e) });
+        goLogin();
       });
     })();
   </script>
