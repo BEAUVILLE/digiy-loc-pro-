@@ -9,6 +9,9 @@
   <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <!-- ✅ GUARD (repo-safe) -->
+  <script src="./guard.js?v=locpro-2"></script>
+
   <style>
     :root{
       --bg:#061b14;
@@ -317,7 +320,8 @@
       </div>
 
       <div class="hint" id="pwaHint" style="display:none">
-        Astuce : sur Android/Chrome → menu ⋮ → <b>Ajouter à l’écran d’accueil</b>. Sur iPhone/Safari → Partager → <b>Sur l’écran d’accueil</b>.
+        Astuce : sur Android/Chrome → menu ⋮ → <b>Ajouter à l’écran d’accueil</b>.
+        Sur iPhone/Safari → Partager → <b>Sur l’écran d’accueil</b>.
       </div>
     </div>
 
@@ -346,13 +350,15 @@
   </div>
 
   <script>
+  (function(){
+    "use strict";
+
     // =============================
-    // SUPABASE (REMPLIR ICI)
+    // SUPABASE
     // =============================
-   /* 🔐 SUPABASE — DÉJÀ POSÉ */
-const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+    const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
     // =============================
     // PARAMS URL
@@ -367,8 +373,36 @@ const SUPABASE_ANON_KEY =
     const todayISO = new Date().toISOString().slice(0,10);
     const DATE = (Q("date") || todayISO);
 
-    // Token optionnel : si tu veux l’utiliser plus tard côté RLS/guard
+    // Token optionnel
     const TOKEN = Q("token") || "";
+
+    // =============================
+    // GUARD FIRST (pas de double boot)
+    // =============================
+    const MODULE = "LOC";
+    const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
+
+    // conserve slug dans les redirections
+    function withSlug(u){
+      try{
+        return (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.withSlug === "function")
+          ? window.DIGIY_GUARD.withSlug(u)
+          : u;
+      }catch(_){ return u; }
+    }
+
+    // ⚠️ si tu veux OBLIGER le guard sur listing, laisse. Sinon commente ce bloc.
+    if (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function") {
+      // boot est async; on le lance, mais on ne bloque pas l'UI.
+      window.DIGIY_GUARD.boot({
+        module: MODULE,
+        dashboard: "./planning.html",
+        login: "./login.html",
+        pay: PAY_URL,
+        requireSlug: true,
+        checkSubscription: true
+      });
+    }
 
     // =============================
     // UI HELPERS
@@ -447,6 +481,7 @@ const SUPABASE_ANON_KEY =
       }else{
         extra = `<span class="tag"><span class="ic green"></span> ${escapeHtml(item.check_in||"—")} → ${escapeHtml(item.check_out||"—")}</span>`;
       }
+
       const msg = (kind==="arr")
         ? `Bonjour ${guest} 👋\nNous confirmons votre arrivée aujourd’hui.\nLogement: ${room}\nÀ tout à l’heure.`
         : (kind==="dep")
@@ -493,7 +528,7 @@ const SUPABASE_ANON_KEY =
     });
 
     // =============================
-    // SHARE (sans API)
+    // SHARE
     // =============================
     function buildListingUrl(){
       const u = new URL(window.location.href);
@@ -545,22 +580,17 @@ Ouvrir: ${link}`;
       }
     }
 
+    let LAST_DATA = null;
+
     // =============================
     // DATA LOAD
     // =============================
-    let LAST_DATA = null;
-
     async function loadData(){
       refreshNetwork();
 
       $("todayLabel").textContent = fmtDateFRFromISO(DATE);
       $("businessCode").textContent = "CODE • " + (BUSINESS || "—");
 
-      if(!SUPABASE_URL.includes("supabase.co") || SUPABASE_ANON_KEY.startsWith("YOUR_")){
-        toast("⚠️ Configure SUPABASE_URL + ANON_KEY");
-        renderEmpty("Configuration manquante.");
-        return;
-      }
       if(!BUSINESS){
         renderEmpty("Business manquant. Ajoute ?business=BEAUVILLE");
         return;
@@ -633,20 +663,10 @@ Ouvrir: ${link}`;
       pOcc.appendChild(sectionHeader("En cours", "Clients actuellement présents"));
       if(occ.length===0) pOcc.appendChild(emptyState("Aucun client en cours."));
       occ.forEach(x=> pOcc.appendChild(cardCommon(x,"occ")));
-
-      // Cache local (optionnel)
-      try{
-        localStorage.setItem("digiy_loc_listing_cache", JSON.stringify({
-          cached_at: new Date().toISOString(),
-          business: BUSINESS,
-          date: DATE,
-          data
-        }));
-      }catch(e){}
     }
 
     // =============================
-    // PWA hint (display-mode)
+    // PWA hint
     // =============================
     (function pwa(){
       const isStandalone =
@@ -656,7 +676,7 @@ Ouvrir: ${link}`;
     })();
 
     // =============================
-    // Wire share buttons
+    // Share buttons
     // =============================
     (function wireShareButtons(){
       $("shareWA").addEventListener("click", ()=>{
@@ -672,34 +692,16 @@ Ouvrir: ${link}`;
     })();
 
     // =============================
-    // Boot
+    // Boot page (UNE SEULE FOIS)
     // =============================
     (function boot(){
       const last = localStorage.getItem("digiy_loc_listing_tab") || "arr";
       setTab(["arr","dep","occ"].includes(last) ? last : "arr");
       loadData();
     })();
-  </script>
-  <script>
-  (function(){
-    // 1) Guard d’abord (bloque si pas login / pas abo)
-    if (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function") {
-      window.DIGIY_GUARD.boot({
-        module: "LOC",
-        dashboard: "./planning.html",
-        login: "./login.html",
-        pay: "https://beauville.github.io/commencer-a-payer/",
-        requireSlug: true,
-        checkSubscription: true
-      });
-    }
 
-    // 2) Boot page ensuite (si le guard ne redirige pas, on est autorisé)
-    const last = localStorage.getItem("digiy_loc_listing_tab") || "arr";
-    setTab(["arr","dep","occ"].includes(last) ? last : "arr");
-    loadData();
   })();
-</script>
+  </script>
 </body>
 </html>
 
