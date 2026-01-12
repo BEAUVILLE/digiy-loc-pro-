@@ -208,7 +208,6 @@ input[type="date"]{color-scheme:dark}
 .rowTop strong{font-weight:1100}
 .rowSub{color:var(--muted);font-weight:850;margin-top:4px;font-size:.92rem}
 
-/* Loading spinner */
 .spinner{
   display:inline-block;
   width:16px;height:16px;
@@ -217,11 +216,8 @@ input[type="date"]{color-scheme:dark}
   border-radius:50%;
   animation:spin 0.6s linear infinite;
 }
-@keyframes spin{
-  to{transform:rotate(360deg)}
-}
+@keyframes spin{ to{transform:rotate(360deg)} }
 
-/* Stats */
 .statsRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
 .statBox{
   border:1px solid rgba(148,163,184,.25);
@@ -250,6 +246,38 @@ input[type="date"]{color-scheme:dark}
       <div class="pill warn" id="pillState">🔒 Déconnecté</div>
       <button class="btn ghost small" id="btnLogout" style="display:none">Se déconnecter</button>
     </div>
+  </div>
+
+  <!-- ✅ AJOUT: LIENS RAPIDES -->
+  <div class="grid" style="grid-template-columns:1fr; margin-top:14px;">
+    <section class="card">
+      <div class="cardHead">
+        <div>
+          <h2>🚀 Liens rapides</h2>
+          <small>Navigation clean • garde le slug • accès terrain</small>
+        </div>
+        <div class="btnRow">
+          <button class="btn gold small" id="btnOpenPlanning">📅 Planning</button>
+          <button class="btn small" id="btnOpenListing">📋 Listing du jour</button>
+          <button class="btn small" id="btnOpenHealth">🧪 Health</button>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="btnRow">
+          <button class="btn" id="btnOpenCreatePin">🧷 Créer GO PIN</button>
+          <button class="btn" id="btnOpenPin">🔐 Page PIN</button>
+          <button class="btn" id="btnOpenManageLinks">🔗 Manage Links</button>
+          <button class="btn" id="btnOpenAuthLoc">🪪 Auth Loc</button>
+          <button class="btn" id="btnOpenApp">📲 App</button>
+          <button class="btn" id="btnOpenLogin">🔑 Login</button>
+        </div>
+
+        <div class="note" id="navNote"></div>
+        <small class="hint" style="margin-top:10px">
+          Astuce: Listing = <span class="mono">listing.html?business=TON_CODE</span>. On prend ton <b>business_code</b> du logement sélectionné si possible.
+        </small>
+      </div>
+    </section>
   </div>
 
   <div class="grid">
@@ -290,7 +318,6 @@ input[type="date"]{color-scheme:dark}
 
         <!-- LIST -->
         <div id="listBox" style="display:none">
-          <!-- Stats -->
           <div class="statsRow" id="statsBox"></div>
           <div class="list" id="list"></div>
           <div class="note" id="listNote"></div>
@@ -336,6 +363,8 @@ input[type="date"]{color-scheme:dark}
         </div>
 
         <hr class="sep" />
+
+        <!-- ... TON FORM RESTE IDENTIQUE ... -->
 
         <div class="fieldGrid">
           <div>
@@ -494,6 +523,56 @@ const SUPABASE_ANON_KEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* ✅ AJOUT: NAV HELPERS (slug + liens) */
+const navNote = document.getElementById("navNote");
+const btnOpenPlanning = document.getElementById("btnOpenPlanning");
+const btnOpenListing = document.getElementById("btnOpenListing");
+const btnOpenHealth = document.getElementById("btnOpenHealth");
+const btnOpenCreatePin = document.getElementById("btnOpenCreatePin");
+const btnOpenPin = document.getElementById("btnOpenPin");
+const btnOpenManageLinks = document.getElementById("btnOpenManageLinks");
+const btnOpenAuthLoc = document.getElementById("btnOpenAuthLoc");
+const btnOpenApp = document.getElementById("btnOpenApp");
+const btnOpenLogin = document.getElementById("btnOpenLogin");
+
+function showNav(msg, type){
+  if(!navNote) return;
+  navNote.style.display = "block";
+  navNote.classList.remove("ok","bad","warn");
+  if(type) navNote.classList.add(type);
+  navNote.textContent = msg;
+}
+
+function getSlug(){
+  const u = new URL(location.href);
+  return (u.searchParams.get("slug") || "").trim();
+}
+function withSlug(url){
+  const slug = getSlug();
+  if(!slug) return url;
+  const u = new URL(url, location.href);
+  u.searchParams.set("slug", slug);
+  return u.toString();
+}
+function openPage(url){
+  location.href = withSlug(url);
+}
+
+/* listing.html attend: ?business=CODE (& date optionnel) */
+function openListingForBusiness(business){
+  if(!business){
+    showNav("⚠️ Sélectionne un logement avec business_code, ou renseigne business_code dans l’éditeur.", "warn");
+    openPage("./listing.html"); // fallback
+    return;
+  }
+  const u = new URL("./listing.html", location.href);
+  u.searchParams.set("business", String(business).toUpperCase());
+  // garde slug si présent
+  const slug = getSlug();
+  if(slug) u.searchParams.set("slug", slug);
+  location.href = u.toString();
+}
+
 /* =============================
    DOM ELEMENTS
 ============================= */
@@ -649,7 +728,6 @@ function validateListing(p){
    UI STATE
 ============================= */
 function enableEditorActions(yes){
-  // connecté ≠ logement sélectionné. On gère finement.
   btnSave.disabled = !yes;
   btnPublish.disabled = !yes;
   btnDraft.disabled = !yes;
@@ -672,6 +750,7 @@ function setConnectedUI(user){
     authBox.style.display = "none";
     listBox.style.display = "block";
     enableEditorActions(true);
+    showNav("✅ Connecté. Utilise les liens rapides au-dessus (Planning / Listing / GO PIN).", "ok");
   }else{
     pillState.textContent = "🔒 Déconnecté";
     pillState.classList.remove("ok");
@@ -681,6 +760,7 @@ function setConnectedUI(user){
     listBox.style.display = "none";
     enableEditorActions(false);
     btnDelete.style.display = "none";
+    showNav("🔒 Connecte-toi pour charger tes logements. Les liens rapides restent accessibles.", "warn");
   }
 }
 
@@ -717,7 +797,6 @@ window.addEventListener('beforeunload', (e)=>{
 ============================= */
 btnDemoFill.onclick = ()=>{
   authEmail.value = "baptistejb24@gmail.com";
-  // ✅ FIX guillemets
   showNote(authNote, '✅ Demo rempli. Clique "Envoyer le lien".', "ok");
 };
 
@@ -734,7 +813,7 @@ btnSendOtp.onclick = async ()=>{
   try{
     const { error } = await SB.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: location.origin + location.pathname }
+      options: { emailRedirectTo: location.origin + location.pathname + location.search }
     });
     if(error) throw error;
     showNote(authNote, "✅ Lien envoyé! Va dans ton email et clique le lien magique.", "ok");
@@ -756,6 +835,24 @@ btnLogout.onclick = async ()=>{
   paintEditor(null);
   setConnectedUI(null);
   markClean();
+};
+
+/* =============================
+   NAV BUTTONS WIRING
+============================= */
+btnOpenPlanning.onclick = ()=> openPage("./planning.html");
+btnOpenHealth.onclick   = ()=> openPage("./health-loc.html");
+btnOpenCreatePin.onclick= ()=> openPage("./create-pin.html");
+btnOpenPin.onclick      = ()=> openPage("./pin.html");
+btnOpenManageLinks.onclick = ()=> openPage("./manage-links.html");
+btnOpenAuthLoc.onclick  = ()=> openPage("./authentification-loc.html");
+btnOpenApp.onclick      = ()=> openPage("./app.html");
+btnOpenLogin.onclick    = ()=> openPage("./login.html");
+
+/* Listing: si logement sélectionné -> business_code ; sinon -> juste listing.html */
+btnOpenListing.onclick = ()=>{
+  const bc = (current?.business_code || "").trim();
+  openListingForBusiness(bc);
 };
 
 /* =============================
@@ -818,6 +915,8 @@ async function loadList(){
           <button class="btn gold small" data-open="${item.id}">✏️ Éditer</button>
           <button class="btn small" data-dup="${item.id}">📋 Dupliquer</button>
           <button class="btn ghost small" data-view="${item.id}">👁️ Fiche</button>
+          <button class="btn small" data-day="${item.business_code || ""}">📋 Listing</button>
+          <button class="btn small" data-plan="1">📅 Planning</button>
         </div>
       `;
       listEl.appendChild(div);
@@ -826,11 +925,21 @@ async function loadList(){
     listEl.querySelectorAll("[data-open]").forEach(b=>{
       b.onclick = ()=> openOne(b.getAttribute("data-open"));
     });
+
     listEl.querySelectorAll("[data-view]").forEach(b=>{
-      b.onclick = ()=> window.open("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view")), "_blank");
+      b.onclick = ()=> window.open(withSlug("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view"))), "_blank");
     });
+
     listEl.querySelectorAll("[data-dup]").forEach(b=>{
       b.onclick = ()=> duplicateOne(b.getAttribute("data-dup"));
+    });
+
+    listEl.querySelectorAll("[data-day]").forEach(b=>{
+      b.onclick = ()=> openListingForBusiness((b.getAttribute("data-day")||"").trim());
+    });
+
+    listEl.querySelectorAll("[data-plan]").forEach(b=>{
+      b.onclick = ()=> openPage("./planning.html");
     });
 
     showNote(listNote, `✅ ${total} logement(s) chargé(s).`, "ok");
@@ -859,7 +968,6 @@ async function openOne(id){
   const uid = sessionUser?.id;
   if(!uid) return showNote(editNote, "❌ Non connecté.", "bad");
 
-  // ✅ double verrou: owner_id aussi
   const { data, error } = await SB
     .from("digiy_logements")
     .select("*")
@@ -879,6 +987,14 @@ async function openOne(id){
   btnDelete.style.display = "inline-flex";
   await loadBlocksForCurrent();
   await loadPaymentsForCurrent();
+
+  // ✅ message nav
+  const bc = (current.business_code || "").trim();
+  if(bc){
+    showNav("✅ Logement sélectionné. Listing du jour prêt via business_code: " + bc, "ok");
+  }else{
+    showNav("⚠️ Logement sélectionné mais business_code vide. Mets-le pour activer Listing du jour.", "warn");
+  }
 }
 
 function newDraft(){
@@ -1038,7 +1154,6 @@ async function saveRecord(mode){
       current.id = data.id;
       showNote(saveNote, `✅ Créé! ID: ${current.id}`, "ok");
     }else{
-      // ✅ double verrou: owner_id aussi
       const { error } = await SB
         .from("digiy_logements")
         .update(payload)
@@ -1079,7 +1194,6 @@ btnDelete.onclick = async ()=>{
   btnDelete.innerHTML = '<span class="spinner"></span> Suppression...';
 
   try{
-    // ✅ double verrou: owner_id aussi
     const { error } = await SB
       .from("digiy_logements")
       .delete()
@@ -1094,6 +1208,7 @@ btnDelete.onclick = async ()=>{
     markClean();
     btnDelete.style.display = "none";
     await loadList();
+    showNav("✅ Logement supprimé. Listing du jour nécessite un logement sélectionné (business_code).", "warn");
   }catch(e){
     console.error(e);
     showNote(editNote, "❌ Suppression refusée:\n" + (e?.message || e), "bad");
@@ -1137,7 +1252,7 @@ btnTestMedia.onclick = ()=>{
 
 btnOpenPublic.onclick = ()=>{
   if(!current || !current.id) return showNote(editNote, "❌ Sauvegarde d'abord (pas d'ID).", "bad");
-  window.open("loc.html?id=" + encodeURIComponent(current.id), "_blank");
+  window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
 };
 
 /* =============================
@@ -1213,8 +1328,6 @@ btnAddBlock.onclick = async ()=>{
   btnAddBlock.innerHTML = '<span class="spinner"></span> Ajout...';
 
   try{
-    // ✅ IMPORTANT: j’ai remplacé business_id par business_code (plus logique).
-    // Si ta table n’a pas cette colonne, supprime la ligne business_code.
     const insertPayload = {
       listing_id: current.id,
       owner_id: sessionUser.id,
