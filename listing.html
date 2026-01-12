@@ -6,13 +6,14 @@
   <meta name="theme-color" content="#0b2a1f"/>
   <title>DIGIY LOC — Listing du Jour</title>
 
-  <!-- Supabase JS (GitHub Pages) -->
+  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
       --bg:#061b14;
       --card:#0b2a1f;
+      --card2:#0a241b;
       --line:rgba(255,255,255,.12);
       --text:#eafff1;
       --muted:rgba(234,255,241,.72);
@@ -25,6 +26,7 @@
       --shadow:0 18px 40px rgba(0,0,0,.35);
     }
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
       background:
@@ -32,263 +34,649 @@
         radial-gradient(800px 520px at 90% 10%, rgba(250,204,21,.16), transparent 50%),
         linear-gradient(180deg, #03120d, var(--bg));
       color:var(--text);
-      font-family:system-ui,-apple-system,sans-serif;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      -webkit-font-smoothing:antialiased;
       padding:16px 14px 90px;
     }
-    .wrap{max-width:520px;margin:0 auto}
     a{color:inherit;text-decoration:none}
+    .wrap{max-width:520px;margin:0 auto}
 
+    /* TOPBAR */
     .topbar{
       position:sticky; top:0; z-index:30;
-      margin:-16px -14px 12px;
-      padding:12px 14px;
+      padding:10px 0 12px;
       backdrop-filter: blur(10px);
-      background:linear-gradient(180deg,rgba(3,18,13,.92),rgba(3,18,13,.55));
+      background: linear-gradient(180deg, rgba(3,18,13,.92), rgba(3,18,13,.55));
       border-bottom:1px solid rgba(255,255,255,.06);
+      margin:-16px -14px 12px;
+      padding-left:14px; padding-right:14px;
     }
-    .brand{display:flex;justify-content:space-between;align-items:center}
-    .left{display:flex;gap:10px;align-items:center}
+    .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .brand .left{display:flex;align-items:center;gap:10px;min-width:0;}
     .logo{
       width:38px;height:38px;border-radius:14px;
-      display:grid;place-items:center;
-      font-weight:900;color:var(--gold);
-      background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(250,204,21,.18));
+      background: linear-gradient(135deg, rgba(34,197,94,.25), rgba(250,204,21,.18));
       border:1px solid rgba(250,204,21,.25);
+      box-shadow: 0 14px 28px rgba(0,0,0,.35);
+      display:grid; place-items:center;
+      font-weight:900; letter-spacing:.5px;
+      color:var(--gold);
+      flex:0 0 auto;
     }
-    .title{font-size:15px;font-weight:800}
-    .subtitle{font-size:12px;color:var(--muted)}
+    .titlebox{min-width:0}
+    .title{
+      font-size:15px; font-weight:800; line-height:1.1;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .subtitle{font-size:12px;color:var(--muted);margin-top:2px;}
     .chip{
-      display:flex;align-items:center;gap:6px;
-      font-size:12px;color:var(--muted);
-      padding:6px 10px;border-radius:999px;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(11,42,31,.55);
+      color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+      flex:0 0 auto;
     }
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+    .dot{width:8px;height:8px;border-radius:99px;background:var(--green); box-shadow:0 0 0 4px rgba(34,197,94,.15)}
 
+    /* HERO */
     .hero{
-      background:linear-gradient(180deg,rgba(11,42,31,.9),rgba(11,42,31,.65));
+      background: linear-gradient(180deg, rgba(11,42,31,.9), rgba(11,42,31,.65));
+      border:1px solid rgba(255,255,255,.10);
       border-radius:22px;
       padding:14px;
-      box-shadow:var(--shadow);
-      border:1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
     }
-    .heroTop{display:flex;justify-content:space-between;gap:12px}
-    .h1{margin:0;font-size:16px;font-weight:900}
-    .h2{margin:6px 0 0;font-size:12px;color:var(--muted)}
+    .heroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .h1{font-size:16px;font-weight:900;letter-spacing:.2px;margin:0;}
+    .h2{font-size:12px;margin:6px 0 0;color:var(--muted);line-height:1.35;}
     .pill{
-      font-size:11px;padding:4px 8px;border-radius:999px;
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
       border:1px solid rgba(255,255,255,.10);
       color:var(--muted);
+      background: rgba(0,0,0,.18);
+      white-space:nowrap;
     }
-
-    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
     .kpi{
-      background:rgba(10,36,27,.7);
+      background: rgba(10,36,27,.7);
+      border:1px solid rgba(255,255,255,.08);
       border-radius:18px;
       padding:10px;
-      border:1px solid rgba(255,255,255,.08);
     }
     .kpi .n{font-size:18px;font-weight:900}
-    .kpi .l{font-size:11px;color:var(--muted)}
+    .kpi .l{font-size:11px;color:var(--muted); margin-top:2px}
 
-    .actions{display:flex;gap:10px;margin-top:10px}
+    .actions{display:flex;gap:10px;margin-top:10px;}
     .btn{
-      flex:1;padding:11px;border-radius:16px;
-      font-size:12px;font-weight:900;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.08);
-      color:var(--text);
+      flex:1;
+      border:none;
+      border-radius:16px;
+      padding:11px 12px;
+      font-size:12px;
+      font-weight:900;
       cursor:pointer;
+      color:var(--text);
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      display:flex; align-items:center; justify-content:center; gap:8px;
     }
-    .btn.whatsapp{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.25)}
-    .btn.call{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.25)}
-    .btn.ok{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.25)}
+    .btn:active{transform:translateY(1px)}
+    .btn.whatsapp{background: rgba(34,197,94,.16);border-color: rgba(34,197,94,.25);}
+    .btn.call{background: rgba(250,204,21,.12);border-color: rgba(250,204,21,.25);}
+    .btn.ok{background: rgba(56,189,248,.14);border-color: rgba(56,189,248,.25);}
 
-    .tabs{display:flex;gap:10px;margin:14px 0}
+    /* TABS */
+    .tabs{
+      display:flex; gap:10px; margin:14px 0 10px;
+      position:sticky; top:76px; z-index:25;
+      padding:10px 0;
+      background: linear-gradient(180deg, rgba(6,27,20,.98), rgba(6,27,20,.55));
+      backdrop-filter: blur(10px);
+    }
     .tab{
-      flex:1;text-align:center;
-      padding:10px;border-radius:999px;
+      flex:1;
+      border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
-      background:rgba(11,42,31,.5);
-      font-size:12px;color:var(--muted);
+      background: rgba(11,42,31,.5);
+      padding:10px 12px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex; align-items:center; justify-content:center;
+      gap:8px;
+      user-select:none;
       cursor:pointer;
     }
+    .tab strong{color:var(--text); font-weight:900}
     .tab.active{
-      background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(250,204,21,.14));
+      background: linear-gradient(135deg, rgba(34,197,94,.20), rgba(250,204,21,.14));
+      border-color: rgba(250,204,21,.25);
       color:var(--text);
-      border-color:rgba(250,204,21,.25);
+    }
+    .pillCount{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      background: rgba(0,0,0,.18);
     }
 
-    .section{margin-top:10px}
+    /* LIST */
+    .section{ margin-top:8px; }
+    .sectionHead{display:flex;align-items:center;justify-content:space-between;margin:10px 2px 10px;}
+    .sectionHead h3{margin:0;font-size:13px;letter-spacing:.2px;font-weight:900;}
+    .sectionHead .small{font-size:12px;color:var(--muted);}
+
     .card{
-      background:linear-gradient(180deg,rgba(11,42,31,.92),rgba(11,42,31,.7));
+      background: linear-gradient(180deg, rgba(11,42,31,.92), rgba(11,42,31,.70));
+      border:1px solid rgba(255,255,255,.10);
       border-radius:22px;
       padding:12px;
+      box-shadow: 0 14px 28px rgba(0,0,0,.28);
       margin-bottom:10px;
-      border:1px solid rgba(255,255,255,.10);
     }
-    .name{font-size:14px;font-weight:900}
-
+    .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .main{min-width:0;}
+    .name{
+      font-size:14px;font-weight:900;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .meta{
+      margin-top:6px;
+      display:flex;flex-wrap:wrap;gap:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .tag{
+      display:inline-flex;align-items:center;gap:7px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      line-height:1;
+    }
+    .ic{width:9px;height:9px;border-radius:99px;background: rgba(255,255,255,.20);}
+    .ic.green{background:var(--green); box-shadow:0 0 0 4px rgba(34,197,94,.14)}
+    .ic.orange{background:var(--orange); box-shadow:0 0 0 4px rgba(245,158,11,.14)}
+    .ic.blue{background:var(--blue); box-shadow:0 0 0 4px rgba(56,189,248,.14)}
+    .ic.bad{background:var(--bad); box-shadow:0 0 0 4px rgba(239,68,68,.12)}
+    .status{
+      font-size:11px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color:var(--muted);
+      white-space:nowrap;
+    }
     .empty{
-      padding:16px;
+      padding:18px 14px;
       text-align:center;
       color:var(--muted);
-      border:1px dashed rgba(255,255,255,.2);
+      border:1px dashed rgba(255,255,255,.16);
       border-radius:18px;
+      background: rgba(0,0,0,.12);
+    }
+
+    .toast{
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:16px; z-index:50;
+      width:min(520px, calc(100vw - 28px));
+      background: rgba(11,42,31,.92);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.45);
+      padding:12px 12px;
+      display:none;
+      gap:10px;
+      align-items:center;
+    }
+    .toast .t{font-size:12px;color:var(--muted)}
+    .toast .b{
+      margin-left:auto;
+      font-size:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      color:var(--text);
+      font-weight:900;
+    }
+    .safe{ height: env(safe-area-inset-bottom); }
+
+    .hint{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.35;
     }
   </style>
 </head>
 
 <body>
-<div class="wrap">
+  <div class="wrap">
 
-  <div class="topbar">
-    <div class="brand">
-      <div class="left">
-        <div class="logo">D</div>
-        <div>
-          <div class="title">DIGIY LOC — Listing du Jour</div>
-          <div class="subtitle" id="todayLabel">—</div>
+    <div class="topbar">
+      <div class="brand">
+        <div class="left">
+          <div class="logo">D</div>
+          <div class="titlebox">
+            <div class="title">DIGIY LOC — Listing du Jour</div>
+            <div class="subtitle" id="todayLabel">—</div>
+          </div>
+        </div>
+        <div class="chip" title="État réseau">
+          <span class="dot" id="netDot"></span>
+          <span id="netLabel">En ligne</span>
         </div>
       </div>
-      <div class="chip"><span class="dot"></span> En ligne</div>
     </div>
-  </div>
 
-  <div class="hero">
-    <div class="heroTop">
-      <div>
-        <p class="h1">Tableau du jour (Propriétaire)</p>
-        <p class="h2">Arrivées, départs, en cours</p>
+    <div class="hero">
+      <div class="heroTop">
+        <div>
+          <p class="h1">Tableau du jour (Propriétaire)</p>
+          <p class="h2">Arrivées, départs, présents. Lisible en 5 secondes. Boutons WhatsApp / Appel / Partage.</p>
+        </div>
+        <div class="pill" id="businessCode">CODE • —</div>
       </div>
-      <div class="pill" id="businessCode">CODE • —</div>
-    </div>
 
-    <div class="kpis">
-      <div class="kpi"><div class="n" id="kpiArr">0</div><div class="l">Arrivées</div></div>
-      <div class="kpi"><div class="n" id="kpiDep">0</div><div class="l">Départs</div></div>
-      <div class="kpi"><div class="n" id="kpiOcc">0</div><div class="l">En cours</div></div>
-    </div>
-
-    <div class="actions">
-      <button class="btn whatsapp" id="shareWA">📲 Partager WhatsApp</button>
-      <button class="btn call" id="shareSMS">💬 Partager SMS</button>
-    </div>
-
-    <div class="actions">
-      <button class="btn ok" id="copyLink">🔗 Copier le lien</button>
-      <button class="btn" id="copyMsg">📝 Copier le message</button>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" data-tab="arr">🟢 Arrivées</div>
-    <div class="tab" data-tab="dep">🟠 Départs</div>
-    <div class="tab" data-tab="occ">🔵 En cours</div>
-  </div>
-
-  <div class="section" id="panel"></div>
-</div>
-
-<script>
-/* =============================
-   SUPABASE GUARD
-   ============================= */
-const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-const SUPABASE_ANON_KEY = "TON_ANON_KEY_ICI"; // <-- remplace ici
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth:{ persistSession:false }
-});
-
-const qp = k => new URLSearchParams(location.search).get(k) || "";
-
-function blockAccess(msg){
-  document.body.innerHTML = `
-    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
-      background:#061b14;color:#eafff1;font-family:system-ui;padding:20px">
-      <div style="max-width:420px;width:100%;background:rgba(11,42,31,.95);
-        border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:18px">
-        <div style="font-weight:900;font-size:16px;margin-bottom:6px">Accès refusé</div>
-        <div style="opacity:.75;font-size:13px">${msg}</div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="n" id="kpiArr">0</div>
+          <div class="l">Arrivées</div>
+        </div>
+        <div class="kpi">
+          <div class="n" id="kpiDep">0</div>
+          <div class="l">Départs</div>
+        </div>
+        <div class="kpi">
+          <div class="n" id="kpiOcc">0</div>
+          <div class="l">En cours</div>
+        </div>
       </div>
-    </div>`;
-}
 
-async function guard(){
-  const business = qp("business").toUpperCase().trim();
-  const token = qp("token").trim();
-  if(!business || !token){ blockAccess("Lien incomplet."); return false; }
+      <div class="actions" style="margin-top:12px">
+        <button class="btn whatsapp" id="shareWA">📲 Partager WhatsApp</button>
+        <button class="btn call" id="shareSMS">💬 Partager SMS</button>
+      </div>
 
-  const { data, error } = await sb.rpc("digiy_loc_check_listing_access", {
-    p_business_code: business,
-    p_token: token
-  });
-  if(error || !data || !data[0]?.ok){
-    blockAccess("Accès non autorisé.");
-    return false;
-  }
-  return true;
-}
+      <div class="actions" style="margin-top:10px">
+        <button class="btn ok" id="copyLink">🔗 Copier le lien</button>
+        <button class="btn" id="copyMsg">📝 Copier le message</button>
+      </div>
 
-/* =============================
-   DATA DEMO (sera remplacé)
-   ============================= */
-let DEMO = {
-  business_code: qp("business").toUpperCase() || "—",
-  arrivals:["Awa Ndiaye","Mamadou Diallo"],
-  departures:["Fatou Sarr"],
-  occupied:["Ibrahima Ba"]
-};
+      <div class="hint" id="pwaHint" style="display:none">
+        Astuce : sur Android/Chrome → menu ⋮ → <b>Ajouter à l’écran d’accueil</b>. Sur iPhone/Safari → Partager → <b>Sur l’écran d’accueil</b>.
+      </div>
+    </div>
 
-const $ = q => document.querySelector(q);
-const panel = $("#panel");
+    <div class="tabs" role="tablist" aria-label="Listing du jour">
+      <div class="tab active" id="tab-arr" role="tab" aria-selected="true" tabindex="0" data-tab="arr">
+        🟢 <strong>Arrivées</strong> <span class="pillCount" id="countArr">0</span>
+      </div>
+      <div class="tab" id="tab-dep" role="tab" aria-selected="false" tabindex="-1" data-tab="dep">
+        🟠 <strong>Départs</strong> <span class="pillCount" id="countDep">0</span>
+      </div>
+      <div class="tab" id="tab-occ" role="tab" aria-selected="false" tabindex="-1" data-tab="occ">
+        🔵 <strong>En cours</strong> <span class="pillCount" id="countOcc">0</span>
+      </div>
+    </div>
 
-function render(tab="arr"){
-  $("#todayLabel").textContent = new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
-  $("#businessCode").textContent = "CODE • " + DEMO.business_code;
-  $("#kpiArr").textContent = DEMO.arrivals.length;
-  $("#kpiDep").textContent = DEMO.departures.length;
-  $("#kpiOcc").textContent = DEMO.occupied.length;
+    <div class="section" id="panel-arr" role="tabpanel" aria-labelledby="tab-arr"></div>
+    <div class="section" id="panel-dep" role="tabpanel" aria-labelledby="tab-dep" style="display:none"></div>
+    <div class="section" id="panel-occ" role="tabpanel" aria-labelledby="tab-occ" style="display:none"></div>
 
-  panel.innerHTML = "";
-  const list = DEMO[tab==="arr"?"arrivals":tab==="dep"?"departures":"occupied"];
-  if(!list.length){
-    panel.innerHTML = '<div class="empty">Aucun élément</div>';
-    return;
-  }
-  list.forEach(n=>{
-    panel.innerHTML += `<div class="card"><div class="name">${n}</div></div>`;
-  });
-}
+    <div class="safe"></div>
+  </div>
 
-document.querySelectorAll(".tab").forEach(t=>{
-  t.onclick = ()=>{
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-    t.classList.add("active");
-    render(t.dataset.tab);
-  };
-});
+  <div class="toast" id="toast">
+    <div class="t" id="toastText">—</div>
+    <button class="b" id="toastBtn">OK</button>
+  </div>
 
-function buildMsg(){
-  return `📋 DIGIY LOC — Listing du Jour
-🏠 ${DEMO.business_code}
-Arrivées:${DEMO.arrivals.length} • Départs:${DEMO.departures.length} • En cours:${DEMO.occupied.length}
+  <script>
+    // =============================
+    // SUPABASE (REMPLIR ICI)
+    // =============================
+    const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
-${location.href}`;
-}
+    // =============================
+    // PARAMS URL
+    // =============================
+    const url = new URL(window.location.href);
+    const Q = (k)=> (url.searchParams.get(k) || "").trim();
 
-$("#shareWA").onclick = ()=>window.open("https://wa.me/?text="+encodeURIComponent(buildMsg()),"_blank","noopener");
-$("#shareSMS").onclick = ()=>location.href="sms:?body="+encodeURIComponent(buildMsg());
-$("#copyLink").onclick = ()=>navigator.clipboard.writeText(location.href);
-$("#copyMsg").onclick = ()=>navigator.clipboard.writeText(buildMsg());
+    // business: obligatoire pour filtre
+    const BUSINESS = (Q("business") || "").toUpperCase();
 
-(async function boot(){
-  const ok = await guard();
-  if(!ok) return;
-  render();
-})();
-</script>
+    // date: YYYY-MM-DD (sinon today)
+    const todayISO = new Date().toISOString().slice(0,10);
+    const DATE = (Q("date") || todayISO);
+
+    // Token optionnel : si tu veux l’utiliser plus tard côté RLS/guard
+    const TOKEN = Q("token") || "";
+
+    // =============================
+    // UI HELPERS
+    // =============================
+    const $ = (id)=>document.getElementById(id);
+
+    function fmtDateFRFromISO(iso){
+      const d = new Date(iso + "T00:00:00");
+      return d.toLocaleDateString("fr-FR", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+    }
+
+    function toast(msg){
+      const t = $("toast");
+      $("toastText").textContent = msg;
+      t.style.display = "flex";
+      window.clearTimeout(window.__toastTimer);
+      window.__toastTimer = window.setTimeout(()=> t.style.display="none", 2600);
+    }
+    $("toastBtn").addEventListener("click", ()=> $("toast").style.display="none");
+
+    function refreshNetwork(){
+      const on = navigator.onLine;
+      $("netLabel").textContent = on ? "En ligne" : "Hors ligne";
+      $("netDot").style.background = on ? "var(--green)" : "var(--bad)";
+    }
+    window.addEventListener("online", refreshNetwork);
+    window.addEventListener("offline", refreshNetwork);
+
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function sectionHeader(title, subtitle){
+      const h = document.createElement("div");
+      h.className = "sectionHead";
+      h.innerHTML = `<h3>${title}</h3><div class="small">${subtitle||""}</div>`;
+      return h;
+    }
+
+    function emptyState(text){
+      const el = document.createElement("div");
+      el.className = "empty";
+      el.textContent = text;
+      return el;
+    }
+
+    function waLink(phone, message){
+      const p = (phone||"").replace(/[^\d]/g,"");
+      const text = encodeURIComponent(message||"Bonjour 👋");
+      return `https://wa.me/${p}?text=${text}`;
+    }
+    function telLink(phone){ return `tel:${phone||""}`; }
+
+    function cardCommon(item, kind){
+      const guest = item.guest_name || item.name || "Client";
+      const room = item.room_label || "Logement";
+      const phone = item.phone || "";
+      const source = item.source || "—";
+      const status = item.status || kind;
+
+      const metaBits = [];
+      metaBits.push(`<span class="tag"><span class="ic ${kind==='arr'?'green':kind==='dep'?'orange':'blue'}"></span> ${escapeHtml(room)}</span>`);
+      metaBits.push(`<span class="tag"><span class="ic blue"></span> ${escapeHtml(source)}</span>`);
+      metaBits.push(`<span class="tag"><span class="ic ${status==='confirmed'?'green':'orange'}"></span> ${escapeHtml(status)}</span>`);
+
+      let extra = "";
+      if(kind==="arr"){
+        extra = `<span class="tag"><span class="ic orange"></span> Arrivée: ${escapeHtml(item.check_in||"—")}</span>`;
+      }else if(kind==="dep"){
+        extra = `<span class="tag"><span class="ic orange"></span> Départ: ${escapeHtml(item.check_out||"—")}</span>`;
+      }else{
+        extra = `<span class="tag"><span class="ic green"></span> ${escapeHtml(item.check_in||"—")} → ${escapeHtml(item.check_out||"—")}</span>`;
+      }
+      const msg = (kind==="arr")
+        ? `Bonjour ${guest} 👋\nNous confirmons votre arrivée aujourd’hui.\nLogement: ${room}\nÀ tout à l’heure.`
+        : (kind==="dep")
+          ? `Bonjour ${guest} 👋\nRappel : départ aujourd’hui.\nLogement: ${room}\nMerci 🙏`
+          : `Bonjour ${guest} 👋\nTout se passe bien ?\nLogement: ${room}\nBesoin d’aide ?`;
+
+      const el = document.createElement("div");
+      el.className = "card";
+      el.innerHTML = `
+        <div class="row">
+          <div class="main">
+            <div class="name">${escapeHtml(guest)}</div>
+            <div class="meta">
+              ${metaBits.join("")}
+              ${extra}
+            </div>
+          </div>
+          <div class="status">${escapeHtml(kind==='arr'?'Arrivée':kind==='dep'?'Départ':'En cours')}</div>
+        </div>
+        <div class="actions">
+          <a class="btn whatsapp" href="${waLink(phone, msg)}" target="_blank" rel="noopener">📲 WhatsApp</a>
+          <a class="btn call" href="${telLink(phone)}">📞 Appeler</a>
+        </div>
+      `;
+      return el;
+    }
+
+    function setTab(key){
+      const keys = ["arr","dep","occ"];
+      keys.forEach(k=>{
+        $("tab-"+k).classList.toggle("active", k===key);
+        $("tab-"+k).setAttribute("aria-selected", k===key ? "true":"false");
+        $("tab-"+k).setAttribute("tabindex", k===key ? "0":"-1");
+        $("panel-"+k).style.display = (k===key) ? "block":"none";
+      });
+      localStorage.setItem("digiy_loc_listing_tab", key);
+    }
+
+    document.querySelectorAll(".tab").forEach(t=>{
+      t.addEventListener("click", ()=> setTab(t.dataset.tab));
+      t.addEventListener("keydown", (e)=>{
+        if(e.key==="Enter" || e.key===" "){ e.preventDefault(); setTab(t.dataset.tab); }
+      });
+    });
+
+    // =============================
+    // SHARE (sans API)
+    // =============================
+    function buildListingUrl(){
+      const u = new URL(window.location.href);
+      if(BUSINESS) u.searchParams.set("business", BUSINESS);
+      if(DATE) u.searchParams.set("date", DATE);
+      if(TOKEN) u.searchParams.set("token", TOKEN);
+      return u.toString();
+    }
+
+    function buildShareMessage(data){
+      const arr = (data?.arrivals||[]).length;
+      const dep = (data?.departures||[]).length;
+      const occ = (data?.occupied||[]).length;
+      const dateLabel = fmtDateFRFromISO(DATE);
+      const link = buildListingUrl();
+
+      return `📋 DIGIY LOC — Listing du Jour
+🏠 ${BUSINESS || (data?.business_code||"")}
+📅 ${dateLabel}
+Arrivées: ${arr} • Départs: ${dep} • En cours: ${occ}
+
+Ouvrir: ${link}`;
+    }
+
+    function openWhatsAppShare(msg){
+      window.open("https://wa.me/?text="+encodeURIComponent(msg), "_blank", "noopener");
+    }
+
+    function openSmsShare(msg){
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const sep = isIOS ? "&" : "?";
+      window.location.href = `sms:${sep}body=${encodeURIComponent(msg)}`;
+    }
+
+    async function copyToClipboard(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        toast("Copié ✅");
+      }catch(e){
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast("Copié ✅");
+      }
+    }
+
+    // =============================
+    // DATA LOAD
+    // =============================
+    let LAST_DATA = null;
+
+    async function loadData(){
+      refreshNetwork();
+
+      $("todayLabel").textContent = fmtDateFRFromISO(DATE);
+      $("businessCode").textContent = "CODE • " + (BUSINESS || "—");
+
+      if(!SUPABASE_URL.includes("supabase.co") || SUPABASE_ANON_KEY.startsWith("YOUR_")){
+        toast("⚠️ Configure SUPABASE_URL + ANON_KEY");
+        renderEmpty("Configuration manquante.");
+        return;
+      }
+      if(!BUSINESS){
+        renderEmpty("Business manquant. Ajoute ?business=BEAUVILLE");
+        return;
+      }
+
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      try{
+        const { data, error } = await supabase.rpc("digiy_loc_get_listing_day", {
+          p_business_code: BUSINESS,
+          p_date: DATE
+        });
+        if(error) throw error;
+
+        LAST_DATA = data;
+        renderAll(data);
+
+      }catch(err){
+        console.error(err);
+        toast("Erreur chargement. Vérifie RPC/RLS.");
+        renderEmpty("Impossible de charger le listing.");
+      }
+    }
+
+    function renderEmpty(msg){
+      ["arr","dep","occ"].forEach(k=>{
+        const p = $("panel-"+k);
+        p.innerHTML = "";
+        p.appendChild(sectionHeader(
+          k==="arr" ? "Arrivées" : k==="dep" ? "Départs" : "En cours",
+          "—"
+        ));
+        p.appendChild(emptyState(msg));
+      });
+
+      $("kpiArr").textContent = "0";
+      $("kpiDep").textContent = "0";
+      $("kpiOcc").textContent = "0";
+      $("countArr").textContent = "0";
+      $("countDep").textContent = "0";
+      $("countOcc").textContent = "0";
+    }
+
+    function renderAll(data){
+      const arr = data?.arrivals || [];
+      const dep = data?.departures || [];
+      const occ = data?.occupied || [];
+
+      $("kpiArr").textContent = arr.length;
+      $("kpiDep").textContent = dep.length;
+      $("kpiOcc").textContent = occ.length;
+
+      $("countArr").textContent = arr.length;
+      $("countDep").textContent = dep.length;
+      $("countOcc").textContent = occ.length;
+
+      const pArr = $("panel-arr");
+      const pDep = $("panel-dep");
+      const pOcc = $("panel-occ");
+      pArr.innerHTML = ""; pDep.innerHTML = ""; pOcc.innerHTML = "";
+
+      pArr.appendChild(sectionHeader("Arrivées aujourd’hui", "Contacts rapides WhatsApp / Appel"));
+      if(arr.length===0) pArr.appendChild(emptyState("Aucune arrivée aujourd’hui."));
+      arr.forEach(x=> pArr.appendChild(cardCommon(x,"arr")));
+
+      pDep.appendChild(sectionHeader("Départs aujourd’hui", "Contacts rapides WhatsApp / Appel"));
+      if(dep.length===0) pDep.appendChild(emptyState("Aucun départ aujourd’hui."));
+      dep.forEach(x=> pDep.appendChild(cardCommon(x,"dep")));
+
+      pOcc.appendChild(sectionHeader("En cours", "Clients actuellement présents"));
+      if(occ.length===0) pOcc.appendChild(emptyState("Aucun client en cours."));
+      occ.forEach(x=> pOcc.appendChild(cardCommon(x,"occ")));
+
+      // Cache local (optionnel)
+      try{
+        localStorage.setItem("digiy_loc_listing_cache", JSON.stringify({
+          cached_at: new Date().toISOString(),
+          business: BUSINESS,
+          date: DATE,
+          data
+        }));
+      }catch(e){}
+    }
+
+    // =============================
+    // PWA hint (display-mode)
+    // =============================
+    (function pwa(){
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+      if(!isStandalone) $("pwaHint").style.display = "block";
+    })();
+
+    // =============================
+    // Wire share buttons
+    // =============================
+    (function wireShareButtons(){
+      $("shareWA").addEventListener("click", ()=>{
+        const msg = buildShareMessage(LAST_DATA || {});
+        openWhatsAppShare(msg);
+      });
+      $("shareSMS").addEventListener("click", ()=>{
+        const msg = buildShareMessage(LAST_DATA || {});
+        openSmsShare(msg);
+      });
+      $("copyLink").addEventListener("click", ()=> copyToClipboard(buildListingUrl()));
+      $("copyMsg").addEventListener("click", ()=> copyToClipboard(buildShareMessage(LAST_DATA || {})));
+    })();
+
+    // =============================
+    // Boot
+    // =============================
+    (function boot(){
+      const last = localStorage.getItem("digiy_loc_listing_tab") || "arr";
+      setTab(["arr","dep","occ"].includes(last) ? last : "arr");
+      loadData();
+    })();
+  </script>
 </body>
 </html>
