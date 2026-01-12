@@ -681,14 +681,25 @@ Ouvrir: ${link}`;
     })();
   </script>
   <script>
-  window.DIGIY_GUARD.boot({
-    module: "LOC",
-    dashboard: "./planning.html",
-    login: "./login.html",
-    pay: "https://beauville.github.io/commencer-a-payer/",
-    requireSlug: true,
-    checkSubscription: true
-  });
+  (function(){
+    // 1) Guard d’abord (bloque si pas login / pas abo)
+    if (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function") {
+      window.DIGIY_GUARD.boot({
+        module: "LOC",
+        dashboard: "./planning.html",
+        login: "./login.html",
+        pay: "https://beauville.github.io/commencer-a-payer/",
+        requireSlug: true,
+        checkSubscription: true
+      });
+    }
+
+    // 2) Boot page ensuite (si le guard ne redirige pas, on est autorisé)
+    const last = localStorage.getItem("digiy_loc_listing_tab") || "arr";
+    setTab(["arr","dep","occ"].includes(last) ? last : "arr");
+    loadData();
+  })();
 </script>
 </body>
 </html>
+
