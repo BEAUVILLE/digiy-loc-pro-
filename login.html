@@ -90,8 +90,9 @@
 
   <script>
     (function(){
-      const MODULE = "LOC";                 // ✅ IMPORTANT: MAJUSCULE (align RPC/DB)
-      const SUPPORT_WA = "+221771342889";   // ✅ support
+      const MODULE = "LOC";                 // ✅ IMPORTANT: MAJUSCULE
+      const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
+      const SUPPORT_WA = "+221771342889";   // ✅ support WhatsApp
 
       const $ = (id)=>document.getElementById(id);
 
@@ -110,24 +111,37 @@
         $("pin").disabled = !!on;
       }
 
+      function withSlug(u){
+        return (window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(u) : u);
+      }
+
       if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.loginWithPin !== "function"){
         setEtat("Guard absent");
         setStatus("Erreur: guard.js non chargé (DIGIY_GUARD introuvable).", "bad");
-        setHint("Vérifie que ./guard.js existe à la racine et qu'il est chargé avant ce script.");
+        setHint("Vérifie que guard.js est bien à la racine du repo et chargé avant ce script.");
         return;
       }
 
-      // slug
+      // slug UI
       const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
       $("pillSlug").textContent = "slug: " + (slug || "—");
       $("pillModule").textContent = MODULE;
 
-      // ✅ Si session existe déjà, saute le login (zéro friction)
+      // ✅ Si session existe déjà → on passe direct au guard (il gère planning vs pay)
       try{
         const sess = window.DIGIY_GUARD.getSession ? window.DIGIY_GUARD.getSession() : null;
         if(sess && sess.phone){
-          const next = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./planning.html") : "./planning.html";
-          location.replace(next);
+          window.DIGIY_GUARD.boot({
+            module: MODULE,
+            dashboard: "./planning.html",
+            login: "./pin.html",       // ✅ retour ici si besoin
+            pay: PAY_URL,
+            requireSlug: true,
+            checkSubscription: true
+          });
+
+          // si pas redirigé par le guard → planning
+          setTimeout(()=> location.replace(withSlug("./planning.html")), 350);
           return;
         }
       }catch(_){}
@@ -135,7 +149,7 @@
       setEtat("Prêt");
       setStatus("PIN requis", "warn");
 
-      // Prefill phone
+      // Prefill phone (si guard l’a)
       try{
         const p = window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone();
         if(p) $("phone").value = p;
@@ -163,7 +177,7 @@ Téléphone: ${phone || "—"}
 
 Merci. — DIGIY`;
 
-        const url = "https://wa.me/" + SUPPORT_WA.replace(/\+/g,"") + "?text=" + encodeURIComponent(msg);
+        const url = "https://wa.me/" + SUPPORT_WA.replace(/[^\d]/g,"") + "?text=" + encodeURIComponent(msg);
         window.location.href = url;
       };
 
@@ -191,9 +205,21 @@ Merci. — DIGIY`;
             return;
           }
 
-          setStatus("✅ OK. Ouverture du planning…", "ok");
-          const next = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./planning.html") : "./planning.html";
-          window.location.replace(next);
+          // ✅ Ici, on laisse le guard faire la règle :
+          // abo actif → planning ; sinon → pay ; et après pay → dashboard(planning)
+          setStatus("✅ OK. Vérification abonnement…", "ok");
+
+          window.DIGIY_GUARD.boot({
+            module: MODULE,
+            dashboard: "./planning.html",  // ✅ après paiement -> planning
+            login: "./pin.html",
+            pay: PAY_URL,
+            requireSlug: true,
+            checkSubscription: true
+          });
+
+          // si pas redirigé, on ouvre planning
+          setTimeout(()=> location.replace(withSlug("./planning.html")), 450);
 
         }catch(e){
           console.error(e);
@@ -209,3 +235,4 @@ Merci. — DIGIY`;
   </script>
 </body>
 </html>
+
