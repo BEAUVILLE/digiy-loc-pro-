@@ -8,7 +8,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* ======== TON CSS (inchangé + patch mobile + menu + back) ======== */
+/* =============================
+   DIGIY LOC PRO — UI ROYAL
+   (CSS inchangé + patch mobile + menu + back)
+============================= */
 :root{
   --bg:#020617;
   --bg2:#0b1020;
@@ -50,6 +53,7 @@ a{color:inherit}
 .brand h1{margin:0;font-size:1.05rem;letter-spacing:.2px}
 .brand .infinity{font-size:1.5rem;font-weight:900;margin-left:4px}
 .brand .sub{color:var(--muted);font-weight:800;font-size:.92rem}
+
 .pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pill{
   border:1px solid rgba(148,163,184,.35);
@@ -307,10 +311,10 @@ input[type="date"]{color-scheme:dark}
       <div class="cardHead">
         <div>
           <h2>🏡 Mes logements</h2>
-          <small>Créer, éditer, dupliquer, publier.</small>
+          <small>Ajouter, modifier, copier, mettre en ligne.</small>
         </div>
         <div class="btnRow">
-          <button class="btn gold" id="btnNew">+ Nouveau</button>
+          <button class="btn gold" id="btnNew">+ Ajouter</button>
           <button class="btn" id="btnRefresh">↻ Actualiser</button>
         </div>
       </div>
@@ -319,12 +323,12 @@ input[type="date"]{color-scheme:dark}
         <!-- AUTH -->
         <div id="authBox">
           <div class="previewBox">
-            <div style="font-weight:1000;font-size:1.05rem;margin-bottom:6px;">🔐 Connexion PRO</div>
+            <div style="font-weight:1000;font-size:1.05rem;margin-bottom:6px;">🔐 Accès propriétaire</div>
             <div style="color:var(--muted);font-weight:800;">
-              Connexion sécurisée par email (Magic Link). Reçois un lien, clique, c'est tout.
+              Tu entres ton email, tu reçois un lien, tu cliques : c’est tout.
             </div>
 
-            <label>Email PRO</label>
+            <label>Email</label>
             <input id="authEmail" type="email" placeholder="ex: ton-email@example.com" />
 
             <div class="btnRow" style="margin-top:12px">
@@ -332,7 +336,7 @@ input[type="date"]{color-scheme:dark}
               <button class="btn" id="btnDemoFill">⚡ Demo</button>
             </div>
 
-            <small class="hint">💡 Astuce: ouvre ton email sur le même navigateur pour te connecter automatiquement.</small>
+            <small class="hint">💡 Astuce : ouvre ton email sur ce même navigateur.</small>
             <div class="note" id="authNote"></div>
           </div>
         </div>
@@ -350,20 +354,20 @@ input[type="date"]{color-scheme:dark}
     <section class="card">
       <div class="cardHead">
         <div>
-          <h2>✨ Éditeur Premium</h2>
-          <small>Photo + vidéo + Wave + tarifs + calendrier + acomptes</small>
+          <h2>✨ Détails du logement</h2>
+          <small>Photos • Vidéo • Prix • Paiement Wave • Calendrier</small>
         </div>
         <div class="btnRow">
           <button class="btn primary" id="btnSave" disabled>💾 Enregistrer</button>
-          <button class="btn gold" id="btnPublish" disabled>🚀 Publier</button>
-          <button class="btn" id="btnDraft" disabled>📝 Brouillon</button>
-          <button class="btn danger small" id="btnDelete" disabled style="display:none">🗑️ Supprimer</button>
+          <button class="btn gold" id="btnPublish" disabled>🚀 Mettre en ligne</button>
+          <button class="btn" id="btnDraft" disabled>📝 Garder privé</button>
+          <button class="btn danger small" id="btnDelete" disabled style="display:none">🗑️ Retirer</button>
         </div>
       </div>
 
       <div class="cardBody">
         <div class="previewBox">
-          <div style="font-weight:1000;margin-bottom:8px;">👁️ Prévisualisation</div>
+          <div style="font-weight:1000;margin-bottom:8px;">👁️ Aperçu</div>
           <img id="pvImg" class="previewImg" alt="photo logement" />
           <div class="videoWrap" id="pvVideoWrap">
             <iframe id="pvVideo" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -371,13 +375,14 @@ input[type="date"]{color-scheme:dark}
 
           <div class="miniRow">
             <div class="mini">📍 <strong id="pvVille">—</strong></div>
-            <div class="mini">💳 Wave: <strong id="pvWave">—</strong></div>
+            <div class="mini">💳 <strong>Paiement Wave direct</strong></div>
+            <div class="mini">👤 <strong id="pvWave">—</strong></div>
             <div class="mini">🏷️ <strong id="pvStatus">—</strong></div>
           </div>
 
           <div class="btnRow" style="margin-top:10px">
-            <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir fiche publique</button>
-            <button class="btn" id="btnTestMedia" disabled>🔎 Tester médias</button>
+            <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir la fiche</button>
+            <button class="btn" id="btnTestMedia" disabled>🔎 Tester photo/vidéo</button>
           </div>
 
           <div class="note" id="editNote"></div>
@@ -399,9 +404,9 @@ input[type="date"]{color-scheme:dark}
 
         <div class="fieldGrid">
           <div>
-            <label>Business Code (unique)</label>
+            <label>Code logement (unique)</label>
             <input id="f_business_code" placeholder="ex: VILLA_PARADISE_001" maxlength="50" />
-            <small class="hint">Code unique pour lier réservations</small>
+            <small class="hint">Ce code sert à relier tes réservations</small>
           </div>
           <div>
             <label>Adresse (optionnel)</label>
@@ -409,7 +414,7 @@ input[type="date"]{color-scheme:dark}
           </div>
         </div>
 
-        <label>Description</label>
+        <label>Présentation</label>
         <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant." maxlength="2000"></textarea>
         <small class="hint">Max 2000 caractères</small>
 
@@ -417,7 +422,7 @@ input[type="date"]{color-scheme:dark}
           <div>
             <label>Photo principale (URL) *</label>
             <input id="f_photo" placeholder="https://exemple.com/photo.jpg" />
-            <small class="hint">Format: jpg, jpeg, png, webp</small>
+            <small class="hint">Format : jpg, jpeg, png, webp</small>
           </div>
           <div>
             <label>Vidéo (Drive / YouTube / Vimeo)</label>
@@ -427,59 +432,63 @@ input[type="date"]{color-scheme:dark}
 
         <div class="fieldGrid">
           <div>
-            <label>Tarif nuit (FCFA) *</label>
+            <label>Prix par nuit (FCFA) *</label>
             <input id="f_prix_nuit" type="number" min="1000" step="1000" placeholder="30000" />
             <small class="hint">Minimum 1000 FCFA</small>
           </div>
           <div>
-            <label>Tarif semaine (FCFA)</label>
+            <label>Prix à la semaine (FCFA)</label>
             <input id="f_prix_semaine" type="number" min="0" step="1000" placeholder="175000" />
           </div>
         </div>
 
         <div class="fieldGrid">
           <div>
-            <label>Tarif mois (FCFA)</label>
+            <label>Prix au mois (FCFA)</label>
             <input id="f_prix_mois" type="number" min="0" step="1000" placeholder="550000" />
           </div>
           <div>
-            <label>Suppléments / notes</label>
+            <label>Notes (optionnel)</label>
             <input id="f_frais" placeholder="ex: Électricité en sus selon conso" maxlength="200" />
           </div>
         </div>
 
         <hr class="sep" />
 
-        <div class="fieldGrid">
-          <div>
-            <label>Wave — Numéro *</label>
-            <input id="f_wave_phone" placeholder="+221 77 123 45 67" />
-            <small class="hint">Format: +221 suivi de 9 chiffres</small>
+        <div class="previewBox">
+          <div style="font-weight:1100">💳 Paiement en direct via Wave</div>
+          <small class="hint">
+            Le client paie <strong>directement</strong> au propriétaire. DIGIY ne prend aucune commission.
+          </small>
+
+          <div class="fieldGrid" style="margin-top:8px">
+            <div>
+              <label>Numéro Wave du propriétaire *</label>
+              <input id="f_wave_phone" placeholder="+221 77 123 45 67" />
+              <small class="hint">Format : +221 suivi de 9 chiffres</small>
+            </div>
+            <div>
+              <label>Nom du propriétaire (Wave) *</label>
+              <input id="f_wave_name" placeholder="ex: Mamadou Diop" maxlength="50" />
+              <small class="hint">Nom qui s'affiche sur Wave</small>
+            </div>
           </div>
-          <div>
-            <label>Wave — Nom affiché *</label>
-            <input id="f_wave_name" placeholder="ex: VILLA PARADISE" maxlength="50" />
-            <small class="hint">Nom qui s'affiche sur Wave</small>
+
+          <div class="fieldGrid">
+            <div>
+              <label>Avance demandée (%) *</label>
+              <input id="f_deposit" type="number" min="0" max="100" step="5" placeholder="30" />
+              <small class="hint">Entre 0 et 100%</small>
+            </div>
+            <div>
+              <label>Visibilité</label>
+              <select id="f_status">
+                <option value="brouillon">📝 Privé (pas encore en ligne)</option>
+                <option value="actif">✅ En ligne (visible)</option>
+              </select>
+            </div>
           </div>
         </div>
-
-        <div class="fieldGrid">
-          <div>
-            <label>Lien Wave Pay (optionnel)</label>
-            <input id="f_wave_link" placeholder="https://pay.wave.com/..." />
-          </div>
-          <div>
-            <label>Acompte (%) *</label>
-            <input id="f_deposit" type="number" min="0" max="100" step="5" placeholder="30" />
-            <small class="hint">Entre 0 et 100%</small>
-          </div>
-        </div>
-
-        <label>Statut</label>
-        <select id="f_status">
-          <option value="brouillon">📝 Brouillon (non visible)</option>
-          <option value="actif">✅ Actif (visible publiquement)</option>
-        </select>
 
         <div class="note" id="saveNote"></div>
 
@@ -487,8 +496,8 @@ input[type="date"]{color-scheme:dark}
 
         <!-- CALENDRIER -->
         <div class="previewBox">
-          <div style="font-weight:1100">📅 Calendrier (bloquer dates)</div>
-          <small class="hint">Bloque les périodes occupées. La fiche publique affichera disponible/non disponible.</small>
+          <div style="font-weight:1100">📅 Calendrier (bloquer des dates)</div>
+          <small class="hint">Bloque les périodes occupées. La fiche affichera libre / réservé.</small>
 
           <div class="fieldGrid" style="margin-top:8px">
             <div>
@@ -501,11 +510,11 @@ input[type="date"]{color-scheme:dark}
             </div>
           </div>
 
-          <label>Raison (optionnel)</label>
+          <label>Motif (optionnel)</label>
           <input id="calReason" placeholder="ex: Occupé / Maintenance / Réservé ailleurs" maxlength="100" />
 
           <div class="btnRow" style="margin-top:10px">
-            <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer période</button>
+            <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer</button>
             <button class="btn" id="btnReloadBlocks" disabled>↻ Recharger</button>
           </div>
 
@@ -517,8 +526,8 @@ input[type="date"]{color-scheme:dark}
 
         <!-- ACOMPTES -->
         <div class="previewBox">
-          <div style="font-weight:1100">💳 Acomptes (preuves Wave)</div>
-          <small class="hint">Liste des preuves d'acompte reçues. Confirme ou rejette chaque paiement.</small>
+          <div style="font-weight:1100">🧾 Avances reçues (preuves Wave)</div>
+          <small class="hint">Tu peux confirmer ou refuser chaque preuve.</small>
 
           <div class="btnRow" style="margin-top:10px">
             <button class="btn" id="btnReloadPays" disabled>↻ Recharger</button>
@@ -539,7 +548,7 @@ input[type="date"]{color-scheme:dark}
 ============================= */
 const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
 const SUPABASE_ANON_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =============================
@@ -560,16 +569,13 @@ function setNavSlug(){
 }
 setNavSlug();
 
-// Back stays in app (history fallback -> cockpit)
 document.getElementById("btnBack").onclick = ()=>{
   if(history.length > 1) return history.back();
   location.href = withSlug("./index.html");
 };
 
-// Menu pages (connectées)
 document.getElementById("goPlanning").onclick = ()=> location.href = withSlug("./planning.html");
 document.getElementById("goListing").onclick = ()=>{
-  // Listing dépend du business_code: on essaie d'utiliser le logement courant, sinon on laisse sans.
   const bc = (current && current.business_code) ? current.business_code : "";
   const u = new URL(withSlug("./listing.html"), location.href);
   if(bc) u.searchParams.set("business", bc);
@@ -579,7 +585,7 @@ document.getElementById("goLinks").onclick = ()=> location.href = withSlug("./ma
 document.getElementById("goHealth").onclick = ()=> location.href = withSlug("./health-loc.html");
 
 /* =============================
-   DOM ELEMENTS
+   DOM
 ============================= */
 const authBox = document.getElementById("authBox");
 const listBox = document.getElementById("listBox");
@@ -627,7 +633,6 @@ const f_prix_mois = document.getElementById("f_prix_mois");
 const f_frais = document.getElementById("f_frais");
 const f_wave_phone = document.getElementById("f_wave_phone");
 const f_wave_name = document.getElementById("f_wave_name");
-const f_wave_link = document.getElementById("f_wave_link");
 const f_deposit = document.getElementById("f_deposit");
 const f_status = document.getElementById("f_status");
 
@@ -652,7 +657,7 @@ let hasUnsavedChanges = false;
 const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAPTISTE.png";
 
 /* =============================
-   UTILITY FUNCTIONS
+   UTILS
 ============================= */
 function showNote(el, msg, type){
   el.style.display = "block";
@@ -665,7 +670,6 @@ function hideNote(el){
   el.textContent="";
   el.classList.remove("ok","bad","warn");
 }
-
 function toEmbedUrl(u){
   const s = String(u||"").trim();
   if(!s) return "";
@@ -679,19 +683,16 @@ function toEmbedUrl(u){
   if(m && m[1]) return "https://drive.google.com/file/d/" + m[1] + "/preview";
   return "";
 }
-
 function normalizeStatus(s){
   const v = String(s||"").toLowerCase().trim();
   if(["actif","active","published","online"].includes(v)) return "actif";
   return "brouillon";
 }
-
 function rowTag(status){
   const s = normalizeStatus(status);
-  if(s==="actif") return `<span class="tag dot live">Actif</span>`;
-  return `<span class="tag dot draft">Brouillon</span>`;
+  if(s==="actif") return `<span class="tag dot live">En ligne</span>`;
+  return `<span class="tag dot draft">Privé</span>`;
 }
-
 function generateBusinessCode(nom, ville){
   const n = (nom||"").toUpperCase().replace(/[^A-Z0-9]/g,"_").slice(0,20);
   const v = (ville||"").toUpperCase().replace(/[^A-Z0-9]/g,"_").slice(0,10);
@@ -700,7 +701,7 @@ function generateBusinessCode(nom, ville){
 }
 
 /* =============================
-   VALIDATION
+   VALIDATION (terrain)
 ============================= */
 function validateListing(p){
   const errors = [];
@@ -708,9 +709,9 @@ function validateListing(p){
   if(!p.ville || p.ville.length < 2) errors.push("❌ Ville invalide (minimum 2 caractères)");
 
   if(!p.photo_url){
-    errors.push("❌ Photo URL obligatoire");
+    errors.push("❌ Photo obligatoire");
   }else if(!p.photo_url.match(/^https?:\/\/.+\.(jpg|jpeg|png|webp)(\?.*)?$/i)){
-    errors.push("❌ Photo URL invalide (jpg/jpeg/png/webp + http)");
+    errors.push("❌ Photo invalide (http + jpg/jpeg/png/webp)");
   }
 
   if(!p.wave_phone){
@@ -719,18 +720,18 @@ function validateListing(p){
     errors.push("❌ Numéro Wave invalide (format: +221 7X XXX XX XX)");
   }
 
-  if(!p.wave_name || p.wave_name.length < 2) errors.push("❌ Nom Wave obligatoire");
-  if(!p.prix_nuit || p.prix_nuit < 1000) errors.push("❌ Prix nuit minimum: 1000 FCFA");
-  if(p.deposit_percent < 0 || p.deposit_percent > 100) errors.push("❌ Acompte doit être entre 0 et 100%");
+  if(!p.wave_name || p.wave_name.length < 2) errors.push("❌ Nom du propriétaire (Wave) obligatoire");
+  if(!p.prix_nuit || p.prix_nuit < 1000) errors.push("❌ Prix par nuit minimum: 1000 FCFA");
+  if(p.deposit_percent < 0 || p.deposit_percent > 100) errors.push("❌ Avance entre 0 et 100%");
 
   if(p.business_code && !/^[A-Z0-9_]{3,50}$/.test(p.business_code)){
-    errors.push("❌ Business code invalide (A-Z, 0-9, _)");
+    errors.push("❌ Code logement invalide (A-Z, 0-9, _)");
   }
   return errors;
 }
 
 /* =============================
-   UI STATE
+   UI
 ============================= */
 function enableEditorActions(yes){
   btnSave.disabled = !yes;
@@ -742,7 +743,6 @@ function enableEditorActions(yes){
   btnReloadBlocks.disabled = !yes;
   btnReloadPays.disabled = !yes;
 }
-
 function setConnectedUI(user){
   sessionUser = user || null;
   pillUser.innerHTML = `👤 <strong>${user ? (user.email || "PRO") : "—"}</strong>`;
@@ -766,7 +766,6 @@ function setConnectedUI(user){
     btnDelete.style.display = "none";
   }
 }
-
 async function refreshSession(){
   const { data } = await SB.auth.getSession();
   setConnectedUI(data?.session?.user || null);
@@ -774,7 +773,7 @@ async function refreshSession(){
 }
 
 /* =============================
-   UNSAVED CHANGES WARNING
+   MODIFS NON SAUVEGARDÉES
 ============================= */
 function markDirty(){ hasUnsavedChanges = true; }
 function markClean(){ hasUnsavedChanges = false; }
@@ -782,7 +781,7 @@ function markClean(){ hasUnsavedChanges = false; }
 [
   f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
   f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,
-  f_wave_link,f_deposit,f_status
+  f_deposit,f_status
 ].forEach(input=>{
   input.addEventListener('input', markDirty);
   input.addEventListener('change', markDirty);
@@ -796,7 +795,7 @@ window.addEventListener('beforeunload', (e)=>{
 });
 
 /* =============================
-   AUTH
+   ACCÈS PROPRIÉTAIRE
 ============================= */
 btnDemoFill.onclick = ()=>{
   authEmail.value = "baptistejb24@gmail.com";
@@ -814,16 +813,14 @@ btnSendOtp.onclick = async ()=>{
   btnSendOtp.innerHTML = '<span class="spinner"></span> Envoi...';
 
   try{
-    // ✅ Redirect STABLE: toujours vers l'index (évite l'effet "page des liens")
     const redirectTo = withSlug(location.origin + location.pathname);
-
     const { error } = await SB.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo }
     });
     if(error) throw error;
 
-    showNote(authNote, "✅ Lien envoyé! Va dans ton email et clique le lien magique.", "ok");
+    showNote(authNote, "✅ Lien envoyé. Va dans ton email et clique.", "ok");
   }catch(e){
     console.error(e);
     showNote(authNote, "❌ Erreur: " + (e?.message || e), "bad");
@@ -845,7 +842,7 @@ btnLogout.onclick = async ()=>{
 };
 
 /* =============================
-   LIST
+   LISTE
 ============================= */
 async function loadList(){
   hideNote(listNote);
@@ -869,19 +866,19 @@ async function loadList(){
     if(error) throw error;
 
     const total = data?.length || 0;
-    const actifs = data?.filter(x=>normalizeStatus(x.status)==="actif").length || 0;
-    const brouillons = total - actifs;
+    const enLigne = data?.filter(x=>normalizeStatus(x.status)==="actif").length || 0;
+    const prives = total - enLigne;
 
     if(total > 0){
       statsBox.innerHTML = `
         <div class="statBox"><div class="num">${total}</div><div class="lbl">Total</div></div>
-        <div class="statBox"><div class="num">${actifs}</div><div class="lbl">Actifs</div></div>
-        <div class="statBox"><div class="num">${brouillons}</div><div class="lbl">Brouillons</div></div>
+        <div class="statBox"><div class="num">${enLigne}</div><div class="lbl">En ligne</div></div>
+        <div class="statBox"><div class="num">${prives}</div><div class="lbl">Privés</div></div>
       `;
     }
 
     if(!data || total===0){
-      return showNote(listNote, '✨ Aucun logement. Clique "+ Nouveau" pour commencer.', "ok");
+      return showNote(listNote, '✨ Aucun logement. Clique "+ Ajouter" pour commencer.', "ok");
     }
 
     data.forEach(item=>{
@@ -901,9 +898,9 @@ async function loadList(){
           </div>
         </div>
         <div class="itemBtns">
-          <button class="btn gold small" data-open="${item.id}">✏️ Éditer</button>
-          <button class="btn small" data-dup="${item.id}">📋 Dupliquer</button>
-          <button class="btn ghost small" data-view="${item.id}">👁️ Fiche</button>
+          <button class="btn gold small" data-open="${item.id}">✏️ Modifier</button>
+          <button class="btn small" data-dup="${item.id}">📋 Copier</button>
+          <button class="btn ghost small" data-view="${item.id}">👁️ Voir</button>
         </div>
       `;
       listEl.appendChild(div);
@@ -931,7 +928,7 @@ async function loadList(){
 btnRefresh.onclick = async ()=>{ await loadList(); };
 
 /* =============================
-   OPEN / NEW
+   OUVRIR / AJOUTER
 ============================= */
 async function openOne(id){
   if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")){
@@ -988,7 +985,6 @@ function newDraft(){
     frais_supplements: "",
     wave_phone: "",
     wave_name: "",
-    wave_pay_link: "",
     deposit_percent: 30,
     status: "brouillon"
   };
@@ -1003,7 +999,7 @@ function newDraft(){
 btnNew.onclick = newDraft;
 
 /* =============================
-   PAINT EDITOR
+   APERÇU
 ============================= */
 function paintEditor(x){
   hideNote(editNote); hideNote(saveNote);
@@ -1017,7 +1013,7 @@ function paintEditor(x){
     pvVideo.src = "";
     [
       f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
-      f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_wave_link,f_deposit
+      f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_deposit
     ].forEach(i=>i.value="");
     f_status.value = "brouillon";
     return;
@@ -1036,7 +1032,6 @@ function paintEditor(x){
   f_frais.value = x.frais_supplements || "";
   f_wave_phone.value = x.wave_phone || "";
   f_wave_name.value = x.wave_name || "";
-  f_wave_link.value = x.wave_pay_link || "";
   f_deposit.value = Number(x.deposit_percent || 30);
   f_status.value = normalizeStatus(x.status);
 
@@ -1060,7 +1055,7 @@ function paintEditor(x){
 }
 
 /* =============================
-   COLLECT FORM
+   FORM → PAYLOAD
 ============================= */
 function collectForm(){
   const uid = sessionUser?.id || null;
@@ -1086,14 +1081,13 @@ function collectForm(){
     frais_supplements: f_frais.value.trim(),
     wave_phone: f_wave_phone.value.trim(),
     wave_name: f_wave_name.value.trim(),
-    wave_pay_link: f_wave_link.value.trim(),
     deposit_percent: Number(f_deposit.value || 30),
     status: normalizeStatus(f_status.value)
   };
 }
 
 /* =============================
-   SAVE
+   ENREGISTRER
 ============================= */
 async function saveRecord(mode){
   hideNote(saveNote);
@@ -1121,7 +1115,7 @@ async function saveRecord(mode){
       if(error) throw error;
 
       current.id = data.id;
-      showNote(saveNote, `✅ Créé! ID: ${current.id}`, "ok");
+      showNote(saveNote, `✅ Créé!`, "ok");
     }else{
       const { error } = await SB
         .from("digiy_logements")
@@ -1151,13 +1145,13 @@ btnPublish.onclick = ()=> saveRecord("publish");
 btnDraft.onclick = ()=> saveRecord("draft");
 
 /* =============================
-   DELETE
+   RETIRER
 ============================= */
 btnDelete.onclick = async ()=>{
   if(!current || !current.id) return;
 
-  if(!confirm(`⚠️ SUPPRIMER définitivement "${current.nom}" ?\n\nCette action est irréversible!`)) return;
-  if(!confirm("⚠️ DERNIÈRE CONFIRMATION: Supprimer ce logement ?")) return;
+  if(!confirm(`⚠️ Retirer définitivement "${current.nom}" ?`)) return;
+  if(!confirm("⚠️ Dernière confirmation : retirer ce logement ?")) return;
 
   btnDelete.disabled = true;
   btnDelete.innerHTML = '<span class="spinner"></span> Suppression...';
@@ -1171,7 +1165,7 @@ btnDelete.onclick = async ()=>{
 
     if(error) throw error;
 
-    showNote(editNote, "✅ Logement supprimé!", "ok");
+    showNote(editNote, "✅ Logement retiré!", "ok");
     current = null;
     paintEditor(null);
     markClean();
@@ -1179,15 +1173,15 @@ btnDelete.onclick = async ()=>{
     await loadList();
   }catch(e){
     console.error(e);
-    showNote(editNote, "❌ Suppression refusée:\n" + (e?.message || e), "bad");
+    showNote(editNote, "❌ Refusé:\n" + (e?.message || e), "bad");
   }finally{
     btnDelete.disabled = false;
-    btnDelete.innerHTML = '🗑️ Supprimer';
+    btnDelete.innerHTML = '🗑️ Retirer';
   }
 };
 
 /* =============================
-   TEST MEDIA
+   TEST MÉDIAS
 ============================= */
 btnTestMedia.onclick = ()=>{
   if(!current) return;
@@ -1200,7 +1194,7 @@ btnTestMedia.onclick = ()=>{
   if(embed){
     pvVideo.src = embed;
     pvVideoWrap.style.display = "block";
-    showNote(editNote, "✅ Médias OK!", "ok");
+    showNote(editNote, "✅ Photo/vidéo OK!", "ok");
   }else{
     pvVideo.src = "";
     pvVideoWrap.style.display = "none";
@@ -1219,12 +1213,12 @@ btnTestMedia.onclick = ()=>{
 };
 
 btnOpenPublic.onclick = ()=>{
-  if(!current || !current.id) return showNote(editNote, "❌ Sauvegarde d'abord (pas d'ID).", "bad");
+  if(!current || !current.id) return showNote(editNote, "❌ Enregistre d'abord (pas d'ID).", "bad");
   window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
 };
 
 /* =============================
-   DUPLICATE
+   COPIER (DUpliquer)
 ============================= */
 async function duplicateOne(id){
   hideNote(listNote);
@@ -1239,7 +1233,7 @@ async function duplicateOne(id){
 
   if(e1 || !src){
     console.error(e1);
-    return showNote(listNote, "❌ Duplication impossible:\n" + (e1?.message || "introuvable"), "bad");
+    return showNote(listNote, "❌ Copie impossible:\n" + (e1?.message || "introuvable"), "bad");
   }
 
   const copy = {
@@ -1257,7 +1251,6 @@ async function duplicateOne(id){
     frais_supplements: src.frais_supplements || "",
     wave_phone: src.wave_phone || "",
     wave_name: src.wave_name || "",
-    wave_pay_link: src.wave_pay_link || "",
     deposit_percent: Number(src.deposit_percent || 30),
     status: "brouillon"
   };
@@ -1270,13 +1263,13 @@ async function duplicateOne(id){
 
   if(e2 || !created){
     console.error(e2);
-    return showNote(listNote, "❌ Duplication refusée:\n" + (e2?.message || ""), "bad");
+    return showNote(listNote, "❌ Copie refusée:\n" + (e2?.message || ""), "bad");
   }
 
-  showNote(listNote, `✅ Dupliqué! Nouveau logement: ${created.id}`, "ok");
+  showNote(listNote, `✅ Copié!`, "ok");
   await loadList();
   await openOne(created.id);
-  showNote(editNote, "✨ Copie prête. Renomme + ajuste puis Publier.", "ok");
+  showNote(editNote, "✨ Copie prête. Renomme puis mets en ligne.", "ok");
 }
 
 /* =============================
@@ -1285,7 +1278,7 @@ async function duplicateOne(id){
 btnAddBlock.onclick = async ()=>{
   hideNote(calNote);
   if(!sessionUser) return showNote(calNote, "❌ Connecte-toi.", "bad");
-  if(!current || !current.id) return showNote(calNote, "❌ Sauvegarde le logement avant.", "bad");
+  if(!current || !current.id) return showNote(calNote, "❌ Enregistre le logement avant.", "bad");
 
   const s = calStart.value;
   const e = calEnd.value;
@@ -1308,17 +1301,17 @@ btnAddBlock.onclick = async ()=>{
     const { error } = await SB.from("loc_availability_blocks").insert(insertPayload);
     if(error) throw error;
 
-    showNote(calNote, "✅ Période bloquée!", "ok");
+    showNote(calNote, "✅ Dates bloquées!", "ok");
     calStart.value = "";
     calEnd.value = "";
     calReason.value = "";
     await loadBlocksForCurrent();
   }catch(err){
     console.error(err);
-    showNote(calNote, "❌ Blocage refusé:\n" + (err?.message || err), "bad");
+    showNote(calNote, "❌ Refusé:\n" + (err?.message || err), "bad");
   }finally{
     btnAddBlock.disabled = false;
-    btnAddBlock.innerHTML = '➕ Bloquer période';
+    btnAddBlock.innerHTML = '➕ Bloquer';
   }
 };
 
@@ -1340,7 +1333,7 @@ async function loadBlocksForCurrent(){
     if(error) throw error;
 
     if(!data || data.length===0){
-      return showNote(calNote, "ℹ️ Aucun bloc. Logement disponible par défaut.", "ok");
+      return showNote(calNote, "ℹ️ Aucun bloc. Disponible par défaut.", "ok");
     }
 
     data.forEach(b=>{
@@ -1373,12 +1366,12 @@ async function loadBlocksForCurrent(){
           await loadBlocksForCurrent();
         }catch(e){
           console.error(e);
-          showNote(calNote, "❌ Suppression refusée:\n" + (e?.message || e), "bad");
+          showNote(calNote, "❌ Refusé:\n" + (e?.message || e), "bad");
         }
       };
     });
 
-    showNote(calNote, `✅ ${data.length} bloc(s) chargé(s).`, "ok");
+    showNote(calNote, `✅ ${data.length} bloc(s).`, "ok");
   }catch(e){
     console.error(e);
     showNote(calNote, "❌ Erreur calendrier:\n" + (e?.message || e), "bad");
@@ -1386,7 +1379,7 @@ async function loadBlocksForCurrent(){
 }
 
 /* =============================
-   ACOMPTES
+   AVANCES (preuves)
 ============================= */
 btnReloadPays.onclick = async ()=>{ await loadPaymentsForCurrent(); };
 
@@ -1406,7 +1399,7 @@ async function loadPaymentsForCurrent(){
     if(error) throw error;
 
     if(!data || data.length===0){
-      return showNote(payAdminNote, "ℹ️ Aucune preuve d'acompte.", "ok");
+      return showNote(payAdminNote, "ℹ️ Aucune preuve d'avance.", "ok");
     }
 
     data.forEach(p=>{
@@ -1422,14 +1415,14 @@ async function loadPaymentsForCurrent(){
           <strong>${st} • ${amt}</strong>
           <div class="btnRow">
             <button class="btn primary small" data-okpay="${p.id}">✅ Confirmer</button>
-            <button class="btn danger small" data-badpay="${p.id}">❌ Rejeter</button>
+            <button class="btn danger small" data-badpay="${p.id}">❌ Refuser</button>
           </div>
         </div>
         <div class="rowSub">
           👤 ${who}<br>
           📅 ${when}<br>
-          💳 Wave: ${p.wave_name || ""} ${p.wave_phone || ""}<br>
-          🧾 Ref: <strong>${p.wave_tx_ref || "—"}</strong>
+          💳 Propriétaire (Wave) : ${p.wave_name || ""} ${p.wave_phone || ""}<br>
+          🧾 Référence : <strong>${p.wave_tx_ref || "—"}</strong>
         </div>
       `;
       payList.appendChild(div);
@@ -1442,11 +1435,11 @@ async function loadPaymentsForCurrent(){
       btn.onclick = ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected");
     });
 
-    showNote(payAdminNote, `✅ ${data.length} acompte(s) affiché(s).`, "ok");
+    showNote(payAdminNote, `✅ ${data.length} preuve(s).`, "ok");
   }catch(e){
     console.error(e);
     showNote(payAdminNote,
-      "⚠️ Paiements indisponibles (table manquante ?).\nErreur: " + (e?.message || e),
+      "⚠️ Paiements indisponibles.\nErreur: " + (e?.message || e),
       "warn"
     );
   }
@@ -1467,7 +1460,7 @@ async function updatePayStatus(id, status){
     await loadPaymentsForCurrent();
   }catch(e){
     console.error(e);
-    showNote(payAdminNote, "❌ Update refusé:\n" + (e?.message || e), "bad");
+    showNote(payAdminNote, "❌ Refusé:\n" + (e?.message || e), "bad");
   }
 }
 
