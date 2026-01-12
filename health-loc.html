@@ -2,60 +2,100 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>DIGIY LOC — Health Check</title>
   <meta name="theme-color" content="#16a34a" />
+
   <style>
-    :root{--bg:#061b14;--card:#0b2a1f;--line:rgba(255,255,255,.14);--text:#eafff1;--muted:rgba(234,255,241,.75);--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%),var(--bg);color:var(--text);}
-    .wrap{max-width:900px;margin:0 auto;padding:18px;}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+    :root{
+      --bg:#061b14; --card:#0b2a1f; --line:rgba(255,255,255,.14);
+      --text:#eafff1; --muted:rgba(234,255,241,.75);
+      --ok:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%),var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:18px;}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      padding:16px;
+      margin:12px 0
+    }
     h1{margin:6px 0 2px;font-size:20px}
     .muted{color:var(--muted)}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
-    .pill{padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.18);font-weight:800;font-size:12px}
+    .pill{
+      padding:8px 10px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(0,0,0,.18);font-weight:800;font-size:12px
+    }
     .ok{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.12)}
     .bad{border-color:rgba(239,68,68,.55);background:rgba(239,68,68,.12)}
     .warn{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.12)}
     code{background:rgba(0,0,0,.25);padding:2px 6px;border-radius:8px}
-    .grid{display:grid;grid-template-columns:200px 1fr;gap:10px;margin-top:12px}
-    .k{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:220px 1fr;gap:10px;margin-top:12px}
+    .k{color:var(--muted);font-weight:800;font-size:12px}
     .v{word-break:break-word}
-    button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);padding:10px 12px;border-radius:14px;font-weight:900}
+    button{
+      cursor:pointer;border:1px solid var(--line);
+      background:rgba(255,255,255,.06);color:var(--text);
+      padding:10px 12px;border-radius:14px;font-weight:900
+    }
     button:hover{background:rgba(255,255,255,.09)}
-    input{flex:1;min-width:220px;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:#eafff1;font-weight:700}
+    input{
+      flex:1;min-width:240px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);color:#eafff1;font-weight:800
+    }
     input::placeholder{color:rgba(234,255,241,.55)}
+    .small{font-size:12px;color:var(--muted);line-height:1.35}
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ✅ Guard repo-safe + slug keep -->
+  <script src="./guard.js?v=locpro-2"></script>
 </head>
+
 <body>
   <div class="wrap">
     <div class="card">
       <h1>DIGIY LOC — Health Check</h1>
-      <div class="muted">Page de contrôle qualité (preuve “CLEAN”). Module: <b>LOC</b></div>
+      <div class="muted">
+        Contrôle qualité (preuve “CLEAN”). Module: <b>LOC</b> · slug: <b id="pillSlug">—</b>
+      </div>
 
-      <div class="row" id="pills"></div>
+      <div class="row" id="pills" style="margin-top:10px"></div>
 
       <div class="row" style="margin-top:12px">
-        <button id="btnRun">Re-tester</button>
-        <button id="btnClear">Clear cache phone</button>
+        <button id="btnRun">🔁 Re-tester</button>
+        <button id="btnClear">🧹 Clear cache phone</button>
+        <button id="btnGoPlanning">✅ Planning</button>
+        <button id="btnGoLogin">🔐 Login</button>
+        <button id="btnGoPay">💳 Paiement</button>
+        <button id="btnLogout">🚪 Logout (guard)</button>
       </div>
 
       <div class="row" style="margin-top:12px">
-        <input id="email" placeholder="Email pour login (magic link)"/>
-        <button id="btnLogin">Envoyer Magic Link</button>
-        <button id="btnLogout">Logout</button>
+        <input id="email" placeholder="Email (optionnel) pour Magic Link Supabase"/>
+        <button id="btnMagic">📩 Envoyer Magic Link</button>
+        <button id="btnSbLogout">⛔ Logout Supabase</button>
       </div>
 
       <div class="muted" id="msg" style="margin-top:10px"></div>
+      <div class="small" style="margin-top:8px">
+        Astuce: pour tester “ABO OFF”, mets <code>current_period_end</code> dans le passé, puis recharge.
+      </div>
     </div>
 
     <div class="card">
       <div class="grid" id="grid"></div>
-    </div>
-
-    <div class="card muted">
-      Astuce: pour tester “ABO OFF”, mets <code>current_period_end</code> dans le passé, puis recharge.
     </div>
   </div>
 
@@ -63,46 +103,31 @@
 (function(){
   "use strict";
 
+  // =============================
+  // CONFIG
+  // =============================
+  const MODULE = "LOC";
+  const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
+
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const $ = (id)=>document.getElementById(id);
   const msg = $("msg");
 
-  function normPhone(p){
-    p = String(p||"").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
-    if(p.startsWith("00221")) p = "+221" + p.slice(5);
-    if(!p.startsWith("+") && p.startsWith("221")) p = "+" + p;
-    if(!p.startsWith("+221") && /^\d{9}$/.test(p)) p = "+221" + p;
-    return p;
+  const hasGuard = !!(window.DIGIY_GUARD && typeof window.DIGIY_GUARD.withSlug === "function");
+
+  function safeWithSlug(url){
+    return hasGuard ? window.DIGIY_GUARD.withSlug(url) : url;
   }
-
-  function getPhone(){
-    const s = sessionStorage.getItem("digiy_phone") || sessionStorage.getItem("digiy_driver_phone");
-    if (s) return s;
-
-    try{
-      const a = JSON.parse(localStorage.getItem("digiy_access_pin")||"null");
-      if(a?.phone) return a.phone;
-    }catch(_){}
-
-    try{
-      const b = JSON.parse(localStorage.getItem("digiy_driver_access_pin")||"null");
-      if(b?.phone) return b.phone;
-    }catch(_){}
-
-    return null;
+  function getSlug(){
+    if(hasGuard && typeof window.DIGIY_GUARD.getSlug === "function") return window.DIGIY_GUARD.getSlug();
+    try{ return new URL(location.href).searchParams.get("slug") || ""; }catch(_){ return ""; }
   }
-
-  function clearPhoneCache(){
-    sessionStorage.removeItem("digiy_phone");
-    sessionStorage.removeItem("digiy_driver_phone");
-    localStorage.removeItem("digiy_access_pin");
-    localStorage.removeItem("digiy_driver_access_pin");
-  }
+  function setMsg(t){ msg.textContent = t || ""; }
 
   function pill(text, kind){
     const el = document.createElement("div");
@@ -110,13 +135,11 @@
     el.textContent = text;
     return el;
   }
-
   function setPills(items){
     const host = $("pills");
     host.innerHTML = "";
     items.forEach(x => host.appendChild(pill(x.text, x.kind)));
   }
-
   function setGrid(rows){
     const g = $("grid");
     g.innerHTML = "";
@@ -131,18 +154,85 @@
     });
   }
 
+  // =============================
+  // PHONE (via guard, sinon fallback)
+  // =============================
+  function normPhone(p){
+    p = String(p||"").trim().replace(/\s+/g,"").replace(/[^\d+]/g,"");
+    if(p.startsWith("00221")) p = "+221" + p.slice(5);
+    if(!p.startsWith("+") && p.startsWith("221")) p = "+" + p;
+    if(!p.startsWith("+221") && /^\d{9}$/.test(p)) p = "+221" + p;
+    return p;
+  }
+
+  function getPhone(){
+    // ✅ priorité Guard
+    try{
+      const p = window.DIGIY_GUARD?.getPhone?.();
+      if(p) return p;
+      const s = window.DIGIY_GUARD?.getSession?.();
+      if(s?.phone) return s.phone;
+    }catch(_){}
+
+    // fallback ancien cache
+    const s = sessionStorage.getItem("digiy_phone") || sessionStorage.getItem("digiy_driver_phone");
+    if (s) return s;
+
+    try{
+      const a = JSON.parse(localStorage.getItem("digiy_access_pin")||"null");
+      if(a?.phone) return a.phone;
+    }catch(_){}
+
+    try{
+      const b = JSON.parse(localStorage.getItem("digiy_driver_access_pin")||"null");
+      if(b?.phone) return b.phone;
+    }catch(_){}
+
+    // fallback session guard key (si tu l’utilises)
+    try{
+      const sess = JSON.parse(localStorage.getItem("digiy_loc_pro_session")||"null");
+      if(sess?.phone) return sess.phone;
+    }catch(_){}
+
+    return null;
+  }
+
+  function clearPhoneCache(){
+    sessionStorage.removeItem("digiy_phone");
+    sessionStorage.removeItem("digiy_driver_phone");
+    localStorage.removeItem("digiy_access_pin");
+    localStorage.removeItem("digiy_driver_access_pin");
+    localStorage.removeItem("digiy_loc_pro_session");
+    // cache abo guard
+    localStorage.removeItem("digiy_loc_subs_cache_v1");
+  }
+
+  // =============================
+  // RUN CHECKS
+  // =============================
   async function run(){
     const rows = [];
     const pills = [];
 
+    const slug = getSlug();
+    $("pillSlug").textContent = slug || "—";
+
     const rawPhone = getPhone();
     const phone = rawPhone ? normPhone(rawPhone) : null;
 
+    rows.push({k:"URL", v: location.href});
+    rows.push({k:"slug", v: slug || "—"});
     rows.push({k:"Phone (local)", v: rawPhone || "—"});
     rows.push({k:"Phone (normalisé)", v: phone || "—"});
-    rows.push({k:"Module", v:"LOC"});
+    rows.push({k:"Module", v: MODULE});
+    rows.push({k:"Guard trouvé", v: String(hasGuard)});
 
-    // Auth user
+    // Session guard
+    let guardSess = null;
+    try{ guardSess = window.DIGIY_GUARD?.getSession?.() || null; }catch(_){}
+    rows.push({k:"Session guard", v: guardSess ? JSON.stringify(guardSess) : "—"});
+
+    // Supabase Auth user
     let user = null;
     try{
       const { data, error } = await sb.auth.getUser();
@@ -153,41 +243,46 @@
     }
 
     if(user){
-      pills.push({text:"Auth ✅", kind:"ok"});
+      pills.push({text:"Auth Supabase ✅", kind:"ok"});
       rows.push({k:"User ID", v: user.id});
       rows.push({k:"Email", v: user.email || "—"});
     }else{
-      pills.push({text:"Auth ❌", kind:"bad"});
+      pills.push({text:"Auth Supabase ❌", kind:"bad"});
       rows.push({k:"User ID", v: "—"});
       rows.push({k:"Email", v: "—"});
     }
 
-    // Ensure profile phone
+    // ensure_profile_phone (si tu l'as)
     let ensured = false;
-    if(user && phone){
+    if(phone){
       try{
-        const { error } = await sb.rpc("ensure_profile_phone", { p_phone: phone });
+        const { data, error } = await sb.rpc("ensure_profile_phone", { p_phone: phone });
         if(error) throw error;
         ensured = true;
+        rows.push({k:"ensure_profile_phone", v: "OK" + (data ? " • " + JSON.stringify(data) : "")});
       }catch(e){
-        rows.push({k:"ensure_profile_phone", v: "Erreur: " + (e?.message || e)});
+        rows.push({k:"ensure_profile_phone", v: "Non/Erreur: " + (e?.message || e)});
       }
+    }else{
+      rows.push({k:"ensure_profile_phone", v: "Skippé (pas de phone)"});
     }
     pills.push({text: ensured ? "Profile ✅" : "Profile ⚠️", kind: ensured ? "ok" : "warn"});
 
-    // Check module
+    // is_module_active — ✅ version téléphone (celle de ton guard)
     let active = null;
-    if(user){
+    if(phone){
       try{
         const { data, error } = await sb.rpc("is_module_active", {
-          p_user_id: user.id,
-          p_module: "LOC"
+          p_phone: phone,
+          p_module: MODULE
         });
         if(error) throw error;
         active = !!data;
       }catch(e){
-        rows.push({k:"is_module_active", v: "Erreur: " + (e?.message || e)});
+        rows.push({k:"is_module_active(p_phone,p_module)", v: "Erreur: " + (e?.message || e)});
       }
+    }else{
+      rows.push({k:"is_module_active", v: "Skippé (pas de phone)"});
     }
 
     if(active === true){
@@ -205,13 +300,17 @@
 
     setPills(pills);
     setGrid(rows);
+    setMsg("");
   }
 
+  // =============================
+  // ACTIONS
+  // =============================
   async function sendMagicLink(){
     const email = ($("email").value || "").trim();
     if(!email) return alert("Mets un email");
-    msg.textContent = "Envoi du magic link…";
 
+    setMsg("Envoi du magic link…");
     const emailRedirectTo = location.href;
 
     const { error } = await sb.auth.signInWithOtp({
@@ -220,26 +319,53 @@
     });
 
     if(error){
-      msg.textContent = "Erreur: " + error.message;
+      setMsg("Erreur: " + error.message);
       return;
     }
-    msg.textContent = "✅ Lien envoyé. Ouvre ton email, clique, puis reviens ici.";
+    setMsg("✅ Lien envoyé. Ouvre ton email, clique, puis reviens ici.");
   }
 
-  async function logout(){
+  async function sbLogout(){
     await sb.auth.signOut();
-    msg.textContent = "Déconnecté.";
+    setMsg("Déconnecté (Supabase).");
     run();
+  }
+
+  function guardLogout(){
+    try{ window.DIGIY_GUARD?.clearSession?.(); }catch(_){}
+    location.replace(safeWithSlug("./login.html"));
+  }
+
+  function goPay(){
+    const slug = getSlug();
+    const phone = normPhone(getPhone() || "");
+    const from = location.href;
+
+    // ✅ on passe phone/module/from/slug pour retour propre
+    const url =
+      PAY_URL
+      + "?module=" + encodeURIComponent(MODULE)
+      + (phone ? "&phone=" + encodeURIComponent(phone) : "")
+      + "&from=" + encodeURIComponent(from)
+      + (slug ? "&slug=" + encodeURIComponent(slug) : "");
+
+    location.href = url;
   }
 
   $("btnRun").addEventListener("click", run);
   $("btnClear").addEventListener("click", function(){
     clearPhoneCache();
-    alert("Cache phone effacé. Recharge / reconnecte.");
+    alert("Cache phone (et cache abo) effacé. Recharge / reconnecte.");
     run();
   });
-  $("btnLogin").addEventListener("click", sendMagicLink);
-  $("btnLogout").addEventListener("click", logout);
+
+  $("btnGoPlanning").addEventListener("click", ()=> location.href = safeWithSlug("./planning.html"));
+  $("btnGoLogin").addEventListener("click", ()=> location.href = safeWithSlug("./login.html"));
+  $("btnGoPay").addEventListener("click", goPay);
+  $("btnLogout").addEventListener("click", guardLogout);
+
+  $("btnMagic").addEventListener("click", sendMagicLink);
+  $("btnSbLogout").addEventListener("click", sbLogout);
 
   // auto refresh on auth state changes
   sb.auth.onAuthStateChange(() => run());
