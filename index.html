@@ -3,1515 +3,481 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>DIGIY LOC PRO ∞ — Cockpit Propriétaire ROYAL</title>
+  <title>DIGIY LOC PRO ♾️ — Cockpit</title>
   <meta name="theme-color" content="#0b1020" />
 
-  <!-- Supabase + Guard (PIN session) -->
+  <!-- ✅ Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./guard.js?v=locpro-final"></script>
 
+  <!-- =============================
+       ✅ SLUG ROOT FIX (CRITIQUE)
+       -> À laisser dans index.html (ROOT)
+       -> Anti GitHub Pages reset
+  ============================== -->
+  <script>
+  (function(){
+    const u = new URL(location.href);
+    let slug = (u.searchParams.get("slug") || "").trim().toLowerCase();
+
+    // 1) si slug dans l’URL → on le grave
+    if(slug){
+      try{ localStorage.setItem("digiy_loc_slug", slug); }catch(_){}
+    }else{
+      // 2) sinon on relit le dernier slug connu
+      try{ slug = (localStorage.getItem("digiy_loc_slug") || "").trim().toLowerCase(); }catch(_){ slug=""; }
+    }
+
+    // 3) si toujours rien → retour GO PIN public
+    if(!slug){
+      location.replace("./go-pin.html");
+      return;
+    }
+
+    // 4) on s’assure que l’URL courante contient le slug
+    if(!u.searchParams.get("slug")){
+      u.searchParams.set("slug", slug);
+      location.replace(u.toString());
+    }
+  })();
+  </script>
+
   <style>
-/* =============================
-   DIGIY LOC PRO — UI ROYAL
-============================= */
-:root{
-  --bg:#020617;
-  --bg2:#0b1020;
-  --card:#0b1220;
-  --line:#1f2937;
-  --ink:#f9fafb;
-  --muted:#cbd5f5;
-  --gold:#facc15;
-  --gold2:#f97316;
-  --green:#22c55e;
-  --danger:#ef4444;
-  --soft:rgba(255,255,255,.04);
-  --shadow:0 22px 50px rgba(0,0,0,.55);
-}
-*{box-sizing:border-box}
-body{
-  margin:0; color:var(--ink);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  background:
-    radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
-    radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
-    linear-gradient(180deg, var(--bg2), var(--bg));
-  min-height:100vh;
-}
-a{color:inherit}
-.wrap{max-width:1150px;margin:0 auto;padding:14px}
-.top{
-  display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-  padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);
-  box-shadow:var(--shadow);
-}
-.brand{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.logo{
-  width:40px;height:40px;border-radius:14px;
-  background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
-  border:1px solid rgba(250,204,21,.35);
-  box-shadow:0 0 22px rgba(250,204,21,.12);
-}
-.brand h1{margin:0;font-size:1.05rem;letter-spacing:.2px}
-.brand .infinity{font-size:1.5rem;font-weight:900;margin-left:4px}
-.brand .sub{color:var(--muted);font-weight:800;font-size:.92rem}
+    :root{
+      --bg:#020617; --bg2:#0b1020; --card:rgba(255,255,255,.03);
+      --line:#1f2937; --ink:#f9fafb; --muted:#cbd5f5;
+      --gold:#facc15; --green:#22c55e; --danger:#ef4444;
+      --shadow:0 22px 50px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
+        radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1150px;margin:0 auto;padding:14px}
+    .top{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    .brand{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
+      border:1px solid rgba(250,204,21,.35);
+      box-shadow:0 0 22px rgba(250,204,21,.12);
+      display:grid;place-items:center;color:#061b14;font-weight:1100;
+    }
+    .brand h1{margin:0;font-size:1.05rem;letter-spacing:.2px}
+    .brand .sub{color:var(--muted);font-weight:800;font-size:.92rem;margin-top:3px}
+    .pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .pill{
+      border:1px solid rgba(148,163,184,.35);
+      padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
+      color:var(--muted);font-weight:900;font-size:.86rem;
+    }
+    .pill strong{color:#fff}
+    .pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+    .pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+    .btn{
+      border:0; cursor:pointer;
+      border-radius:14px;
+      padding:11px 12px;
+      font-weight:1000;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      color:var(--muted);
+      transition:all 0.2s ease;
+      min-height:44px;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+    .btn:active:not(:disabled){transform:translateY(0)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .btn.primary{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35);color:#bbf7d0}
+    .btn.gold{background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.35);color:#fde68a}
+    .btn.danger{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.35);color:#fecaca}
+    .btn.small{padding:9px 10px;border-radius:12px}
 
-.pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pill{
-  border:1px solid rgba(148,163,184,.35);
-  padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
-  color:var(--muted);font-weight:900;font-size:.86rem;
-}
-.pill strong{color:#fff}
-.pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
-.pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+    .navRow{
+      width:100%;
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      margin-top:10px;
+    }
+    .navLeft,.navRight{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .navLabel{
+      color:var(--muted);
+      font-weight:900;
+      font-size:.86rem;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.02);
+    }
 
-.grid{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;margin-top:14px}
-@media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
 
-.card{
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.03);
-  border-radius:20px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
-.cardHead{
-  padding:12px 14px;
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
-}
-.cardHead h2{margin:0;font-size:1.02rem}
-.cardHead small{color:var(--muted);font-weight:800}
-.cardBody{padding:14px}
-hr.sep{border:none;border-top:1px solid rgba(148,163,184,.18);margin:12px 0}
+    .card{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .cardHead{
+      padding:12px 14px;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+    }
+    .cardHead h2{margin:0;font-size:1.02rem}
+    .cardHead small{color:var(--muted);font-weight:800}
+    .cardBody{padding:14px}
 
-.btnRow{display:flex;gap:10px;flex-wrap:wrap}
-.btn{
-  border:0; cursor:pointer;
-  border-radius:14px;
-  padding:11px 12px;
-  font-weight:1000;
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--line);
-  color:var(--muted);
-  transition:all 0.2s ease;
-}
-.btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
-.btn:active:not(:disabled){transform:translateY(0)}
-.btn:disabled{opacity:0.5;cursor:not-allowed}
-.btn.primary{background:var(--green);border-color:rgba(34,197,94,.25);color:#022c22}
-.btn.gold{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.35);color:#fde68a}
-.btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fecaca}
-.btn.ghost{background:rgba(255,255,255,.02)}
-.btn.small{padding:9px 10px;border-radius:12px}
-
-.note{
-  margin-top:10px;
-  padding:10px 12px;border-radius:14px;
-  border:1px solid rgba(148,163,184,.25);
-  background:rgba(255,255,255,.03);
-  color:var(--muted);
-  white-space:pre-wrap;
-  display:none;
-}
-.note.ok{border-color:rgba(34,197,94,.35);color:#bbf7d0;background:rgba(34,197,94,.09)}
-.note.bad{border-color:rgba(239,68,68,.35);color:#fecaca;background:rgba(239,68,68,.09)}
-.note.warn{border-color:rgba(250,204,21,.35);color:#fde68a;background:rgba(250,204,21,.09)}
-
-.fieldGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width: 720px){ .fieldGrid{grid-template-columns:1fr} }
-
-label{display:block;font-size:.86rem;font-weight:950;color:#fff;margin:10px 0 6px}
-input, textarea, select{
-  width:100%;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background:rgba(0,0,0,.18);
-  color:var(--ink);
-  padding:11px 12px;
-  font-weight:850;
-  outline:none;
-  transition:all 0.2s ease;
-}
-input:focus, textarea:focus, select:focus{
-  border-color:var(--gold);
-  box-shadow:0 0 0 3px rgba(250,204,21,.15);
-}
-textarea{min-height:110px;resize:vertical}
-small.hint{display:block;color:var(--muted);font-weight:800;margin-top:6px;line-height:1.35}
-input[type="date"]{color-scheme:dark}
-
-.list{display:flex;flex-direction:column;gap:10px}
-.item{
-  border:1px solid rgba(148,163,184,.25);
-  background:rgba(255,255,255,.02);
-  border-radius:16px;
-  padding:12px;
-  display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
-  transition:all 0.2s ease;
-}
-.item:hover{
-  background:rgba(255,255,255,.04);
-  border-color:rgba(250,204,21,.35);
-}
-.itemLeft{min-width:0}
-.itemTitle{font-weight:1000}
-.itemMeta{color:var(--muted);font-weight:800;font-size:.92rem;margin-top:3px}
-.tag{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:6px 9px;border-radius:999px;
-  border:1px solid rgba(148,163,184,.25);
-  color:var(--muted);font-weight:950;font-size:.82rem;
-}
-.tag.dot::before{
-  content:"";width:9px;height:9px;border-radius:99px;background:#94a3b8;display:inline-block;
-}
-.tag.live{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
-.tag.live.dot::before{background:var(--green);box-shadow:0 0 10px rgba(34,197,94,.75)}
-.tag.draft{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
-.tag.draft.dot::before{background:var(--gold)}
-.itemBtns{display:flex;flex-direction:column;gap:8px}
-.itemBtns .btn{padding:9px 10px;border-radius:12px}
-
-.previewBox{
-  border:1px solid rgba(148,163,184,.25);
-  background:rgba(255,255,255,.02);
-  border-radius:18px;
-  padding:12px;
-}
-.previewImg{
-  width:100%;height:210px;object-fit:cover;border-radius:16px;
-  border:1px solid rgba(148,163,184,.22);
-  background:rgba(255,255,255,.03);
-  display:block;
-}
-.videoWrap{
-  margin-top:10px;border-radius:16px;overflow:hidden;
-  border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.03);
-  display:none;
-}
-.videoWrap iframe{width:100%;height:230px;border:0;display:block}
-.miniRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-.mini{
-  border:1px solid rgba(148,163,184,.25);
-  border-radius:999px;
-  padding:8px 10px;
-  font-weight:950;
-  color:var(--muted);
-  background:rgba(255,255,255,.02);
-}
-.mini strong{color:#fff}
-
-.simpleList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-.rowItem{
-  border:1px solid rgba(148,163,184,.22);
-  background:rgba(255,255,255,.02);
-  border-radius:14px;
-  padding:10px;
-}
-.rowTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.rowTop strong{font-weight:1100}
-.rowSub{color:var(--muted);font-weight:850;margin-top:4px;font-size:.92rem}
-
-/* Loading spinner */
-.spinner{
-  display:inline-block;
-  width:16px;height:16px;
-  border:2px solid rgba(255,255,255,.2);
-  border-top-color:#fff;
-  border-radius:50%;
-  animation:spin 0.6s linear infinite;
-}
-@keyframes spin{ to{transform:rotate(360deg)} }
-
-/* Stats */
-.statsRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-.statBox{
-  border:1px solid rgba(148,163,184,.25);
-  background:rgba(255,255,255,.02);
-  border-radius:14px;
-  padding:12px;
-  text-align:center;
-}
-.statBox .num{font-size:1.8rem;font-weight:1100;color:var(--gold)}
-.statBox .lbl{color:var(--muted);font-weight:800;font-size:.82rem;margin-top:4px}
-
-/* ======== NAV premium ======== */
-.navRow{
-  width:100%;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:space-between;
-  margin-top:10px;
-}
-.navLeft,.navRight{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.navLabel{
-  color:var(--muted);
-  font-weight:900;
-  font-size:.86rem;
-  padding:7px 10px;
-  border-radius:999px;
-  border:1px solid rgba(148,163,184,.25);
-  background:rgba(255,255,255,.02);
-}
-.navBtn{min-height:44px}
-#btnBack{min-height:44px}
-
-@media (max-width: 720px){
-  .wrap{padding:12px}
-  .top{gap:10px}
-  .grid{grid-template-columns:1fr}
-  .btnRow{flex-direction:column}
-  .btn{width:100%;min-height:48px}
-  .navRow{gap:8px}
-  .navLeft,.navRight{width:100%}
-  .navRight .btn{width:100%}
-  input, textarea, select{min-height:48px}
-}
+    .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .kpi{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(255,255,255,.02);
+      border-radius:16px;padding:12px;
+    }
+    .kpi .lbl{color:var(--muted);font-weight:900;font-size:.85rem}
+    .kpi .val{margin-top:6px;font-weight:1100;font-size:1.3rem;color:var(--gold)}
+    .note{
+      margin-top:10px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      white-space:pre-wrap;
+      display:none;
+    }
+    .note.ok{display:block;border-color:rgba(34,197,94,.35);color:#bbf7d0;background:rgba(34,197,94,.09)}
+    .note.bad{display:block;border-color:rgba(239,68,68,.35);color:#fecaca;background:rgba(239,68,68,.09)}
+    .note.warn{display:block;border-color:rgba(250,204,21,.35);color:#fde68a;background:rgba(250,204,21,.09)}
+    .list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+    .item{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(255,255,255,.02);
+      border-radius:16px;padding:12px;
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+    }
+    .itemTitle{font-weight:1100}
+    .itemMeta{color:var(--muted);font-weight:850;margin-top:4px}
+    .itemBtns{display:flex;flex-direction:column;gap:8px}
+    @media (max-width: 720px){
+      .wrap{padding:12px}
+      .btn{width:100%}
+      .navRight,.navLeft{width:100%}
+      .navRight .btn{width:100%}
+      .kpis{grid-template-columns:1fr}
+      .item{flex-direction:column}
+      .itemBtns{flex-direction:row;flex-wrap:wrap}
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <h1>DIGIY LOC PRO <span class="infinity">∞</span></h1>
-          <div class="sub">Cockpit Propriétaire ROYAL • Sécurisé • Optimisé • Professionnel</div>
-        </div>
-      </div>
-
-      <div class="pills">
-        <div class="pill" id="pillUser">👤 <strong>—</strong></div>
-        <div class="pill warn" id="pillState">🔒 Déconnecté</div>
-        <button class="btn ghost small navBtn" id="btnLogout" style="display:none">Se déconnecter</button>
-      </div>
-
-      <!-- NAV premium (pages connectées) -->
-      <div class="navRow">
-        <div class="navLeft">
-          <button class="btn ghost small navBtn" id="btnBack">⬅️ Retour</button>
-          <div class="navLabel" id="navSlug">slug: —</div>
-        </div>
-        <div class="navRight">
-          <button class="btn small navBtn" id="goToday">📅 Vue du jour</button>
-          <button class="btn small navBtn" id="goApp">🏠 APP</button>
-          <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
-          <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
-          <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
-          <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
-          <button class="btn small navBtn" id="goHealth">🧪 Diagnostic</button>
-        </div>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">∞</div>
+      <div>
+        <h1>DIGIY LOC PRO ♾️</h1>
+        <div class="sub">Cockpit propriétaire • sécurisé • 0% commission • paiement direct</div>
       </div>
     </div>
 
-    <div class="grid">
-      <!-- LEFT -->
-      <section class="card">
-        <div class="cardHead">
-          <div>
-            <h2>🏡 Mes logements</h2>
-            <small>Ajouter, modifier, copier, mettre en ligne.</small>
-          </div>
-          <div class="btnRow">
-            <button class="btn gold" id="btnNew">+ Ajouter</button>
-            <button class="btn" id="btnRefresh">↻ Actualiser</button>
-          </div>
-        </div>
+    <div class="pills">
+      <div class="pill" id="pillUser">👤 <strong>—</strong></div>
+      <div class="pill warn" id="pillState">🔒 Déconnecté</div>
+      <button class="btn small danger" id="btnLogout" style="display:none">🚪 Déconnexion</button>
+    </div>
 
-        <div class="cardBody">
-          <div id="listBox">
-            <div class="statsRow" id="statsBox"></div>
-            <div class="list" id="list"></div>
-            <div class="note" id="listNote"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT -->
-      <section class="card">
-        <div class="cardHead">
-          <div>
-            <h2>✨ Détails du logement</h2>
-            <small>Photos • Vidéo • Prix • Paiement Wave • Calendrier</small>
-          </div>
-          <div class="btnRow">
-            <button class="btn primary" id="btnSave" disabled>💾 Enregistrer</button>
-            <button class="btn gold" id="btnPublish" disabled>🚀 Mettre en ligne</button>
-            <button class="btn" id="btnDraft" disabled>📝 Garder privé</button>
-            <button class="btn danger small" id="btnDelete" disabled style="display:none">🗑️ Retirer</button>
-          </div>
-        </div>
-
-        <div class="cardBody">
-          <div class="previewBox">
-            <div style="font-weight:1000;margin-bottom:8px;">👁️ Aperçu</div>
-            <img id="pvImg" class="previewImg" alt="photo logement" />
-            <div class="videoWrap" id="pvVideoWrap">
-              <iframe id="pvVideo" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-            </div>
-
-            <div class="miniRow">
-              <div class="mini">📍 <strong id="pvVille">—</strong></div>
-              <div class="mini">💳 <strong>Paiement Wave direct</strong></div>
-              <div class="mini">👤 <strong id="pvWave">—</strong></div>
-              <div class="mini">🏷️ <strong id="pvStatus">—</strong></div>
-            </div>
-
-            <div class="btnRow" style="margin-top:10px">
-              <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir la fiche</button>
-              <button class="btn" id="btnTestMedia" disabled>🔎 Tester photo/vidéo</button>
-            </div>
-
-            <div class="note" id="editNote"></div>
-          </div>
-
-          <hr class="sep" />
-
-          <div class="fieldGrid">
-            <div>
-              <label>Nom du logement *</label>
-              <input id="f_nom" placeholder="ex: Villa Paradise Saly" maxlength="100" />
-              <small class="hint">Minimum 3 caractères</small>
-            </div>
-            <div>
-              <label>Ville *</label>
-              <input id="f_ville" placeholder="ex: Saly, Dakar, Saint-Louis" maxlength="50" />
-            </div>
-          </div>
-
-          <div class="fieldGrid">
-            <div>
-              <label>Code logement (unique)</label>
-              <input id="f_business_code" placeholder="ex: VILLA_PARADISE_001" maxlength="50" />
-              <small class="hint">Ce code sert à relier tes réservations</small>
-            </div>
-            <div>
-              <label>Adresse (optionnel)</label>
-              <input id="f_adresse" placeholder="Quartier, repère..." maxlength="200" />
-            </div>
-          </div>
-
-          <label>Présentation</label>
-          <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant." maxlength="2000"></textarea>
-          <small class="hint">Max 2000 caractères</small>
-
-          <div class="fieldGrid">
-            <div>
-              <label>Photo principale (URL) *</label>
-              <input id="f_photo" placeholder="https://exemple.com/photo.jpg" />
-              <small class="hint">Format : jpg, jpeg, png, webp</small>
-            </div>
-            <div>
-              <label>Vidéo (Drive / YouTube / Vimeo)</label>
-              <input id="f_video" placeholder="https://drive.google.com/file/d/..." />
-            </div>
-          </div>
-
-          <div class="fieldGrid">
-            <div>
-              <label>Prix par nuit (FCFA) *</label>
-              <input id="f_prix_nuit" type="number" min="1000" step="1000" placeholder="30000" />
-              <small class="hint">Minimum 1000 FCFA</small>
-            </div>
-            <div>
-              <label>Prix à la semaine (FCFA)</label>
-              <input id="f_prix_semaine" type="number" min="0" step="1000" placeholder="175000" />
-            </div>
-          </div>
-
-          <div class="fieldGrid">
-            <div>
-              <label>Prix au mois (FCFA)</label>
-              <input id="f_prix_mois" type="number" min="0" step="1000" placeholder="550000" />
-            </div>
-            <div>
-              <label>Notes (optionnel)</label>
-              <input id="f_frais" placeholder="ex: Électricité en sus selon conso" maxlength="200" />
-            </div>
-          </div>
-
-          <hr class="sep" />
-
-          <div class="previewBox">
-            <div style="font-weight:1100">💳 Paiement en direct via Wave</div>
-            <small class="hint">
-              Le client paie <strong>directement</strong> au propriétaire. DIGIY ne prend aucune commission.
-            </small>
-
-            <div class="fieldGrid" style="margin-top:8px">
-              <div>
-                <label>Numéro Wave du propriétaire *</label>
-                <input id="f_wave_phone" placeholder="+221 77 123 45 67" />
-                <small class="hint">Format : +221 suivi de 9 chiffres</small>
-              </div>
-              <div>
-                <label>Nom du propriétaire (Wave) *</label>
-                <input id="f_wave_name" placeholder="ex: Mamadou Diop" maxlength="50" />
-                <small class="hint">Nom qui s'affiche sur Wave</small>
-              </div>
-            </div>
-
-            <div class="fieldGrid">
-              <div>
-                <label>Avance demandée (%) *</label>
-                <input id="f_deposit" type="number" min="0" max="100" step="5" placeholder="30" />
-                <small class="hint">Entre 0 et 100%</small>
-              </div>
-              <div>
-                <label>Visibilité</label>
-                <select id="f_status">
-                  <option value="brouillon">📝 Privé (pas encore en ligne)</option>
-                  <option value="actif">✅ En ligne (visible)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="note" id="saveNote"></div>
-
-          <hr class="sep"/>
-
-          <!-- CALENDRIER -->
-          <div class="previewBox">
-            <div style="font-weight:1100">📅 Calendrier (bloquer des dates)</div>
-            <small class="hint">Bloque les périodes occupées. La fiche affichera libre / réservé.</small>
-
-            <div class="fieldGrid" style="margin-top:8px">
-              <div>
-                <label>Début *</label>
-                <input type="date" id="calStart">
-              </div>
-              <div>
-                <label>Fin *</label>
-                <input type="date" id="calEnd">
-              </div>
-            </div>
-
-            <label>Motif (optionnel)</label>
-            <input id="calReason" placeholder="ex: Occupé / Maintenance / Réservé ailleurs" maxlength="100" />
-
-            <div class="btnRow" style="margin-top:10px">
-              <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer</button>
-              <button class="btn" id="btnReloadBlocks" disabled>↻ Recharger</button>
-            </div>
-
-            <div class="note" id="calNote"></div>
-            <div class="simpleList" id="calList"></div>
-          </div>
-
-          <hr class="sep"/>
-
-          <!-- ACOMPTES -->
-          <div class="previewBox">
-            <div style="font-weight:1100">🧾 Avances reçues (preuves Wave)</div>
-            <small class="hint">Tu peux confirmer chaque preuve.</small>
-
-            <div class="btnRow" style="margin-top:10px">
-              <button class="btn" id="btnReloadPays" disabled>↻ Recharger</button>
-            </div>
-
-            <div class="note" id="payAdminNote"></div>
-            <div class="simpleList" id="payList"></div>
-          </div>
-
-        </div>
-      </section>
+    <!-- NAV premium -->
+    <div class="navRow">
+      <div class="navLeft">
+        <button class="btn small" id="btnBack">⬅️ Retour</button>
+        <div class="navLabel" id="navSlug">slug: —</div>
+      </div>
+      <div class="navRight">
+        <button class="btn small" id="goToday">📅 Vue du jour</button>
+        <button class="btn small gold" id="goApp">🏠 APP</button>
+        <button class="btn small" id="goPulse">📲 Pulse</button>
+        <button class="btn small" id="goPlanning">🗓️ Planning</button>
+        <button class="btn small" id="goListing">📋 Listing</button>
+        <button class="btn small" id="goLinks">🔗 Liens / QR</button>
+        <button class="btn small" id="goHealth">🧪 Diagnostic</button>
+      </div>
     </div>
   </div>
 
+  <div class="grid">
+    <!-- LEFT -->
+    <section class="card">
+      <div class="cardHead">
+        <div>
+          <h2>⚡ Tableau de bord</h2>
+          <small>Vue rapide (slug + session + chiffres)</small>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn small" id="btnRefresh">↻ Actualiser</button>
+          <a class="btn small gold" id="btnGoPinPublic" href="#">👁️ GO PIN public</a>
+        </div>
+      </div>
+
+      <div class="cardBody">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">Slug</div>
+            <div class="val" id="kSlug">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Téléphone</div>
+            <div class="val" id="kPhone">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Owner ID</div>
+            <div class="val" id="kOwner">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Session</div>
+            <div class="val" id="kSess">—</div>
+          </div>
+        </div>
+
+        <div class="note warn" id="note"></div>
+
+        <div class="list" id="quickLinks">
+          <div class="item">
+            <div>
+              <div class="itemTitle">🏡 Gérer tes logements</div>
+              <div class="itemMeta">Créer / modifier / publier</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small gold" id="btnOpenApp">Ouvrir</button>
+            </div>
+          </div>
+
+          <div class="item">
+            <div>
+              <div class="itemTitle">🗓️ Planning</div>
+              <div class="itemMeta">Réservations, calendrier</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small" id="btnOpenPlanning">Ouvrir</button>
+            </div>
+          </div>
+
+          <div class="item">
+            <div>
+              <div class="itemTitle">📋 Listing du jour</div>
+              <div class="itemMeta">Vue propriétaire (jour)</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small" id="btnOpenListing">Ouvrir</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="card">
+      <div class="cardHead">
+        <div>
+          <h2>🧭 Actions</h2>
+          <small>Navigation stable (slug conservé)</small>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn small" id="btnPin" href="#">🔐 PIN</a>
+          <a class="btn small" id="btnToday" href="#">📅 Today</a>
+        </div>
+      </div>
+
+      <div class="cardBody">
+        <div class="list">
+          <div class="item">
+            <div>
+              <div class="itemTitle">🔗 Liens / QR</div>
+              <div class="itemMeta">Générer des QR, liens publics</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small" id="btnOpenLinks">Ouvrir</button>
+            </div>
+          </div>
+
+          <div class="item">
+            <div>
+              <div class="itemTitle">📲 Pulse</div>
+              <div class="itemMeta">Rappels WhatsApp / SMS</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small" id="btnOpenPulse">Ouvrir</button>
+            </div>
+          </div>
+
+          <div class="item">
+            <div>
+              <div class="itemTitle">🧪 Diagnostic</div>
+              <div class="itemMeta">Tester routes, session, RPC</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small" id="btnOpenHealth">Ouvrir</button>
+            </div>
+          </div>
+
+          <div class="item">
+            <div>
+              <div class="itemTitle">🚀 Tarifs</div>
+              <div class="itemMeta">Page tarifs / abonnement</div>
+            </div>
+            <div class="itemBtns">
+              <button class="btn small" id="btnOpenTarifs">Ouvrir</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="note ok" id="noteOk"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
 <script>
-/* =============================
-   ✅ ROUTING PREMIUM (slug safe)
-   -> IMPORTANT: base = dossier courant (pas location.href)
-============================= */
-const BASE_DIR = location.href.substring(0, location.href.lastIndexOf("/") + 1);
-const url = new URL(location.href);
-const SLUG = (url.searchParams.get("slug") || "").trim();
+(function(){
+  "use strict";
+  const $ = (id)=>document.getElementById(id);
+  const u = new URL(location.href);
 
-function withSlug(path){
-  const u = new URL(path, BASE_DIR);
-  if (SLUG && !u.searchParams.get("slug")) u.searchParams.set("slug", SLUG);
-  return u.toString();
-}
-function setNavSlug(){
-  const el = document.getElementById("navSlug");
-  if (el) el.textContent = "slug: " + (SLUG || "—");
-}
-setNavSlug();
-
-/* =============================
-   ✅ LOGOUT SAFE (évite 404)
-============================= */
-function logoutSafe(){
-  try{
-    // on nettoie la session côté guard si dispo
-    window.DIGIY_GUARD?.logout?.(withSlug("./pin.html"));
-  }catch(_){}
-  // et on force la navigation (GitHub Pages friendly)
-  location.replace(withSlug("./pin.html"));
-}
-
-/* =============================
-   ✅ GUARD BOOT (attendu)
-============================= */
-async function bootGuard(){
-  if(!window.DIGIY_GUARD?.boot){
-    console.warn("guard.js non chargé");
-    return { ok:false, error:"guard_missing" };
+  function getSlug(){
+    return (u.searchParams.get("slug") || localStorage.getItem("digiy_loc_slug") || "").trim().toLowerCase();
   }
-  const res = await window.DIGIY_GUARD.boot({
-    module: "LOC",
-    login: "./pin.html",
-    dashboard: "./index.html",
-    pay: "https://beauville.github.io/commencer-a-payer/",
-    requireSlug: true,
-    checkSubscription: true
-  });
-  return res || { ok:false, error:"boot_failed" };
-}
-
-/* =============================
-   SUPABASE CONFIG (client anon) — ✅ clé complète
-============================= */
-const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/* =============================
-   NAV BUTTONS (SAFE)
-============================= */
-const btnBack     = document.getElementById("btnBack");
-const btnToday    = document.getElementById("goToday");
-const btnApp      = document.getElementById("goApp");
-const btnPulse    = document.getElementById("goPulse");
-const btnPlanning = document.getElementById("goPlanning");
-const btnListing  = document.getElementById("goListing");
-const btnLinks    = document.getElementById("goLinks");
-const btnHealth   = document.getElementById("goHealth");
-
-if (btnBack)     btnBack.onclick     = () => location.href = withSlug("./app.html");     // retour vers cockpit global si tu veux
-if (btnToday)    btnToday.onclick    = () => location.href = withSlug("./today.html");
-if (btnApp)      btnApp.onclick      = () => location.href = withSlug("./app.html");
-if (btnPulse)    btnPulse.onclick    = () => location.href = withSlug("./proprio-loc.html");
-if (btnPlanning) btnPlanning.onclick = () => location.href = withSlug("./planning.html");
-if (btnLinks)    btnLinks.onclick    = () => location.href = withSlug("./manage-links.html");
-if (btnHealth)   btnHealth.onclick   = () => location.href = withSlug("./health-loc.html");
-// ✅ listing : on branche plus bas car on ajoute business_code si dispo
-
-/* =============================
-   DOM
-============================= */
-const listEl = document.getElementById("list");
-const statsBox = document.getElementById("statsBox");
-const pillUser = document.getElementById("pillUser");
-const pillState = document.getElementById("pillState");
-const btnLogout = document.getElementById("btnLogout");
-
-const btnNew = document.getElementById("btnNew");
-const btnRefresh = document.getElementById("btnRefresh");
-const listNote = document.getElementById("listNote");
-
-const btnSave = document.getElementById("btnSave");
-const btnPublish = document.getElementById("btnPublish");
-const btnDraft = document.getElementById("btnDraft");
-const btnDelete = document.getElementById("btnDelete");
-const btnOpenPublic = document.getElementById("btnOpenPublic");
-const btnTestMedia = document.getElementById("btnTestMedia");
-
-const pvImg = document.getElementById("pvImg");
-const pvVille = document.getElementById("pvVille");
-const pvWave = document.getElementById("pvWave");
-const pvStatus = document.getElementById("pvStatus");
-const pvVideoWrap = document.getElementById("pvVideoWrap");
-const pvVideo = document.getElementById("pvVideo");
-const editNote = document.getElementById("editNote");
-const saveNote = document.getElementById("saveNote");
-
-const f_nom = document.getElementById("f_nom");
-const f_ville = document.getElementById("f_ville");
-const f_business_code = document.getElementById("f_business_code");
-const f_adresse = document.getElementById("f_adresse");
-const f_desc = document.getElementById("f_desc");
-const f_photo = document.getElementById("f_photo");
-const f_video = document.getElementById("f_video");
-const f_prix_nuit = document.getElementById("f_prix_nuit");
-const f_prix_semaine = document.getElementById("f_prix_semaine");
-const f_prix_mois = document.getElementById("f_prix_mois");
-const f_frais = document.getElementById("f_frais");
-const f_wave_phone = document.getElementById("f_wave_phone");
-const f_wave_name = document.getElementById("f_wave_name");
-const f_deposit = document.getElementById("f_deposit");
-const f_status = document.getElementById("f_status");
-
-const calStart = document.getElementById("calStart");
-const calEnd = document.getElementById("calEnd");
-const calReason = document.getElementById("calReason");
-const btnAddBlock = document.getElementById("btnAddBlock");
-const btnReloadBlocks = document.getElementById("btnReloadBlocks");
-const calNote = document.getElementById("calNote");
-const calList = document.getElementById("calList");
-
-const btnReloadPays = document.getElementById("btnReloadPays");
-const payAdminNote = document.getElementById("payAdminNote");
-const payList = document.getElementById("payList");
-
-/* =============================
-   STATE (PIN)
-============================= */
-let sessionUser = null;     // { phone, owner_id }
-let current = null;
-let hasUnsavedChanges = false;
-const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAPTISTE.png";
-
-/* =============================
-   PIN SESSION → UI
-============================= */
-function readPinSession(){
-  const s = window.DIGIY_GUARD?.getSession?.();
-  if(!s?.ok || !s?.phone || !s?.owner_id) return null;
-  return { phone: s.phone, owner_id: s.owner_id };
-}
-function setPinConnectedUI(){
-  const s = readPinSession();
-  sessionUser = s;
-
-  if(s){
-    if(pillUser) pillUser.innerHTML = `👤 <strong>${s.phone}</strong>`;
-    if(pillState){
-      pillState.textContent = "✅ Connecté";
-      pillState.classList.remove("warn");
-      pillState.classList.add("ok");
-    }
-    if(btnLogout) btnLogout.style.display = "inline-flex";
-  }else{
-    if(pillUser) pillUser.innerHTML = `👤 <strong>—</strong>`;
-    if(pillState){
-      pillState.textContent = "🔒 Déconnecté";
-      pillState.classList.remove("ok");
-      pillState.classList.add("warn");
-    }
-    if(btnLogout) btnLogout.style.display = "none";
+  function withSlug(path){
+    const slug = getSlug();
+    const x = new URL(path, location.href);
+    if(slug && !x.searchParams.get("slug")) x.searchParams.set("slug", slug);
+    return x.toString();
   }
-}
-
-/* =============================
-   UTILS
-============================= */
-function showNote(el, msg, type){
-  if(!el) return;
-  el.style.display = "block";
-  el.classList.remove("ok","bad","warn");
-  if(type) el.classList.add(type);
-  el.textContent = msg;
-}
-function hideNote(el){
-  if(!el) return;
-  el.style.display="none";
-  el.textContent="";
-  el.classList.remove("ok","bad","warn");
-}
-function toEmbedUrl(u){
-  const s = String(u||"").trim();
-  if(!s) return "";
-  let m = s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]+)/);
-  if(m && m[1]) return "https://www.youtube.com/embed/" + m[1];
-  m = s.match(/vimeo\.com\/(\d+)/);
-  if(m && m[1]) return "https://player.vimeo.com/video/" + m[1];
-  m = s.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if(m && m[1]) return "https://drive.google.com/file/d/" + m[1] + "/preview";
-  m = s.match(/drive\.google\.com\/open\?id=([^&]+)/);
-  if(m && m[1]) return "https://drive.google.com/file/d/" + m[1] + "/preview";
-  return "";
-}
-function normalizeStatus(s){
-  const v = String(s||"").toLowerCase().trim();
-  if(["actif","active","published","online"].includes(v)) return "actif";
-  return "brouillon";
-}
-function rowTag(status){
-  const s = normalizeStatus(status);
-  if(s==="actif") return `<span class="tag dot live">En ligne</span>`;
-  return `<span class="tag dot draft">Privé</span>`;
-}
-function generateBusinessCode(nom, ville){
-  const n = (nom||"").toUpperCase().replace(/[^A-Z0-9]/g,"_").slice(0,20);
-  const v = (ville||"").toUpperCase().replace(/[^A-Z0-9]/g,"_").slice(0,10);
-  const rand = Math.random().toString(36).substr(2,3).toUpperCase();
-  return `${n}_${v}_${rand}`;
-}
-
-/* =============================
-   VALIDATION (terrain)
-============================= */
-function validateListing(p){
-  const errors = [];
-  if(!p.nom || p.nom.length < 3) errors.push("❌ Nom trop court (minimum 3 caractères)");
-  if(!p.ville || p.ville.length < 2) errors.push("❌ Ville invalide (minimum 2 caractères)");
-
-  if(!p.photo_url){
-    errors.push("❌ Photo obligatoire");
-  }else if(!p.photo_url.match(/^https?:\/\/.+\.(jpg|jpeg|png|webp)(\?.*)?$/i)){
-    errors.push("❌ Photo invalide (http + jpg/jpeg/png/webp)");
+  function showNote(msg, cls){
+    const el = $("note");
+    el.className = "note " + (cls || "warn");
+    el.textContent = msg || "";
+    el.style.display = msg ? "block" : "none";
+  }
+  function showOk(msg){
+    const el = $("noteOk");
+    el.className = "note ok";
+    el.textContent = msg || "";
+    el.style.display = msg ? "block" : "none";
   }
 
-  if(!p.wave_phone){
-    errors.push("❌ Numéro Wave obligatoire");
-  }else if(!/^\+?221\s?[7-9]\d{8}$/.test(p.wave_phone.replace(/\s/g,""))){
-    errors.push("❌ Numéro Wave invalide (format: +221 7X XXX XX XX)");
-  }
+  const SLUG = getSlug();
+  $("navSlug").textContent = "slug: " + (SLUG || "—");
+  $("kSlug").textContent = SLUG || "—";
 
-  if(!p.wave_name || p.wave_name.length < 2) errors.push("❌ Nom du propriétaire (Wave) obligatoire");
-  if(!p.prix_nuit || p.prix_nuit < 1000) errors.push("❌ Prix par nuit minimum: 1000 FCFA");
+  // liens fixes
+  $("btnGoPinPublic").href = withSlug("./go-pin.html");
+  $("btnPin").href = withSlug("./pin.html");
+  $("btnToday").href = withSlug("./today.html");
 
-  const dp = Number(p.deposit_percent);
-  if(!Number.isFinite(dp) || dp < 0 || dp > 100) errors.push("❌ Avance entre 0 et 100%");
-  if(p.business_code && !/^[A-Z0-9_]{3,50}$/.test(p.business_code)) errors.push("❌ Code logement invalide (A-Z, 0-9, _)");
-
-  return errors;
-}
-
-/* =============================
-   UI
-============================= */
-function enableEditorActions(yes){
-  if(btnSave) btnSave.disabled = !yes;
-  if(btnPublish) btnPublish.disabled = !yes;
-  if(btnDraft) btnDraft.disabled = !yes;
-  if(btnOpenPublic) btnOpenPublic.disabled = !yes;
-  if(btnTestMedia) btnTestMedia.disabled = !yes;
-  if(btnAddBlock) btnAddBlock.disabled = !yes;
-  if(btnReloadBlocks) btnReloadBlocks.disabled = !yes;
-  if(btnReloadPays) btnReloadPays.disabled = !yes;
-}
-function setConnectedUI(){
-  if(sessionUser){
-    enableEditorActions(true);
-  }else{
-    enableEditorActions(false);
-    if(btnDelete) btnDelete.style.display = "none";
-  }
-}
-
-/* =============================
-   MODIFS NON SAUVEGARDÉES
-============================= */
-function markDirty(){ hasUnsavedChanges = true; }
-function markClean(){ hasUnsavedChanges = false; }
-
-[
-  f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
-  f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,
-  f_deposit,f_status
-].filter(Boolean).forEach(input=>{
-  input.addEventListener('input', markDirty);
-  input.addEventListener('change', markDirty);
-});
-
-window.addEventListener('beforeunload', (e)=>{
-  if(hasUnsavedChanges){
-    e.preventDefault();
-    e.returnValue = "Tu as des modifications non sauvegardées!";
-  }
-});
-
-/* =============================
-   LOGOUT (PIN)
-============================= */
-if(btnLogout){
-  btnLogout.addEventListener("click", ()=>{
-    if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")){
-      return;
-    }
-    logoutSafe();
-  });
-}
-
-/* =============================
-   LISTE (owner_id via session PIN)
-============================= */
-async function loadList(){
-  hideNote(listNote);
-  if(listEl) listEl.innerHTML = "";
-  if(statsBox) statsBox.innerHTML = "";
-
-  if(btnRefresh){
-    btnRefresh.disabled = true;
-    btnRefresh.innerHTML = '<span class="spinner"></span> Chargement...';
-  }
-
-  try{
-    const uid = sessionUser?.owner_id;
-    if(!uid) throw new Error("Non connecté (PIN)");
-
-    const { data, error } = await SB
-      .from("digiy_logements")
-      .select("id,nom,ville,business_code,status,updated_at,created_at,owner_id,prix_nuit,photo_url,wave_phone,wave_name,deposit_percent")
-      .eq("owner_id", uid)
-      .order("updated_at", { ascending:false })
-      .limit(100);
-
-    if(error) throw error;
-
-    const total = data?.length || 0;
-    const enLigne = data?.filter(x=>normalizeStatus(x.status)==="actif").length || 0;
-    const prives = total - enLigne;
-
-    if(statsBox && total > 0){
-      statsBox.innerHTML = `
-        <div class="statBox"><div class="num">${total}</div><div class="lbl">Total</div></div>
-        <div class="statBox"><div class="num">${enLigne}</div><div class="lbl">En ligne</div></div>
-        <div class="statBox"><div class="num">${prives}</div><div class="lbl">Privés</div></div>
-      `;
-    }
-
-    if(!data || total===0){
-      return showNote(listNote, '✨ Aucun logement. Clique "+ Ajouter" pour commencer.', "ok");
-    }
-
-    data.forEach(item=>{
-      const div = document.createElement("div");
-      div.className = "item";
-      const dt = (item.updated_at || item.created_at || "").toString().slice(0,16).replace("T"," ");
-      const bc = item.business_code ? `<span class="tag">🔑 ${item.business_code}</span>` : "";
-
-      div.innerHTML = `
-        <div class="itemLeft">
-          <div class="itemTitle">${item.nom || "Logement"}</div>
-          <div class="itemMeta">${item.ville || ""} • ${item.prix_nuit ? Number(item.prix_nuit).toLocaleString("fr-FR") + " FCFA/nuit" : "—"}</div>
-          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-            ${rowTag(item.status)}
-            ${bc}
-            <span class="tag">🕒 ${dt}</span>
-          </div>
-        </div>
-        <div class="itemBtns">
-          <button class="btn gold small" data-open="${item.id}">✏️ Modifier</button>
-          <button class="btn small" data-dup="${item.id}">📋 Copier</button>
-          <button class="btn ghost small" data-view="${item.id}">👁️ Voir</button>
-        </div>
-      `;
-      if(listEl) listEl.appendChild(div);
+  // nav buttons
+  const nav = {
+    btnBack: "./go-pin.html",
+    goToday: "./today.html",
+    goApp: "./app.html",
+    goPulse: "./proprio-loc.html",
+    goPlanning: "./planning.html",
+    goListing: "./listing.html",
+    goLinks: "./manage-links.html",
+    goHealth: "./health-loc.html",
+    btnOpenApp: "./app.html",
+    btnOpenPlanning: "./planning.html",
+    btnOpenListing: "./listing.html",
+    btnOpenLinks: "./manage-links.html",
+    btnOpenPulse: "./proprio-loc.html",
+    btnOpenHealth: "./health-loc.html",
+    btnOpenTarifs: "./tarifs.html",
+  };
+  Object.entries(nav).forEach(([id, path])=>{
+    const b = $(id);
+    if(!b) return;
+    b.addEventListener("click", (e)=>{
+      e.preventDefault();
+      location.href = withSlug(path);
     });
+  });
 
-    if(listEl){
-      listEl.querySelectorAll("[data-open]").forEach(b=>{
-        b.addEventListener("click", ()=> openOne(b.getAttribute("data-open")));
-      });
-      listEl.querySelectorAll("[data-view]").forEach(b=>{
-        b.addEventListener("click", ()=>{
-          window.open(withSlug("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view"))), "_blank");
-        });
-      });
-      listEl.querySelectorAll("[data-dup]").forEach(b=>{
-        b.addEventListener("click", ()=> duplicateOne(b.getAttribute("data-dup")));
-      });
-    }
+  // refresh
+  $("btnRefresh").addEventListener("click", ()=>{
+    location.reload();
+  });
 
-    showNote(listNote, `✅ ${total} logement(s) chargé(s).`, "ok");
-  }catch(e){
-    console.error(e);
-    showNote(listNote, "❌ Erreur chargement:\n" + (e?.message || e), "bad");
-  }finally{
-    if(btnRefresh){
-      btnRefresh.disabled = false;
-      btnRefresh.innerHTML = "↻ Actualiser";
-    }
-  }
-}
-if(btnRefresh) btnRefresh.addEventListener("click", loadList);
-
-/* =============================
-   OUVRIR / AJOUTER
-============================= */
-async function openOne(id){
-  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")) return;
-
-  hideNote(editNote); hideNote(saveNote); hideNote(calNote); hideNote(payAdminNote);
-  if(calList) calList.innerHTML = "";
-  if(payList) payList.innerHTML = "";
-
-  const uid = sessionUser?.owner_id;
-  if(!uid) return showNote(editNote, "❌ Non connecté (PIN).", "bad");
-
-  const { data, error } = await SB
-    .from("digiy_logements")
-    .select("*")
-    .eq("id", id)
-    .eq("owner_id", uid)
-    .single();
-
-  if(error || !data){
-    console.error(error);
-    return showNote(editNote, "❌ Impossible d'ouvrir (pas à toi / introuvable):\n" + (error?.message || ""), "bad");
-  }
-
-  current = data;
-  paintEditor(current);
-  markClean();
-
-  if(btnDelete) btnDelete.style.display = "inline-flex";
-  await loadBlocksForCurrent();
-  await loadPaymentsForCurrent();
-}
-
-function newDraft(){
-  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")) return;
-
-  const uid = sessionUser?.owner_id || null;
-  current = {
-    id: null,
-    owner_id: uid,
-    nom: "",
-    ville: "",
-    business_code: "",
-    adresse: "",
-    description: "",
-    photo_url: "",
-    video_url: "",
-    prix_nuit: 0,
-    prix_semaine: 0,
-    prix_mois: 0,
-    frais_supplements: "",
-    wave_phone: "",
-    wave_name: "",
-    deposit_percent: 30,
-    status: "brouillon"
-  };
-
-  paintEditor(current);
-  if(calList) calList.innerHTML = "";
-  if(payList) payList.innerHTML = "";
-  if(btnDelete) btnDelete.style.display = "none";
-  markClean();
-  showNote(editNote, "✨ Nouveau logement prêt. Remplis puis Enregistrer.", "ok");
-}
-if(btnNew) btnNew.addEventListener("click", newDraft);
-
-/* =============================
-   APERÇU
-============================= */
-function paintEditor(x){
-  hideNote(editNote); hideNote(saveNote);
-
-  if(!x){
-    if(pvImg) pvImg.src = FALLBACK_PHOTO;
-    if(pvVille) pvVille.textContent = "—";
-    if(pvWave) pvWave.textContent = "—";
-    if(pvStatus) pvStatus.textContent = "—";
-    if(pvVideoWrap) pvVideoWrap.style.display = "none";
-    if(pvVideo) pvVideo.src = "";
-
-    [
-      f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
-      f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_deposit
-    ].filter(Boolean).forEach(i=> i.value = "");
-    if(f_status) f_status.value = "brouillon";
-    return;
-  }
-
-  if(f_nom) f_nom.value = x.nom || "";
-  if(f_ville) f_ville.value = x.ville || "";
-  if(f_business_code) f_business_code.value = x.business_code || "";
-  if(f_adresse) f_adresse.value = x.adresse || "";
-  if(f_desc) f_desc.value = x.description || "";
-  if(f_photo) f_photo.value = x.photo_url || "";
-  if(f_video) f_video.value = x.video_url || "";
-  if(f_prix_nuit) f_prix_nuit.value = Number(x.prix_nuit || 0);
-  if(f_prix_semaine) f_prix_semaine.value = Number(x.prix_semaine || 0);
-  if(f_prix_mois) f_prix_mois.value = Number(x.prix_mois || 0);
-  if(f_frais) f_frais.value = x.frais_supplements || "";
-  if(f_wave_phone) f_wave_phone.value = x.wave_phone || "";
-  if(f_wave_name) f_wave_name.value = x.wave_name || "";
-  if(f_deposit) f_deposit.value = Number(x.deposit_percent ?? 30);
-  if(f_status) f_status.value = normalizeStatus(x.status);
-
-  const imgUrl = (x.photo_url && String(x.photo_url).startsWith("http")) ? x.photo_url : FALLBACK_PHOTO;
-  if(pvImg) pvImg.src = imgUrl;
-
-  if(pvVille) pvVille.textContent = x.ville || "—";
-  const wn = (x.wave_name || "").trim();
-  const wp = (x.wave_phone || "").trim();
-  if(pvWave) pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
-  if(pvStatus) pvStatus.textContent = normalizeStatus(x.status);
-
-  const embed = toEmbedUrl(x.video_url);
-  if(embed){
-    if(pvVideo) pvVideo.src = embed;
-    if(pvVideoWrap) pvVideoWrap.style.display = "block";
-  }else{
-    if(pvVideo) pvVideo.src = "";
-    if(pvVideoWrap) pvVideoWrap.style.display = "none";
-  }
-
-  // ✅ Listing du jour: ajoute business_code si présent
-  if (btnListing){
-    btnListing.onclick = () => {
-      const bc = (current && current.business_code) ? current.business_code : "";
-      const u = new URL(withSlug("./listing.html"), BASE_DIR);
-      if (bc) u.searchParams.set("business", bc);
-      location.href = u.toString();
-    };
-  }
-}
-
-/* =============================
-   FORM → PAYLOAD
-============================= */
-function collectForm(){
-  const uid = sessionUser?.owner_id || null;
-  let businessCode = (f_business_code?.value || "").trim();
-
-  const nom = (f_nom?.value || "").trim();
-  const ville = (f_ville?.value || "").trim();
-
-  if(!businessCode && nom && ville){
-    businessCode = generateBusinessCode(nom, ville);
-    if(f_business_code) f_business_code.value = businessCode;
-  }
-
-  return {
-    owner_id: uid,
-    nom,
-    ville,
-    business_code: businessCode,
-    adresse: (f_adresse?.value || "").trim(),
-    description: (f_desc?.value || "").trim(),
-    photo_url: (f_photo?.value || "").trim(),
-    video_url: (f_video?.value || "").trim(),
-    prix_nuit: Number(f_prix_nuit?.value || 0),
-    prix_semaine: Number(f_prix_semaine?.value || 0),
-    prix_mois: Number(f_prix_mois?.value || 0),
-    frais_supplements: (f_frais?.value || "").trim(),
-    wave_phone: (f_wave_phone?.value || "").trim(),
-    wave_name: (f_wave_name?.value || "").trim(),
-    deposit_percent: Number(f_deposit?.value || 30),
-    status: normalizeStatus(f_status?.value)
-  };
-}
-
-/* =============================
-   ENREGISTRER
-============================= */
-async function saveRecord(mode){
-  hideNote(saveNote);
-  if(!sessionUser) return showNote(saveNote, "❌ Connecte-toi d'abord.", "bad");
-
-  const payload = collectForm();
-  const errors = validateListing(payload);
-  if(errors.length > 0) return showNote(saveNote, errors.join("\n"), "bad");
-
-  if(mode==="publish") payload.status = "actif";
-  if(mode==="draft") payload.status = "brouillon";
-
-  if(btnSave){
-    btnSave.disabled = true;
-    btnSave.innerHTML = '<span class="spinner"></span> Sauvegarde...';
-  }
-  if(btnPublish) btnPublish.disabled = true;
-  if(btnDraft) btnDraft.disabled = true;
-
+  // guard boot (protège index)
   try{
-    if(!current || !current.id){
-      const { data, error } = await SB
-        .from("digiy_logements")
-        .insert(payload)
-        .select("id")
-        .single();
-      if(error) throw error;
+    window.DIGIY_GUARD?.boot?.({
+      module: "LOC",
+      login: "./pin.html",
+      dashboard: "./index.html",
+      pay: "https://beauville.github.io/commencer-a-payer/",
+      requireSlug: true,
+      checkSubscription: true
+    });
+  }catch(e){
+    console.warn("guard boot error:", e);
+  }
 
-      current.id = data.id;
-      showNote(saveNote, "✅ Créé!", "ok");
+  // UI session
+  function renderSession(){
+    const sess = window.DIGIY_GUARD?.getSession?.() || null;
+
+    if(sess?.ok){
+      $("pillUser").innerHTML = `👤 <strong>${sess.phone || "—"}</strong>`;
+      $("pillState").textContent = "✅ Connecté";
+      $("pillState").classList.remove("warn");
+      $("pillState").classList.add("ok");
+      $("btnLogout").style.display = "inline-flex";
+
+      $("kPhone").textContent = sess.phone || "—";
+      $("kOwner").textContent = sess.owner_id || "—";
+      $("kSess").textContent = sess.exp ? "OK (expire)" : "OK";
+
+      showOk("Session OK. Navigation stable. 👊");
+      showNote("", "warn");
     }else{
-      const { error } = await SB
-        .from("digiy_logements")
-        .update(payload)
-        .eq("id", current.id)
-        .eq("owner_id", sessionUser.owner_id);
+      $("pillUser").innerHTML = `👤 <strong>—</strong>`;
+      $("pillState").textContent = "🔒 Déconnecté";
+      $("pillState").classList.remove("ok");
+      $("pillState").classList.add("warn");
+      $("btnLogout").style.display = "none";
 
-      if(error) throw error;
-      showNote(saveNote, "✅ Sauvegardé!", "ok");
-    }
+      $("kPhone").textContent = "—";
+      $("kOwner").textContent = "—";
+      $("kSess").textContent = "—";
 
-    markClean();
-    await openOne(current.id);
-    await loadList();
-  }catch(e){
-    console.error(e);
-    showNote(saveNote, "❌ Erreur:\n" + (e?.message || e), "bad");
-  }finally{
-    if(btnSave){
-      btnSave.disabled = false;
-      btnSave.innerHTML = "💾 Enregistrer";
+      showOk("");
+      showNote("🔒 Pas de session. Va sur PIN pour ouvrir ton cockpit.", "warn");
     }
-    if(btnPublish) btnPublish.disabled = false;
-    if(btnDraft) btnDraft.disabled = false;
   }
-}
-if(btnSave) btnSave.addEventListener("click", ()=> saveRecord("save"));
-if(btnPublish) btnPublish.addEventListener("click", ()=> saveRecord("publish"));
-if(btnDraft) btnDraft.addEventListener("click", ()=> saveRecord("draft"));
 
-/* =============================
-   RETIRER
-============================= */
-if(btnDelete){
-  btnDelete.addEventListener("click", async ()=>{
-    if(!current || !current.id) return;
-
-    if(!confirm(`⚠️ Retirer définitivement "${current.nom}" ?`)) return;
-    if(!confirm("⚠️ Dernière confirmation : retirer ce logement ?")) return;
-
-    btnDelete.disabled = true;
-    btnDelete.innerHTML = '<span class="spinner"></span> Suppression...';
-
-    try{
-      const { error } = await SB
-        .from("digiy_logements")
-        .delete()
-        .eq("id", current.id)
-        .eq("owner_id", sessionUser.owner_id);
-
-      if(error) throw error;
-
-      showNote(editNote, "✅ Logement retiré!", "ok");
-      current = null;
-      paintEditor(null);
-      markClean();
-      btnDelete.style.display = "none";
-      await loadList();
-    }catch(e){
-      console.error(e);
-      showNote(editNote, "❌ Refusé:\n" + (e?.message || e), "bad");
-    }finally{
-      btnDelete.disabled = false;
-      btnDelete.innerHTML = "🗑️ Retirer";
+  $("btnLogout").addEventListener("click", ()=>{
+    if(confirm("Se déconnecter ?")){
+      try{ window.DIGIY_GUARD?.logout?.("./pin.html"); }
+      catch(_){ location.replace(withSlug("./pin.html")); }
     }
   });
-}
 
-/* =============================
-   TEST MÉDIAS + OUVRIR PUBLIC
-============================= */
-if(btnTestMedia){
-  btnTestMedia.addEventListener("click", ()=>{
-    if(!current) return;
-    hideNote(editNote);
-
-    const payload = collectForm();
-    if(pvImg) pvImg.src = (payload.photo_url && payload.photo_url.startsWith("http")) ? payload.photo_url : FALLBACK_PHOTO;
-
-    const embed = toEmbedUrl(payload.video_url);
-    if(embed){
-      if(pvVideo) pvVideo.src = embed;
-      if(pvVideoWrap) pvVideoWrap.style.display = "block";
-      showNote(editNote, "✅ Photo/vidéo OK!", "ok");
-    }else{
-      if(pvVideo) pvVideo.src = "";
-      if(pvVideoWrap) pvVideoWrap.style.display = "none";
-      if(payload.video_url){
-        showNote(editNote, "⚠️ Vidéo non reconnue. Mets un lien Drive/YouTube/Vimeo valide.", "warn");
-      }else{
-        showNote(editNote, "ℹ️ Pas de vidéo. Photo OK.", "ok");
-      }
-    }
-
-    const wn = payload.wave_name.trim();
-    const wp = payload.wave_phone.trim();
-    if(pvWave) pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
-    if(pvVille) pvVille.textContent = payload.ville || "—";
-    if(pvStatus) pvStatus.textContent = payload.status || "—";
-  });
-}
-
-if(btnOpenPublic){
-  btnOpenPublic.addEventListener("click", ()=>{
-    if(!current || !current.id) return showNote(editNote, "❌ Enregistre d'abord (pas d'ID).", "bad");
-    window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
-  });
-}
-
-/* =============================
-   DUPLIQUER
-============================= */
-async function duplicateOne(id){
-  hideNote(listNote);
-  if(!sessionUser) return showNote(listNote, "❌ Connecte-toi d'abord.", "bad");
-
-  const { data: src, error: e1 } = await SB
-    .from("digiy_logements")
-    .select("*")
-    .eq("id", id)
-    .eq("owner_id", sessionUser.owner_id)
-    .single();
-
-  if(e1 || !src){
-    console.error(e1);
-    return showNote(listNote, "❌ Copie impossible:\n" + (e1?.message || "introuvable"), "bad");
+  if(!SLUG){
+    showNote("❌ Slug introuvable.\n➡️ Ouvre go-pin.html?slug=chez-astou-saly", "bad");
   }
 
-  const copy = {
-    owner_id: sessionUser.owner_id,
-    nom: (src.nom || "Logement") + " (copie)",
-    ville: src.ville || "",
-    business_code: generateBusinessCode((src.nom || "Logement") + " copie", src.ville || ""),
-    adresse: src.adresse || "",
-    description: src.description || "",
-    photo_url: src.photo_url || "",
-    video_url: src.video_url || "",
-    prix_nuit: Number(src.prix_nuit || 0),
-    prix_semaine: Number(src.prix_semaine || 0),
-    prix_mois: Number(src.prix_mois || 0),
-    frais_supplements: src.frais_supplements || "",
-    wave_phone: src.wave_phone || "",
-    wave_name: src.wave_name || "",
-    deposit_percent: Number(src.deposit_percent ?? 30),
-    status: "brouillon"
-  };
-
-  const { data: created, error: e2 } = await SB
-    .from("digiy_logements")
-    .insert(copy)
-    .select("id")
-    .single();
-
-  if(e2 || !created){
-    console.error(e2);
-    return showNote(listNote, "❌ Copie refusée:\n" + (e2?.message || ""), "bad");
-  }
-
-  showNote(listNote, "✅ Copié!", "ok");
-  await loadList();
-  await openOne(created.id);
-  showNote(editNote, "✨ Copie prête. Renomme puis mets en ligne.", "ok");
-}
-
-/* =============================
-   CALENDRIER BLOCKS
-============================= */
-if(btnAddBlock){
-  btnAddBlock.addEventListener("click", async ()=>{
-    hideNote(calNote);
-    if(!sessionUser) return showNote(calNote, "❌ Connecte-toi.", "bad");
-    if(!current || !current.id) return showNote(calNote, "❌ Enregistre le logement avant.", "bad");
-
-    const s = calStart?.value || "";
-    const e = calEnd?.value || "";
-    if(!s || !e) return showNote(calNote, "❌ Choisis début + fin.", "bad");
-    if(e < s) return showNote(calNote, "❌ Fin doit être >= début.", "bad");
-
-    btnAddBlock.disabled = true;
-    btnAddBlock.innerHTML = '<span class="spinner"></span> Ajout...';
-
-    try{
-      const insertPayload = {
-        listing_id: current.id,
-        owner_id: sessionUser.owner_id,
-        start_date: s,
-        end_date: e,
-        reason: (calReason?.value || "").trim() || null,
-        business_code: current.business_code || null
-      };
-
-      const { error } = await SB.from("loc_availability_blocks").insert(insertPayload);
-      if(error) throw error;
-
-      showNote(calNote, "✅ Dates bloquées!", "ok");
-      if(calStart) calStart.value = "";
-      if(calEnd) calEnd.value = "";
-      if(calReason) calReason.value = "";
-      await loadBlocksForCurrent();
-    }catch(err){
-      console.error(err);
-      showNote(calNote, "❌ Refusé:\n" + (err?.message || err), "bad");
-    }finally{
-      btnAddBlock.disabled = false;
-      btnAddBlock.innerHTML = "➕ Bloquer";
-    }
-  });
-}
-if(btnReloadBlocks) btnReloadBlocks.addEventListener("click", loadBlocksForCurrent);
-
-async function loadBlocksForCurrent(){
-  hideNote(calNote);
-  if(calList) calList.innerHTML = "";
-  if(!current || !current.id) return;
-
-  try{
-    const { data, error } = await SB
-      .from("loc_availability_blocks")
-      .select("id,start_date,end_date,reason,created_at")
-      .eq("listing_id", current.id)
-      .eq("owner_id", sessionUser.owner_id)
-      .order("start_date", { ascending:true });
-
-    if(error) throw error;
-
-    if(!data || data.length===0){
-      return showNote(calNote, "ℹ️ Aucun bloc. Disponible par défaut.", "ok");
-    }
-
-    data.forEach(b=>{
-      const div = document.createElement("div");
-      div.className = "rowItem";
-      div.innerHTML = `
-        <div class="rowTop">
-          <strong>🚫 ${b.start_date} → ${b.end_date}</strong>
-          <button class="btn danger small" data-delblk="${b.id}">Supprimer</button>
-        </div>
-        <div class="rowSub">${b.reason || "—"}</div>
-      `;
-      if(calList) calList.appendChild(div);
-    });
-
-    if(calList){
-      calList.querySelectorAll("[data-delblk]").forEach(btn=>{
-        btn.addEventListener("click", async ()=>{
-          const bid = btn.getAttribute("data-delblk");
-          if(!confirm("Supprimer ce bloc de dates ?")) return;
-
-          try{
-            const { error } = await SB
-              .from("loc_availability_blocks")
-              .delete()
-              .eq("id", bid)
-              .eq("owner_id", sessionUser.owner_id);
-
-            if(error) throw error;
-            showNote(calNote, "✅ Bloc supprimé!", "ok");
-            await loadBlocksForCurrent();
-          }catch(e){
-            console.error(e);
-            showNote(calNote, "❌ Refusé:\n" + (e?.message || e), "bad");
-          }
-        });
-      });
-    }
-
-    showNote(calNote, `✅ ${data.length} bloc(s).`, "ok");
-  }catch(e){
-    console.error(e);
-    showNote(calNote, "❌ Erreur calendrier:\n" + (e?.message || e), "bad");
-  }
-}
-
-/* =============================
-   PAIEMENTS (preuves)
-============================= */
-if(btnReloadPays) btnReloadPays.addEventListener("click", loadPaymentsForCurrent);
-
-async function loadPaymentsForCurrent(){
-  hideNote(payAdminNote);
-  if(payList) payList.innerHTML = "";
-  if(!current || !current.id) return;
-
-  try{
-    const { data, error } = await SB
-      .from("loc_payment_intents")
-      .select("*")
-      .eq("listing_id", current.id)
-      .order("created_at", { ascending:false })
-      .limit(50);
-
-    if(error) throw error;
-
-    if(!data || data.length===0){
-      return showNote(payAdminNote, "ℹ️ Aucune preuve d'avance.", "ok");
-    }
-
-    data.forEach(p=>{
-      const div = document.createElement("div");
-      div.className = "rowItem";
-      const who = (p.client_name || "Client") + (p.client_phone ? " • " + p.client_phone : "");
-      const when = (p.date_in && p.date_out) ? `${p.date_in} → ${p.date_out} (${p.nights||0} nuit(s))` : "—";
-      const amt = `${Number(p.amount_expected||0).toLocaleString("fr-FR")} ${p.currency||"XOF"}`;
-      const st = (p.status || "pending").toUpperCase();
-
-      div.innerHTML = `
-        <div class="rowTop">
-          <strong>${st} • ${amt}</strong>
-          <div class="btnRow">
-            <button class="btn primary small" data-okpay="${p.id}">✅ Confirmer</button>
-            <button class="btn danger small" data-badpay="${p.id}">❌ Refuser</button>
-          </div>
-        </div>
-        <div class="rowSub">
-          👤 ${who}<br>
-          📅 ${when}<br>
-          💳 Propriétaire (Wave) : ${p.wave_name || ""} ${p.wave_phone || ""}<br>
-          🧾 Référence : <strong>${p.wave_tx_ref || "—"}</strong>
-        </div>
-      `;
-      if(payList) payList.appendChild(div);
-    });
-
-    if(payList){
-      payList.querySelectorAll("[data-okpay]").forEach(btn=>{
-        btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-okpay"), "confirmed"));
-      });
-      payList.querySelectorAll("[data-badpay]").forEach(btn=>{
-        btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected"));
-      });
-    }
-
-    showNote(payAdminNote, `✅ ${data.length} preuve(s).`, "ok");
-  }catch(e){
-    console.error(e);
-    showNote(payAdminNote, "⚠️ Paiements indisponibles.\nErreur: " + (e?.message || e), "warn");
-  }
-}
-
-async function updatePayStatus(id, status){
-  hideNote(payAdminNote);
-  try{
-    const { error } = await SB
-      .from("loc_payment_intents")
-      .update({ status })
-      .eq("id", id);
-
-    if(error) throw error;
-
-    showNote(payAdminNote, `✅ Statut mis à jour: ${status}`, "ok");
-    await loadPaymentsForCurrent();
-  }catch(e){
-    console.error(e);
-    showNote(payAdminNote, "❌ Refusé:\n" + (e?.message || e), "bad");
-  }
-}
-
-/* =============================
-   INIT (ordre PROPRE)
-============================= */
-(async function init(){
-  // 1) Guard en premier (redirige si besoin)
-  const boot = await bootGuard();
-  if(!boot?.ok){
-    // boot redirige souvent déjà, mais on assure:
-    logoutSafe();
-    return;
-  }
-
-  // 2) Session PIN
-  setPinConnectedUI();
-  setConnectedUI();
-  paintEditor(null);
-
-  // 3) Listing
-  if(sessionUser){
-    loadList();
-    showNote(listNote, "✅ Session OK. Chargement des logements…", "ok");
-  }else{
-    showNote(listNote, "🔒 Session manquante. Retour login…", "warn");
-    setTimeout(logoutSafe, 150);
-  }
+  renderSession();
 })();
 </script>
-
 </body>
 </html>
