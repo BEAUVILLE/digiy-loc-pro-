@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>DIGIY LOC PRO ♾️ — PIN</title>
+  <title>DIGIY LOC PRO ♾️ — Accès</title>
   <meta name="theme-color" content="#0b1020"/>
 
+  <!-- Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./guard.js?v=locpro-final"></script>
 
@@ -53,8 +54,8 @@
       border-radius:20px;box-shadow:var(--shadow);
       padding:16px;
     }
-    h1{font-size:1.2rem;margin:0}
-    .sub{color:var(--muted);font-weight:800;margin-top:4px;line-height:1.35}
+    h1{font-size:1.1rem;margin:0}
+    .sub{color:var(--muted);font-weight:800;margin-top:6px;line-height:1.35}
     label{display:block;margin:14px 0 6px;font-weight:950;color:#fff}
     input{
       width:100%;border-radius:14px;border:1px solid var(--line);
@@ -66,11 +67,12 @@
     .btn{
       width:100%;min-height:52px;border-radius:16px;border:1px solid var(--line);
       background:rgba(255,255,255,.04);color:#fff;font-weight:1100;font-size:16px;
-      cursor:pointer;
+      cursor:pointer;text-decoration:none;
+      display:flex;align-items:center;justify-content:center;
     }
     .btn.primary{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35)}
     .btn.gold{background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.35)}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
     .note{
       margin-top:12px;padding:10px 12px;border-radius:14px;border:1px solid rgba(148,163,184,.25);
       background:rgba(255,255,255,.03);color:var(--muted);font-weight:900;white-space:pre-wrap;display:none;
@@ -78,7 +80,7 @@
     .note.ok{display:block;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.09);color:#bbf7d0}
     .note.bad{display:block;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.09);color:#fecaca}
     .note.warn{display:block;border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.09);color:#fde68a}
-    a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+    .tiny{margin-top:10px;color:rgba(203,213,245,.9);font-weight:850;font-size:.9rem;line-height:1.35}
   </style>
 </head>
 
@@ -89,10 +91,12 @@
         <div class="logo">∞</div>
         <div>
           <h1>DIGIY LOC PRO — Accès</h1>
-          <div class="sub">Entre ton téléphone + ton PIN pour ouvrir ton cockpit.</div>
+          <div class="sub">
+            Entre ton <b>téléphone Wave</b> + ton <b>PIN</b> pour ouvrir ton cockpit.
+          </div>
         </div>
       </div>
-      <div class="pill" id="pillSlug">slug: —</div>
+      <div class="pill" id="pillLieu">Lieu : —</div>
     </div>
 
     <div class="card">
@@ -100,17 +104,18 @@
       <input id="phone" inputmode="tel" placeholder="+221 77 123 45 67" />
 
       <label>PIN</label>
-      <input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code"
-             placeholder="••••" maxlength="8" />
+      <input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" maxlength="8" />
 
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="btnLogin" type="button">🔓 Ouvrir mon cockpit</button>
-
-        <!-- ✅ retour vers page PIN public -->
-        <a class="btn gold" id="btnPublic" href="#">👁️ Retour GO PIN public</a>
+        <a class="btn gold" id="btnPublic" href="#">👁️ Retour GO PIN (public)</a>
       </div>
 
       <div class="note warn" id="note"></div>
+
+      <div class="tiny" id="hintBox" style="display:none">
+        💡 Astuce : ouvre toujours cette page via ton <b>QR / lien GO PIN</b> pour que le “Lieu” soit reconnu automatiquement.
+      </div>
     </div>
   </div>
 
@@ -119,100 +124,77 @@
   "use strict";
   const $ = (id)=>document.getElementById(id);
 
-  // ✅ Base dossier (GitHub Pages friendly)
-  const BASE_DIR = location.href.substring(0, location.href.lastIndexOf("/") + 1);
-
-  function note(msg, cls){
+  function show(msg, cls){
     const el = $("note");
-    if(!el) return;
     el.className = "note " + (cls || "warn");
     el.textContent = msg || "";
     el.style.display = msg ? "block" : "none";
   }
 
-  function cleanPin(v){
-    return String(v||"").trim().replace(/[^\d]/g,"").slice(0,8);
-  }
+  function cleanPin(v){ return String(v||"").trim().replace(/[^\d]/g,"").slice(0,8); }
 
-  function cleanSlug(v){
-    return String(v||"").trim().replace(/\/+$/,"").toLowerCase();
-  }
-
-  // slug
+  // --- LIEU (slug) ---
   const u = new URL(location.href);
-  const SLUG = cleanSlug(u.searchParams.get("slug") || "");
-  if($("pillSlug")) $("pillSlug").textContent = "slug: " + (SLUG || "—");
+  const LIEU = (u.searchParams.get("slug") || "").trim().replace(/\/+$/,"").toLowerCase();
 
-  // ✅ Lien retour PIN public (anti-404)
-  // IMPORTANT: mets ici le NOM EXACT de ta page publique.
-  // Si ton fichier s'appelle autrement (ex: go-pin-public.html), remplace juste ici.
-  const PUBLIC_PIN_FILE = "./go-pin.html";
-  const back = new URL(PUBLIC_PIN_FILE, BASE_DIR);
-  if(SLUG) back.searchParams.set("slug", SLUG);
-  if($("btnPublic")) $("btnPublic").href = back.toString();
+  $("pillLieu").textContent = "Lieu : " + (LIEU || "—");
 
-  if(!SLUG){
-    note("⚠️ Il manque le slug.\n➡️ Exemple: pin.html?slug=chez-astou-saly", "bad");
+  // --- Retour GO PIN (public) ---
+  // IMPORTANT: le fichier est "go-pin.html" (pas "go pin.html")
+  const back = new URL("./go-pin.html", location.href);
+  if (LIEU) back.searchParams.set("slug", LIEU);
+  $("btnPublic").href = back.toString();
+
+  // Si pas de lieu -> message terrain
+  if(!LIEU){
+    show("⚠️ Lien incomplet.\n➡️ Ouvre cette page via ton QR / lien GO PIN.\nExemple : pin.html?slug=chez-astou-saly", "bad");
+    $("hintBox").style.display = "block";
   }
 
   async function doLogin(){
-    if(!SLUG){
-      note("❌ Slug manquant.", "bad");
+    if(!LIEU){
+      show("❌ Lieu manquant.\n➡️ Reviens via ton QR / lien GO PIN (public).", "bad");
       return;
     }
 
-    if(!window.DIGIY_GUARD?.loginWithPin){
-      note("❌ guard.js non chargé (loginWithPin introuvable).", "bad");
-      return;
-    }
-
-    const phone = ($("phone")?.value || "").trim();
-    const pin = cleanPin($("pin")?.value || "");
-    if($("pin")) $("pin").value = pin;
+    const phone = $("phone").value;
+    const pin = cleanPin($("pin").value);
+    $("pin").value = pin;
 
     if(pin.length < 4){
-      note("⚠️ Mets au moins 4 chiffres.", "warn");
+      show("⚠️ Mets au moins 4 chiffres pour ton PIN.", "warn");
       return;
     }
 
-    if($("btnLogin")) $("btnLogin").disabled = true;
-    note("⏳ Vérification…", "warn");
+    $("btnLogin").disabled = true;
+    show("⏳ Vérification…", "warn");
 
     try{
       const res = await window.DIGIY_GUARD.loginWithPin(phone, pin, "LOC");
 
       if(!res || res.ok !== true){
-        note("❌ Accès refusé. Vérifie ton téléphone + ton PIN.", "bad");
+        // messages humains (pas “accès refusé” brut)
+        show("❌ PIN incorrect ou téléphone non autorisé.\n➡️ Vérifie puis réessaie.", "bad");
         return;
       }
 
-      note("✅ OK. Ouverture…", "ok");
-
-      const dash = new URL("./index.html", BASE_DIR);
-      dash.searchParams.set("slug", SLUG);
-
-      // ✅ replace pour éviter retour bizarre + 404
+      show("✅ OK. Ouverture du cockpit…", "ok");
+      const dash = new URL("./index.html", location.href);
+      dash.searchParams.set("slug", LIEU);
       location.replace(dash.toString());
 
     }catch(e){
       console.error(e);
-      note("❌ Erreur login.\nDétail: " + (e?.message || e), "bad");
+      show("❌ Problème technique.\n➡️ Réessaie dans 10 secondes.\nDétail: " + (e?.message || e), "bad");
     }finally{
-      if($("btnLogin")) $("btnLogin").disabled = false;
+      $("btnLogin").disabled = false;
     }
   }
 
-  if($("btnLogin")) $("btnLogin").addEventListener("click", doLogin);
-  if($("pin")) $("pin").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
+  $("btnLogin").addEventListener("click", doLogin);
+  $("pin").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
 
-  // UX focus
-  setTimeout(()=>{
-    const phoneEl = $("phone");
-    const pinEl = $("pin");
-    if(phoneEl && pinEl){
-      (phoneEl.value ? pinEl : phoneEl).focus();
-    }
-  }, 120);
+  setTimeout(()=> ($("phone").value ? $("pin") : $("phone")).focus(), 120);
 })();
 </script>
 </body>
