@@ -10,7 +10,6 @@
 <style>
 /* =============================
    DIGIY LOC PRO — UI ROYAL
-   (CSS inchangé + patch mobile + menu + back)
 ============================= */
 :root{
   --bg:#020617;
@@ -236,7 +235,7 @@ input[type="date"]{color-scheme:dark}
 .statBox .num{font-size:1.8rem;font-weight:1100;color:var(--gold)}
 .statBox .lbl{color:var(--muted);font-weight:800;font-size:.82rem;margin-top:4px}
 
-/* ======== PATCH PREMIUM: Menu + Back + Mobile confort ======== */
+/* ======== NAV premium ======== */
 .navRow{
   width:100%;
   display:flex;
@@ -297,12 +296,11 @@ input[type="date"]{color-scheme:dark}
         <div class="navLabel" id="navSlug">slug: —</div>
       </div>
       <div class="navRight">
-  <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
-  <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
-  <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
-  <button class="btn small navBtn" id="goHealth">🧪 Health</button>
-  <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
-
+        <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
+        <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
+        <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
+        <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
+        <button class="btn small navBtn" id="goHealth">🧪 Health</button>
       </div>
     </div>
   </div>
@@ -571,20 +569,26 @@ function setNavSlug(){
 }
 setNavSlug();
 
-document.getElementById("btnBack").onclick = ()=>{
+/* =============================
+   NAV BUTTONS (100% SAFE)
+============================= */
+document.getElementById("btnBack").addEventListener("click", ()=>{
   if(history.length > 1) return history.back();
   location.href = withSlug("./index.html");
-};
+});
+document.getElementById("goPulse").addEventListener("click", ()=>{
+  location.href = withSlug("./proprio-loc.html");
+});
+document.getElementById("goPlanning").addEventListener("click", ()=> location.href = withSlug("./planning.html"));
+document.getElementById("goLinks").addEventListener("click", ()=> location.href = withSlug("./manage-links.html"));
+document.getElementById("goHealth").addEventListener("click", ()=> location.href = withSlug("./health-loc.html"));
 
-document.getElementById("goPlanning").onclick = ()=> location.href = withSlug("./planning.html");
-document.getElementById("goListing").onclick = ()=>{
+document.getElementById("goListing").addEventListener("click", ()=>{
   const bc = (current && current.business_code) ? current.business_code : "";
   const u = new URL(withSlug("./listing.html"), location.href);
   if(bc) u.searchParams.set("business", bc);
   location.href = u.toString();
-};
-document.getElementById("goLinks").onclick = ()=> location.href = withSlug("./manage-links.html");
-document.getElementById("goHealth").onclick = ()=> location.href = withSlug("./health-loc.html");
+});
 
 /* =============================
    DOM
@@ -662,12 +666,14 @@ const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAP
    UTILS
 ============================= */
 function showNote(el, msg, type){
+  if(!el) return;
   el.style.display = "block";
   el.classList.remove("ok","bad","warn");
   if(type) el.classList.add(type);
   el.textContent = msg;
 }
 function hideNote(el){
+  if(!el) return;
   el.style.display="none";
   el.textContent="";
   el.classList.remove("ok","bad","warn");
@@ -724,7 +730,9 @@ function validateListing(p){
 
   if(!p.wave_name || p.wave_name.length < 2) errors.push("❌ Nom du propriétaire (Wave) obligatoire");
   if(!p.prix_nuit || p.prix_nuit < 1000) errors.push("❌ Prix par nuit minimum: 1000 FCFA");
-  if(p.deposit_percent < 0 || p.deposit_percent > 100) errors.push("❌ Avance entre 0 et 100%");
+
+  const dp = Number(p.deposit_percent);
+  if(!Number.isFinite(dp) || dp < 0 || dp > 100) errors.push("❌ Avance entre 0 et 100%");
 
   if(p.business_code && !/^[A-Z0-9_]{3,50}$/.test(p.business_code)){
     errors.push("❌ Code logement invalide (A-Z, 0-9, _)");
@@ -768,6 +776,7 @@ function setConnectedUI(user){
     btnDelete.style.display = "none";
   }
 }
+
 async function refreshSession(){
   const { data } = await SB.auth.getSession();
   setConnectedUI(data?.session?.user || null);
@@ -797,14 +806,14 @@ window.addEventListener('beforeunload', (e)=>{
 });
 
 /* =============================
-   ACCÈS PROPRIÉTAIRE
+   AUTH
 ============================= */
-btnDemoFill.onclick = ()=>{
+btnDemoFill.addEventListener("click", ()=>{
   authEmail.value = "baptistejb24@gmail.com";
   showNote(authNote, '✅ Demo rempli. Clique "Envoyer le lien".', "ok");
-};
+});
 
-btnSendOtp.onclick = async ()=>{
+btnSendOtp.addEventListener("click", async ()=>{
   hideNote(authNote);
   const email = authEmail.value.trim();
   if(!email || !email.includes("@")){
@@ -830,9 +839,9 @@ btnSendOtp.onclick = async ()=>{
     btnSendOtp.disabled = false;
     btnSendOtp.innerHTML = '📩 Envoyer le lien';
   }
-};
+});
 
-btnLogout.onclick = async ()=>{
+btnLogout.addEventListener("click", async ()=>{
   if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")){
     return;
   }
@@ -841,7 +850,7 @@ btnLogout.onclick = async ()=>{
   paintEditor(null);
   setConnectedUI(null);
   markClean();
-};
+});
 
 /* =============================
    LISTE
@@ -903,20 +912,19 @@ async function loadList(){
           <button class="btn gold small" data-open="${item.id}">✏️ Modifier</button>
           <button class="btn small" data-dup="${item.id}">📋 Copier</button>
           <button class="btn ghost small" data-view="${item.id}">👁️ Voir</button>
-          <button class="btn small navBtn" id="goProprio">📲 Pulse / Propriétaire</button>
         </div>
       `;
       listEl.appendChild(div);
     });
 
     listEl.querySelectorAll("[data-open]").forEach(b=>{
-      b.onclick = ()=> openOne(b.getAttribute("data-open"));
+      b.addEventListener("click", ()=> openOne(b.getAttribute("data-open")));
     });
     listEl.querySelectorAll("[data-view]").forEach(b=>{
-      b.onclick = ()=> window.open(withSlug("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view"))), "_blank");
+      b.addEventListener("click", ()=> window.open(withSlug("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view"))), "_blank"));
     });
     listEl.querySelectorAll("[data-dup]").forEach(b=>{
-      b.onclick = ()=> duplicateOne(b.getAttribute("data-dup"));
+      b.addEventListener("click", ()=> duplicateOne(b.getAttribute("data-dup")));
     });
 
     showNote(listNote, `✅ ${total} logement(s) chargé(s).`, "ok");
@@ -928,7 +936,7 @@ async function loadList(){
     btnRefresh.innerHTML = '↻ Actualiser';
   }
 }
-btnRefresh.onclick = async ()=>{ await loadList(); };
+btnRefresh.addEventListener("click", loadList);
 
 /* =============================
    OUVRIR / AJOUTER
@@ -999,7 +1007,7 @@ function newDraft(){
   markClean();
   showNote(editNote, "✨ Nouveau logement prêt. Remplis puis Enregistrer.", "ok");
 }
-btnNew.onclick = newDraft;
+btnNew.addEventListener("click", newDraft);
 
 /* =============================
    APERÇU
@@ -1035,7 +1043,7 @@ function paintEditor(x){
   f_frais.value = x.frais_supplements || "";
   f_wave_phone.value = x.wave_phone || "";
   f_wave_name.value = x.wave_name || "";
-  f_deposit.value = Number(x.deposit_percent || 30);
+  f_deposit.value = Number(x.deposit_percent ?? 30);
   f_status.value = normalizeStatus(x.status);
 
   const imgUrl = (x.photo_url && String(x.photo_url).startsWith("http")) ? x.photo_url : FALLBACK_PHOTO;
@@ -1107,6 +1115,7 @@ async function saveRecord(mode){
   btnPublish.disabled = true;
   btnDraft.disabled = true;
   btnSave.innerHTML = '<span class="spinner"></span> Sauvegarde...';
+
   try{
     if(!current || !current.id){
       const { data, error } = await SB
@@ -1142,14 +1151,14 @@ async function saveRecord(mode){
     btnSave.innerHTML = '💾 Enregistrer';
   }
 }
-btnSave.onclick = ()=> saveRecord("save");
-btnPublish.onclick = ()=> saveRecord("publish");
-btnDraft.onclick = ()=> saveRecord("draft");
+btnSave.addEventListener("click", ()=> saveRecord("save"));
+btnPublish.addEventListener("click", ()=> saveRecord("publish"));
+btnDraft.addEventListener("click", ()=> saveRecord("draft"));
 
 /* =============================
    RETIRER
 ============================= */
-btnDelete.onclick = async ()=>{
+btnDelete.addEventListener("click", async ()=>{
   if(!current || !current.id) return;
 
   if(!confirm(`⚠️ Retirer définitivement "${current.nom}" ?`)) return;
@@ -1180,12 +1189,12 @@ btnDelete.onclick = async ()=>{
     btnDelete.disabled = false;
     btnDelete.innerHTML = '🗑️ Retirer';
   }
-};
+});
 
 /* =============================
    TEST MÉDIAS
 ============================= */
-btnTestMedia.onclick = ()=>{
+btnTestMedia.addEventListener("click", ()=>{
   if(!current) return;
   hideNote(editNote);
 
@@ -1212,15 +1221,15 @@ btnTestMedia.onclick = ()=>{
   pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
   pvVille.textContent = payload.ville || "—";
   pvStatus.textContent = payload.status || "—";
-};
+});
 
-btnOpenPublic.onclick = ()=>{
+btnOpenPublic.addEventListener("click", ()=>{
   if(!current || !current.id) return showNote(editNote, "❌ Enregistre d'abord (pas d'ID).", "bad");
   window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
-};
+});
 
 /* =============================
-   COPIER (DUpliquer)
+   DUPLIQUER
 ============================= */
 async function duplicateOne(id){
   hideNote(listNote);
@@ -1253,7 +1262,7 @@ async function duplicateOne(id){
     frais_supplements: src.frais_supplements || "",
     wave_phone: src.wave_phone || "",
     wave_name: src.wave_name || "",
-    deposit_percent: Number(src.deposit_percent || 30),
+    deposit_percent: Number(src.deposit_percent ?? 30),
     status: "brouillon"
   };
 
@@ -1275,9 +1284,9 @@ async function duplicateOne(id){
 }
 
 /* =============================
-   CALENDRIER
+   CALENDRIER BLOCKS
 ============================= */
-btnAddBlock.onclick = async ()=>{
+btnAddBlock.addEventListener("click", async ()=>{
   hideNote(calNote);
   if(!sessionUser) return showNote(calNote, "❌ Connecte-toi.", "bad");
   if(!current || !current.id) return showNote(calNote, "❌ Enregistre le logement avant.", "bad");
@@ -1315,9 +1324,9 @@ btnAddBlock.onclick = async ()=>{
     btnAddBlock.disabled = false;
     btnAddBlock.innerHTML = '➕ Bloquer';
   }
-};
+});
 
-btnReloadBlocks.onclick = async ()=>{ await loadBlocksForCurrent(); };
+btnReloadBlocks.addEventListener("click", loadBlocksForCurrent);
 
 async function loadBlocksForCurrent(){
   hideNote(calNote);
@@ -1352,7 +1361,7 @@ async function loadBlocksForCurrent(){
     });
 
     calList.querySelectorAll("[data-delblk]").forEach(btn=>{
-      btn.onclick = async ()=>{
+      btn.addEventListener("click", async ()=>{
         const bid = btn.getAttribute("data-delblk");
         if(!confirm("Supprimer ce bloc de dates ?")) return;
 
@@ -1370,7 +1379,7 @@ async function loadBlocksForCurrent(){
           console.error(e);
           showNote(calNote, "❌ Refusé:\n" + (e?.message || e), "bad");
         }
-      };
+      });
     });
 
     showNote(calNote, `✅ ${data.length} bloc(s).`, "ok");
@@ -1381,9 +1390,9 @@ async function loadBlocksForCurrent(){
 }
 
 /* =============================
-   AVANCES (preuves)
+   PAIEMENTS (preuves)
 ============================= */
-btnReloadPays.onclick = async ()=>{ await loadPaymentsForCurrent(); };
+btnReloadPays.addEventListener("click", loadPaymentsForCurrent);
 
 async function loadPaymentsForCurrent(){
   hideNote(payAdminNote);
@@ -1431,19 +1440,16 @@ async function loadPaymentsForCurrent(){
     });
 
     payList.querySelectorAll("[data-okpay]").forEach(btn=>{
-      btn.onclick = ()=> updatePayStatus(btn.getAttribute("data-okpay"), "confirmed");
+      btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-okpay"), "confirmed"));
     });
     payList.querySelectorAll("[data-badpay]").forEach(btn=>{
-      btn.onclick = ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected");
+      btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected"));
     });
 
     showNote(payAdminNote, `✅ ${data.length} preuve(s).`, "ok");
   }catch(e){
     console.error(e);
-    showNote(payAdminNote,
-      "⚠️ Paiements indisponibles.\nErreur: " + (e?.message || e),
-      "warn"
-    );
+    showNote(payAdminNote, "⚠️ Paiements indisponibles.\nErreur: " + (e?.message || e), "warn");
   }
 }
 
@@ -1479,16 +1485,14 @@ SB.auth.onAuthStateChange((_event, session)=>{
   }
 });
 
-  /* =============================
-     INIT
-  ============================= */
-  refreshSession();
+/* =============================
+   INIT
+============================= */
+(async function init(){
+  await refreshSession();
   paintEditor(null);
-
-  // navigation vers la page PROPRIO (Pulse)
-  document.getElementById("goProprio")?.addEventListener("click", () => {
-    location.href = withSlug("./proprio-loc.html");
-  });
+})();
 </script>
+
 </body>
 </html>
