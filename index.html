@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>DIGIY LOC PRO ∞ — Cockpit Propriétaire ROYAL</title>
-<meta name="theme-color" content="#0b1020" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>DIGIY LOC PRO ∞ — Cockpit Propriétaire ROYAL</title>
+  <meta name="theme-color" content="#0b1020" />
 
-<!-- Supabase + Guard (PIN session) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./guard.js?v=locpro-final"></script>
+  <!-- Supabase + Guard (PIN session) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./guard.js?v=locpro-final"></script>
 
-<style>
+  <style>
 /* =============================
    DIGIY LOC PRO — UI ROYAL
 ============================= */
@@ -272,300 +272,320 @@ input[type="date"]{color-scheme:dark}
   .navRight .btn{width:100%}
   input, textarea, select{min-height:48px}
 }
-</style>
+  </style>
 </head>
 
 <body>
-<div class="wrap">
-  <div class="top">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <h1>DIGIY LOC PRO <span class="infinity">∞</span></h1>
-        <div class="sub">Cockpit Propriétaire ROYAL • Sécurisé • Optimisé • Professionnel</div>
-      </div>
-    </div>
-
-    <div class="pills">
-      <div class="pill" id="pillUser">👤 <strong>—</strong></div>
-      <div class="pill warn" id="pillState">🔒 Déconnecté</div>
-      <button class="btn ghost small navBtn" id="btnLogout" style="display:none">Se déconnecter</button>
-    </div>
-
-    <!-- NAV premium (pages connectées) -->
-    <div class="navRow">
-      <div class="navLeft">
-        <button class="btn ghost small navBtn" id="btnBack">⬅️ Retour</button>
-        <div class="navLabel" id="navSlug">slug: —</div>
-      </div>
-      <div class="navRight">
-        <button class="btn small navBtn" id="goToday">📅 Vue du jour</button>
-        <button class="btn small navBtn" id="goApp">🏠 APP</button>
-        <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
-        <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
-        <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
-        <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
-        <button class="btn small navBtn" id="goHealth">🧪 Diagnostic</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid">
-    <!-- LEFT -->
-    <section class="card">
-      <div class="cardHead">
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo"></div>
         <div>
-          <h2>🏡 Mes logements</h2>
-          <small>Ajouter, modifier, copier, mettre en ligne.</small>
-        </div>
-        <div class="btnRow">
-          <button class="btn gold" id="btnNew">+ Ajouter</button>
-          <button class="btn" id="btnRefresh">↻ Actualiser</button>
+          <h1>DIGIY LOC PRO <span class="infinity">∞</span></h1>
+          <div class="sub">Cockpit Propriétaire ROYAL • Sécurisé • Optimisé • Professionnel</div>
         </div>
       </div>
 
-      <div class="cardBody">
-        <!-- LIST -->
-        <div id="listBox">
-          <div class="statsRow" id="statsBox"></div>
-          <div class="list" id="list"></div>
-          <div class="note" id="listNote"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- RIGHT -->
-    <section class="card">
-      <div class="cardHead">
-        <div>
-          <h2>✨ Détails du logement</h2>
-          <small>Photos • Vidéo • Prix • Paiement Wave • Calendrier</small>
-        </div>
-        <div class="btnRow">
-          <button class="btn primary" id="btnSave" disabled>💾 Enregistrer</button>
-          <button class="btn gold" id="btnPublish" disabled>🚀 Mettre en ligne</button>
-          <button class="btn" id="btnDraft" disabled>📝 Garder privé</button>
-          <button class="btn danger small" id="btnDelete" disabled style="display:none">🗑️ Retirer</button>
-        </div>
+      <div class="pills">
+        <div class="pill" id="pillUser">👤 <strong>—</strong></div>
+        <div class="pill warn" id="pillState">🔒 Déconnecté</div>
+        <button class="btn ghost small navBtn" id="btnLogout" style="display:none">Se déconnecter</button>
       </div>
 
-      <div class="cardBody">
-        <div class="previewBox">
-          <div style="font-weight:1000;margin-bottom:8px;">👁️ Aperçu</div>
-          <img id="pvImg" class="previewImg" alt="photo logement" />
-          <div class="videoWrap" id="pvVideoWrap">
-            <iframe id="pvVideo" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-          </div>
-
-          <div class="miniRow">
-            <div class="mini">📍 <strong id="pvVille">—</strong></div>
-            <div class="mini">💳 <strong>Paiement Wave direct</strong></div>
-            <div class="mini">👤 <strong id="pvWave">—</strong></div>
-            <div class="mini">🏷️ <strong id="pvStatus">—</strong></div>
-          </div>
-
-          <div class="btnRow" style="margin-top:10px">
-            <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir la fiche</button>
-            <button class="btn" id="btnTestMedia" disabled>🔎 Tester photo/vidéo</button>
-          </div>
-
-          <div class="note" id="editNote"></div>
+      <!-- NAV premium (pages connectées) -->
+      <div class="navRow">
+        <div class="navLeft">
+          <button class="btn ghost small navBtn" id="btnBack">⬅️ Retour</button>
+          <div class="navLabel" id="navSlug">slug: —</div>
         </div>
+        <div class="navRight">
+          <button class="btn small navBtn" id="goToday">📅 Vue du jour</button>
+          <button class="btn small navBtn" id="goApp">🏠 APP</button>
+          <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
+          <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
+          <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
+          <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
+          <button class="btn small navBtn" id="goHealth">🧪 Diagnostic</button>
+        </div>
+      </div>
+    </div>
 
-        <hr class="sep" />
-
-        <div class="fieldGrid">
+    <div class="grid">
+      <!-- LEFT -->
+      <section class="card">
+        <div class="cardHead">
           <div>
-            <label>Nom du logement *</label>
-            <input id="f_nom" placeholder="ex: Villa Paradise Saly" maxlength="100" />
-            <small class="hint">Minimum 3 caractères</small>
+            <h2>🏡 Mes logements</h2>
+            <small>Ajouter, modifier, copier, mettre en ligne.</small>
           </div>
-          <div>
-            <label>Ville *</label>
-            <input id="f_ville" placeholder="ex: Saly, Dakar, Saint-Louis" maxlength="50" />
+          <div class="btnRow">
+            <button class="btn gold" id="btnNew">+ Ajouter</button>
+            <button class="btn" id="btnRefresh">↻ Actualiser</button>
           </div>
         </div>
 
-        <div class="fieldGrid">
-          <div>
-            <label>Code logement (unique)</label>
-            <input id="f_business_code" placeholder="ex: VILLA_PARADISE_001" maxlength="50" />
-            <small class="hint">Ce code sert à relier tes réservations</small>
+        <div class="cardBody">
+          <div id="listBox">
+            <div class="statsRow" id="statsBox"></div>
+            <div class="list" id="list"></div>
+            <div class="note" id="listNote"></div>
           </div>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="card">
+        <div class="cardHead">
           <div>
-            <label>Adresse (optionnel)</label>
-            <input id="f_adresse" placeholder="Quartier, repère..." maxlength="200" />
+            <h2>✨ Détails du logement</h2>
+            <small>Photos • Vidéo • Prix • Paiement Wave • Calendrier</small>
+          </div>
+          <div class="btnRow">
+            <button class="btn primary" id="btnSave" disabled>💾 Enregistrer</button>
+            <button class="btn gold" id="btnPublish" disabled>🚀 Mettre en ligne</button>
+            <button class="btn" id="btnDraft" disabled>📝 Garder privé</button>
+            <button class="btn danger small" id="btnDelete" disabled style="display:none">🗑️ Retirer</button>
           </div>
         </div>
 
-        <label>Présentation</label>
-        <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant." maxlength="2000"></textarea>
-        <small class="hint">Max 2000 caractères</small>
+        <div class="cardBody">
+          <div class="previewBox">
+            <div style="font-weight:1000;margin-bottom:8px;">👁️ Aperçu</div>
+            <img id="pvImg" class="previewImg" alt="photo logement" />
+            <div class="videoWrap" id="pvVideoWrap">
+              <iframe id="pvVideo" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
 
-        <div class="fieldGrid">
-          <div>
-            <label>Photo principale (URL) *</label>
-            <input id="f_photo" placeholder="https://exemple.com/photo.jpg" />
-            <small class="hint">Format : jpg, jpeg, png, webp</small>
-          </div>
-          <div>
-            <label>Vidéo (Drive / YouTube / Vimeo)</label>
-            <input id="f_video" placeholder="https://drive.google.com/file/d/..." />
-          </div>
-        </div>
+            <div class="miniRow">
+              <div class="mini">📍 <strong id="pvVille">—</strong></div>
+              <div class="mini">💳 <strong>Paiement Wave direct</strong></div>
+              <div class="mini">👤 <strong id="pvWave">—</strong></div>
+              <div class="mini">🏷️ <strong id="pvStatus">—</strong></div>
+            </div>
 
-        <div class="fieldGrid">
-          <div>
-            <label>Prix par nuit (FCFA) *</label>
-            <input id="f_prix_nuit" type="number" min="1000" step="1000" placeholder="30000" />
-            <small class="hint">Minimum 1000 FCFA</small>
-          </div>
-          <div>
-            <label>Prix à la semaine (FCFA)</label>
-            <input id="f_prix_semaine" type="number" min="0" step="1000" placeholder="175000" />
-          </div>
-        </div>
+            <div class="btnRow" style="margin-top:10px">
+              <button class="btn" id="btnOpenPublic" disabled>👁️ Ouvrir la fiche</button>
+              <button class="btn" id="btnTestMedia" disabled>🔎 Tester photo/vidéo</button>
+            </div>
 
-        <div class="fieldGrid">
-          <div>
-            <label>Prix au mois (FCFA)</label>
-            <input id="f_prix_mois" type="number" min="0" step="1000" placeholder="550000" />
+            <div class="note" id="editNote"></div>
           </div>
-          <div>
-            <label>Notes (optionnel)</label>
-            <input id="f_frais" placeholder="ex: Électricité en sus selon conso" maxlength="200" />
-          </div>
-        </div>
 
-        <hr class="sep" />
+          <hr class="sep" />
 
-        <div class="previewBox">
-          <div style="font-weight:1100">💳 Paiement en direct via Wave</div>
-          <small class="hint">
-            Le client paie <strong>directement</strong> au propriétaire. DIGIY ne prend aucune commission.
-          </small>
-
-          <div class="fieldGrid" style="margin-top:8px">
+          <div class="fieldGrid">
             <div>
-              <label>Numéro Wave du propriétaire *</label>
-              <input id="f_wave_phone" placeholder="+221 77 123 45 67" />
-              <small class="hint">Format : +221 suivi de 9 chiffres</small>
+              <label>Nom du logement *</label>
+              <input id="f_nom" placeholder="ex: Villa Paradise Saly" maxlength="100" />
+              <small class="hint">Minimum 3 caractères</small>
             </div>
             <div>
-              <label>Nom du propriétaire (Wave) *</label>
-              <input id="f_wave_name" placeholder="ex: Mamadou Diop" maxlength="50" />
-              <small class="hint">Nom qui s'affiche sur Wave</small>
+              <label>Ville *</label>
+              <input id="f_ville" placeholder="ex: Saly, Dakar, Saint-Louis" maxlength="50" />
             </div>
           </div>
 
           <div class="fieldGrid">
             <div>
-              <label>Avance demandée (%) *</label>
-              <input id="f_deposit" type="number" min="0" max="100" step="5" placeholder="30" />
-              <small class="hint">Entre 0 et 100%</small>
+              <label>Code logement (unique)</label>
+              <input id="f_business_code" placeholder="ex: VILLA_PARADISE_001" maxlength="50" />
+              <small class="hint">Ce code sert à relier tes réservations</small>
             </div>
             <div>
-              <label>Visibilité</label>
-              <select id="f_status">
-                <option value="brouillon">📝 Privé (pas encore en ligne)</option>
-                <option value="actif">✅ En ligne (visible)</option>
-              </select>
+              <label>Adresse (optionnel)</label>
+              <input id="f_adresse" placeholder="Quartier, repère..." maxlength="200" />
             </div>
           </div>
-        </div>
 
-        <div class="note" id="saveNote"></div>
+          <label>Présentation</label>
+          <textarea id="f_desc" placeholder="Décris le lieu. Simple, vrai, rassurant." maxlength="2000"></textarea>
+          <small class="hint">Max 2000 caractères</small>
 
-        <hr class="sep"/>
-
-        <!-- CALENDRIER -->
-        <div class="previewBox">
-          <div style="font-weight:1100">📅 Calendrier (bloquer des dates)</div>
-          <small class="hint">Bloque les périodes occupées. La fiche affichera libre / réservé.</small>
-
-          <div class="fieldGrid" style="margin-top:8px">
+          <div class="fieldGrid">
             <div>
-              <label>Début *</label>
-              <input type="date" id="calStart">
+              <label>Photo principale (URL) *</label>
+              <input id="f_photo" placeholder="https://exemple.com/photo.jpg" />
+              <small class="hint">Format : jpg, jpeg, png, webp</small>
             </div>
             <div>
-              <label>Fin *</label>
-              <input type="date" id="calEnd">
+              <label>Vidéo (Drive / YouTube / Vimeo)</label>
+              <input id="f_video" placeholder="https://drive.google.com/file/d/..." />
             </div>
           </div>
 
-          <label>Motif (optionnel)</label>
-          <input id="calReason" placeholder="ex: Occupé / Maintenance / Réservé ailleurs" maxlength="100" />
-
-          <div class="btnRow" style="margin-top:10px">
-            <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer</button>
-            <button class="btn" id="btnReloadBlocks" disabled>↻ Recharger</button>
+          <div class="fieldGrid">
+            <div>
+              <label>Prix par nuit (FCFA) *</label>
+              <input id="f_prix_nuit" type="number" min="1000" step="1000" placeholder="30000" />
+              <small class="hint">Minimum 1000 FCFA</small>
+            </div>
+            <div>
+              <label>Prix à la semaine (FCFA)</label>
+              <input id="f_prix_semaine" type="number" min="0" step="1000" placeholder="175000" />
+            </div>
           </div>
 
-          <div class="note" id="calNote"></div>
-          <div class="simpleList" id="calList"></div>
-        </div>
-
-        <hr class="sep"/>
-
-        <!-- ACOMPTES -->
-        <div class="previewBox">
-          <div style="font-weight:1100">🧾 Avances reçues (preuves Wave)</div>
-          <small class="hint">Tu peux confirmer chaque preuve.</small>
-
-          <div class="btnRow" style="margin-top:10px">
-            <button class="btn" id="btnReloadPays" disabled>↻ Recharger</button>
+          <div class="fieldGrid">
+            <div>
+              <label>Prix au mois (FCFA)</label>
+              <input id="f_prix_mois" type="number" min="0" step="1000" placeholder="550000" />
+            </div>
+            <div>
+              <label>Notes (optionnel)</label>
+              <input id="f_frais" placeholder="ex: Électricité en sus selon conso" maxlength="200" />
+            </div>
           </div>
 
-          <div class="note" id="payAdminNote"></div>
-          <div class="simpleList" id="payList"></div>
-        </div>
+          <hr class="sep" />
 
-      </div>
-    </section>
+          <div class="previewBox">
+            <div style="font-weight:1100">💳 Paiement en direct via Wave</div>
+            <small class="hint">
+              Le client paie <strong>directement</strong> au propriétaire. DIGIY ne prend aucune commission.
+            </small>
+
+            <div class="fieldGrid" style="margin-top:8px">
+              <div>
+                <label>Numéro Wave du propriétaire *</label>
+                <input id="f_wave_phone" placeholder="+221 77 123 45 67" />
+                <small class="hint">Format : +221 suivi de 9 chiffres</small>
+              </div>
+              <div>
+                <label>Nom du propriétaire (Wave) *</label>
+                <input id="f_wave_name" placeholder="ex: Mamadou Diop" maxlength="50" />
+                <small class="hint">Nom qui s'affiche sur Wave</small>
+              </div>
+            </div>
+
+            <div class="fieldGrid">
+              <div>
+                <label>Avance demandée (%) *</label>
+                <input id="f_deposit" type="number" min="0" max="100" step="5" placeholder="30" />
+                <small class="hint">Entre 0 et 100%</small>
+              </div>
+              <div>
+                <label>Visibilité</label>
+                <select id="f_status">
+                  <option value="brouillon">📝 Privé (pas encore en ligne)</option>
+                  <option value="actif">✅ En ligne (visible)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="note" id="saveNote"></div>
+
+          <hr class="sep"/>
+
+          <!-- CALENDRIER -->
+          <div class="previewBox">
+            <div style="font-weight:1100">📅 Calendrier (bloquer des dates)</div>
+            <small class="hint">Bloque les périodes occupées. La fiche affichera libre / réservé.</small>
+
+            <div class="fieldGrid" style="margin-top:8px">
+              <div>
+                <label>Début *</label>
+                <input type="date" id="calStart">
+              </div>
+              <div>
+                <label>Fin *</label>
+                <input type="date" id="calEnd">
+              </div>
+            </div>
+
+            <label>Motif (optionnel)</label>
+            <input id="calReason" placeholder="ex: Occupé / Maintenance / Réservé ailleurs" maxlength="100" />
+
+            <div class="btnRow" style="margin-top:10px">
+              <button class="btn primary" id="btnAddBlock" disabled>➕ Bloquer</button>
+              <button class="btn" id="btnReloadBlocks" disabled>↻ Recharger</button>
+            </div>
+
+            <div class="note" id="calNote"></div>
+            <div class="simpleList" id="calList"></div>
+          </div>
+
+          <hr class="sep"/>
+
+          <!-- ACOMPTES -->
+          <div class="previewBox">
+            <div style="font-weight:1100">🧾 Avances reçues (preuves Wave)</div>
+            <small class="hint">Tu peux confirmer chaque preuve.</small>
+
+            <div class="btnRow" style="margin-top:10px">
+              <button class="btn" id="btnReloadPays" disabled>↻ Recharger</button>
+            </div>
+
+            <div class="note" id="payAdminNote"></div>
+            <div class="simpleList" id="payList"></div>
+          </div>
+
+        </div>
+      </section>
+    </div>
   </div>
-</div>
 
 <script>
 /* =============================
-   BOOT GUARD (anti-friction)
+   ✅ ROUTING PREMIUM (slug safe)
+   -> IMPORTANT: base = dossier courant (pas location.href)
 ============================= */
-window.DIGIY_GUARD?.boot({
-  module: "loc",
-  login: "./pin.html",
-  dashboard: "./index.html",
-  pay: "https://beauville.github.io/commencer-a-payer/",
-  requireSlug: true,
-  checkSubscription: true
-});
-
-/* =============================
-   SUPABASE CONFIG (client anon)
-============================= */
-const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-const SUPABASE_ANON_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/* =============================
-   ROUTING PREMIUM (slug + pages)
-============================= */
+const BASE_DIR = location.href.substring(0, location.href.lastIndexOf("/") + 1);
 const url = new URL(location.href);
 const SLUG = (url.searchParams.get("slug") || "").trim();
+
 function withSlug(path){
-  if(!SLUG) return path;
-  const u = new URL(path, location.href);
-  if(!u.searchParams.get("slug")) u.searchParams.set("slug", SLUG);
+  const u = new URL(path, BASE_DIR);
+  if (SLUG && !u.searchParams.get("slug")) u.searchParams.set("slug", SLUG);
   return u.toString();
 }
 function setNavSlug(){
   const el = document.getElementById("navSlug");
-  if(el) el.textContent = "slug: " + (SLUG || "—");
+  if (el) el.textContent = "slug: " + (SLUG || "—");
 }
 setNavSlug();
 
 /* =============================
-   NAV BUTTONS (SAFE + NO CRASH)
+   ✅ LOGOUT SAFE (évite 404)
+============================= */
+function logoutSafe(){
+  try{
+    // on nettoie la session côté guard si dispo
+    window.DIGIY_GUARD?.logout?.(withSlug("./pin.html"));
+  }catch(_){}
+  // et on force la navigation (GitHub Pages friendly)
+  location.replace(withSlug("./pin.html"));
+}
+
+/* =============================
+   ✅ GUARD BOOT (attendu)
+============================= */
+async function bootGuard(){
+  if(!window.DIGIY_GUARD?.boot){
+    console.warn("guard.js non chargé");
+    return { ok:false, error:"guard_missing" };
+  }
+  const res = await window.DIGIY_GUARD.boot({
+    module: "LOC",
+    login: "./pin.html",
+    dashboard: "./index.html",
+    pay: "https://beauville.github.io/commencer-a-payer/",
+    requireSlug: true,
+    checkSubscription: true
+  });
+  return res || { ok:false, error:"boot_failed" };
+}
+
+/* =============================
+   SUPABASE CONFIG (client anon) — ✅ clé complète
+============================= */
+const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* =============================
+   NAV BUTTONS (SAFE)
 ============================= */
 const btnBack     = document.getElementById("btnBack");
 const btnToday    = document.getElementById("goToday");
@@ -576,18 +596,18 @@ const btnListing  = document.getElementById("goListing");
 const btnLinks    = document.getElementById("goLinks");
 const btnHealth   = document.getElementById("goHealth");
 
-if (btnBack)     btnBack.onclick     = () => location.href = withSlug("./index.html");
+if (btnBack)     btnBack.onclick     = () => location.href = withSlug("./app.html");     // retour vers cockpit global si tu veux
 if (btnToday)    btnToday.onclick    = () => location.href = withSlug("./today.html");
 if (btnApp)      btnApp.onclick      = () => location.href = withSlug("./app.html");
 if (btnPulse)    btnPulse.onclick    = () => location.href = withSlug("./proprio-loc.html");
 if (btnPlanning) btnPlanning.onclick = () => location.href = withSlug("./planning.html");
 if (btnLinks)    btnLinks.onclick    = () => location.href = withSlug("./manage-links.html");
 if (btnHealth)   btnHealth.onclick   = () => location.href = withSlug("./health-loc.html");
+// ✅ listing : on branche plus bas car on ajoute business_code si dispo
 
 /* =============================
    DOM
 ============================= */
-const listBox = document.getElementById("listBox");
 const listEl = document.getElementById("list");
 const statsBox = document.getElementById("statsBox");
 const pillUser = document.getElementById("pillUser");
@@ -663,17 +683,21 @@ function setPinConnectedUI(){
   sessionUser = s;
 
   if(s){
-    pillUser.innerHTML = `👤 <strong>${s.phone}</strong>`;
-    pillState.textContent = "✅ Connecté";
-    pillState.classList.remove("warn");
-    pillState.classList.add("ok");
-    btnLogout.style.display = "inline-flex";
+    if(pillUser) pillUser.innerHTML = `👤 <strong>${s.phone}</strong>`;
+    if(pillState){
+      pillState.textContent = "✅ Connecté";
+      pillState.classList.remove("warn");
+      pillState.classList.add("ok");
+    }
+    if(btnLogout) btnLogout.style.display = "inline-flex";
   }else{
-    pillUser.innerHTML = `👤 <strong>—</strong>`;
-    pillState.textContent = "🔒 Déconnecté";
-    pillState.classList.remove("ok");
-    pillState.classList.add("warn");
-    btnLogout.style.display = "none";
+    if(pillUser) pillUser.innerHTML = `👤 <strong>—</strong>`;
+    if(pillState){
+      pillState.textContent = "🔒 Déconnecté";
+      pillState.classList.remove("ok");
+      pillState.classList.add("warn");
+    }
+    if(btnLogout) btnLogout.style.display = "none";
   }
 }
 
@@ -757,21 +781,21 @@ function validateListing(p){
    UI
 ============================= */
 function enableEditorActions(yes){
-  btnSave.disabled = !yes;
-  btnPublish.disabled = !yes;
-  btnDraft.disabled = !yes;
-  btnOpenPublic.disabled = !yes;
-  btnTestMedia.disabled = !yes;
-  btnAddBlock.disabled = !yes;
-  btnReloadBlocks.disabled = !yes;
-  btnReloadPays.disabled = !yes;
+  if(btnSave) btnSave.disabled = !yes;
+  if(btnPublish) btnPublish.disabled = !yes;
+  if(btnDraft) btnDraft.disabled = !yes;
+  if(btnOpenPublic) btnOpenPublic.disabled = !yes;
+  if(btnTestMedia) btnTestMedia.disabled = !yes;
+  if(btnAddBlock) btnAddBlock.disabled = !yes;
+  if(btnReloadBlocks) btnReloadBlocks.disabled = !yes;
+  if(btnReloadPays) btnReloadPays.disabled = !yes;
 }
 function setConnectedUI(){
   if(sessionUser){
     enableEditorActions(true);
   }else{
     enableEditorActions(false);
-    btnDelete.style.display = "none";
+    if(btnDelete) btnDelete.style.display = "none";
   }
 }
 
@@ -785,7 +809,7 @@ function markClean(){ hasUnsavedChanges = false; }
   f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
   f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,
   f_deposit,f_status
-].forEach(input=>{
+].filter(Boolean).forEach(input=>{
   input.addEventListener('input', markDirty);
   input.addEventListener('change', markDirty);
 });
@@ -793,30 +817,34 @@ function markClean(){ hasUnsavedChanges = false; }
 window.addEventListener('beforeunload', (e)=>{
   if(hasUnsavedChanges){
     e.preventDefault();
-    e.returnValue = 'Tu as des modifications non sauvegardées!';
+    e.returnValue = "Tu as des modifications non sauvegardées!";
   }
 });
 
 /* =============================
    LOGOUT (PIN)
 ============================= */
-btnLogout.addEventListener("click", ()=>{
-  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")){
-    return;
-  }
-  window.DIGIY_GUARD?.logout("./pin.html");
-});
+if(btnLogout){
+  btnLogout.addEventListener("click", ()=>{
+    if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")){
+      return;
+    }
+    logoutSafe();
+  });
+}
 
 /* =============================
    LISTE (owner_id via session PIN)
 ============================= */
 async function loadList(){
   hideNote(listNote);
-  listEl.innerHTML = "";
-  statsBox.innerHTML = "";
+  if(listEl) listEl.innerHTML = "";
+  if(statsBox) statsBox.innerHTML = "";
 
-  btnRefresh.disabled = true;
-  btnRefresh.innerHTML = '<span class="spinner"></span> Chargement...';
+  if(btnRefresh){
+    btnRefresh.disabled = true;
+    btnRefresh.innerHTML = '<span class="spinner"></span> Chargement...';
+  }
 
   try{
     const uid = sessionUser?.owner_id;
@@ -835,7 +863,7 @@ async function loadList(){
     const enLigne = data?.filter(x=>normalizeStatus(x.status)==="actif").length || 0;
     const prives = total - enLigne;
 
-    if(total > 0){
+    if(statsBox && total > 0){
       statsBox.innerHTML = `
         <div class="statBox"><div class="num">${total}</div><div class="lbl">Total</div></div>
         <div class="statBox"><div class="num">${enLigne}</div><div class="lbl">En ligne</div></div>
@@ -869,41 +897,45 @@ async function loadList(){
           <button class="btn ghost small" data-view="${item.id}">👁️ Voir</button>
         </div>
       `;
-      listEl.appendChild(div);
+      if(listEl) listEl.appendChild(div);
     });
 
-    listEl.querySelectorAll("[data-open]").forEach(b=>{
-      b.addEventListener("click", ()=> openOne(b.getAttribute("data-open")));
-    });
-    listEl.querySelectorAll("[data-view]").forEach(b=>{
-      b.addEventListener("click", ()=> window.open(withSlug("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view"))), "_blank"));
-    });
-    listEl.querySelectorAll("[data-dup]").forEach(b=>{
-      b.addEventListener("click", ()=> duplicateOne(b.getAttribute("data-dup")));
-    });
+    if(listEl){
+      listEl.querySelectorAll("[data-open]").forEach(b=>{
+        b.addEventListener("click", ()=> openOne(b.getAttribute("data-open")));
+      });
+      listEl.querySelectorAll("[data-view]").forEach(b=>{
+        b.addEventListener("click", ()=>{
+          window.open(withSlug("loc.html?id=" + encodeURIComponent(b.getAttribute("data-view"))), "_blank");
+        });
+      });
+      listEl.querySelectorAll("[data-dup]").forEach(b=>{
+        b.addEventListener("click", ()=> duplicateOne(b.getAttribute("data-dup")));
+      });
+    }
 
     showNote(listNote, `✅ ${total} logement(s) chargé(s).`, "ok");
   }catch(e){
     console.error(e);
     showNote(listNote, "❌ Erreur chargement:\n" + (e?.message || e), "bad");
   }finally{
-    btnRefresh.disabled = false;
-    btnRefresh.innerHTML = '↻ Actualiser';
+    if(btnRefresh){
+      btnRefresh.disabled = false;
+      btnRefresh.innerHTML = "↻ Actualiser";
+    }
   }
 }
-btnRefresh.addEventListener("click", loadList);
+if(btnRefresh) btnRefresh.addEventListener("click", loadList);
 
 /* =============================
    OUVRIR / AJOUTER
 ============================= */
 async function openOne(id){
-  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")){
-    return;
-  }
+  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")) return;
 
   hideNote(editNote); hideNote(saveNote); hideNote(calNote); hideNote(payAdminNote);
-  calList.innerHTML = "";
-  payList.innerHTML = "";
+  if(calList) calList.innerHTML = "";
+  if(payList) payList.innerHTML = "";
 
   const uid = sessionUser?.owner_id;
   if(!uid) return showNote(editNote, "❌ Non connecté (PIN).", "bad");
@@ -924,15 +956,13 @@ async function openOne(id){
   paintEditor(current);
   markClean();
 
-  btnDelete.style.display = "inline-flex";
+  if(btnDelete) btnDelete.style.display = "inline-flex";
   await loadBlocksForCurrent();
   await loadPaymentsForCurrent();
 }
 
 function newDraft(){
-  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")){
-    return;
-  }
+  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Continuer ?")) return;
 
   const uid = sessionUser?.owner_id || null;
   current = {
@@ -956,13 +986,13 @@ function newDraft(){
   };
 
   paintEditor(current);
-  calList.innerHTML = "";
-  payList.innerHTML = "";
-  btnDelete.style.display = "none";
+  if(calList) calList.innerHTML = "";
+  if(payList) payList.innerHTML = "";
+  if(btnDelete) btnDelete.style.display = "none";
   markClean();
   showNote(editNote, "✨ Nouveau logement prêt. Remplis puis Enregistrer.", "ok");
 }
-btnNew.addEventListener("click", newDraft);
+if(btnNew) btnNew.addEventListener("click", newDraft);
 
 /* =============================
    APERÇU
@@ -971,59 +1001,60 @@ function paintEditor(x){
   hideNote(editNote); hideNote(saveNote);
 
   if(!x){
-    pvImg.src = FALLBACK_PHOTO;
-    pvVille.textContent = "—";
-    pvWave.textContent = "—";
-    pvStatus.textContent = "—";
-    pvVideoWrap.style.display = "none";
-    pvVideo.src = "";
+    if(pvImg) pvImg.src = FALLBACK_PHOTO;
+    if(pvVille) pvVille.textContent = "—";
+    if(pvWave) pvWave.textContent = "—";
+    if(pvStatus) pvStatus.textContent = "—";
+    if(pvVideoWrap) pvVideoWrap.style.display = "none";
+    if(pvVideo) pvVideo.src = "";
+
     [
       f_nom,f_ville,f_business_code,f_adresse,f_desc,f_photo,f_video,
       f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,f_deposit
-    ].forEach(i=>i.value="");
-    f_status.value = "brouillon";
+    ].filter(Boolean).forEach(i=> i.value = "");
+    if(f_status) f_status.value = "brouillon";
     return;
   }
 
-  f_nom.value = x.nom || "";
-  f_ville.value = x.ville || "";
-  f_business_code.value = x.business_code || "";
-  f_adresse.value = x.adresse || "";
-  f_desc.value = x.description || "";
-  f_photo.value = x.photo_url || "";
-  f_video.value = x.video_url || "";
-  f_prix_nuit.value = Number(x.prix_nuit || 0);
-  f_prix_semaine.value = Number(x.prix_semaine || 0);
-  f_prix_mois.value = Number(x.prix_mois || 0);
-  f_frais.value = x.frais_supplements || "";
-  f_wave_phone.value = x.wave_phone || "";
-  f_wave_name.value = x.wave_name || "";
-  f_deposit.value = Number(x.deposit_percent ?? 30);
-  f_status.value = normalizeStatus(x.status);
+  if(f_nom) f_nom.value = x.nom || "";
+  if(f_ville) f_ville.value = x.ville || "";
+  if(f_business_code) f_business_code.value = x.business_code || "";
+  if(f_adresse) f_adresse.value = x.adresse || "";
+  if(f_desc) f_desc.value = x.description || "";
+  if(f_photo) f_photo.value = x.photo_url || "";
+  if(f_video) f_video.value = x.video_url || "";
+  if(f_prix_nuit) f_prix_nuit.value = Number(x.prix_nuit || 0);
+  if(f_prix_semaine) f_prix_semaine.value = Number(x.prix_semaine || 0);
+  if(f_prix_mois) f_prix_mois.value = Number(x.prix_mois || 0);
+  if(f_frais) f_frais.value = x.frais_supplements || "";
+  if(f_wave_phone) f_wave_phone.value = x.wave_phone || "";
+  if(f_wave_name) f_wave_name.value = x.wave_name || "";
+  if(f_deposit) f_deposit.value = Number(x.deposit_percent ?? 30);
+  if(f_status) f_status.value = normalizeStatus(x.status);
 
   const imgUrl = (x.photo_url && String(x.photo_url).startsWith("http")) ? x.photo_url : FALLBACK_PHOTO;
-  pvImg.src = imgUrl;
+  if(pvImg) pvImg.src = imgUrl;
 
-  pvVille.textContent = x.ville || "—";
+  if(pvVille) pvVille.textContent = x.ville || "—";
   const wn = (x.wave_name || "").trim();
   const wp = (x.wave_phone || "").trim();
-  pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
-  pvStatus.textContent = normalizeStatus(x.status);
+  if(pvWave) pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
+  if(pvStatus) pvStatus.textContent = normalizeStatus(x.status);
 
   const embed = toEmbedUrl(x.video_url);
   if(embed){
-    pvVideo.src = embed;
-    pvVideoWrap.style.display = "block";
+    if(pvVideo) pvVideo.src = embed;
+    if(pvVideoWrap) pvVideoWrap.style.display = "block";
   }else{
-    pvVideo.src = "";
-    pvVideoWrap.style.display = "none";
+    if(pvVideo) pvVideo.src = "";
+    if(pvVideoWrap) pvVideoWrap.style.display = "none";
   }
 
-  // enable listing button to include business_code if present
+  // ✅ Listing du jour: ajoute business_code si présent
   if (btnListing){
     btnListing.onclick = () => {
       const bc = (current && current.business_code) ? current.business_code : "";
-      const u = new URL(withSlug("./listing.html"), location.href);
+      const u = new URL(withSlug("./listing.html"), BASE_DIR);
       if (bc) u.searchParams.set("business", bc);
       location.href = u.toString();
     };
@@ -1035,30 +1066,33 @@ function paintEditor(x){
 ============================= */
 function collectForm(){
   const uid = sessionUser?.owner_id || null;
-  let businessCode = f_business_code.value.trim();
+  let businessCode = (f_business_code?.value || "").trim();
 
-  if(!businessCode && f_nom.value && f_ville.value){
-    businessCode = generateBusinessCode(f_nom.value, f_ville.value);
-    f_business_code.value = businessCode;
+  const nom = (f_nom?.value || "").trim();
+  const ville = (f_ville?.value || "").trim();
+
+  if(!businessCode && nom && ville){
+    businessCode = generateBusinessCode(nom, ville);
+    if(f_business_code) f_business_code.value = businessCode;
   }
 
   return {
     owner_id: uid,
-    nom: f_nom.value.trim(),
-    ville: f_ville.value.trim(),
+    nom,
+    ville,
     business_code: businessCode,
-    adresse: f_adresse.value.trim(),
-    description: f_desc.value.trim(),
-    photo_url: f_photo.value.trim(),
-    video_url: f_video.value.trim(),
-    prix_nuit: Number(f_prix_nuit.value || 0),
-    prix_semaine: Number(f_prix_semaine.value || 0),
-    prix_mois: Number(f_prix_mois.value || 0),
-    frais_supplements: f_frais.value.trim(),
-    wave_phone: f_wave_phone.value.trim(),
-    wave_name: f_wave_name.value.trim(),
-    deposit_percent: Number(f_deposit.value || 30),
-    status: normalizeStatus(f_status.value)
+    adresse: (f_adresse?.value || "").trim(),
+    description: (f_desc?.value || "").trim(),
+    photo_url: (f_photo?.value || "").trim(),
+    video_url: (f_video?.value || "").trim(),
+    prix_nuit: Number(f_prix_nuit?.value || 0),
+    prix_semaine: Number(f_prix_semaine?.value || 0),
+    prix_mois: Number(f_prix_mois?.value || 0),
+    frais_supplements: (f_frais?.value || "").trim(),
+    wave_phone: (f_wave_phone?.value || "").trim(),
+    wave_name: (f_wave_name?.value || "").trim(),
+    deposit_percent: Number(f_deposit?.value || 30),
+    status: normalizeStatus(f_status?.value)
   };
 }
 
@@ -1076,10 +1110,12 @@ async function saveRecord(mode){
   if(mode==="publish") payload.status = "actif";
   if(mode==="draft") payload.status = "brouillon";
 
-  btnSave.disabled = true;
-  btnPublish.disabled = true;
-  btnDraft.disabled = true;
-  btnSave.innerHTML = '<span class="spinner"></span> Sauvegarde...';
+  if(btnSave){
+    btnSave.disabled = true;
+    btnSave.innerHTML = '<span class="spinner"></span> Sauvegarde...';
+  }
+  if(btnPublish) btnPublish.disabled = true;
+  if(btnDraft) btnDraft.disabled = true;
 
   try{
     if(!current || !current.id){
@@ -1091,7 +1127,7 @@ async function saveRecord(mode){
       if(error) throw error;
 
       current.id = data.id;
-      showNote(saveNote, `✅ Créé!`, "ok");
+      showNote(saveNote, "✅ Créé!", "ok");
     }else{
       const { error } = await SB
         .from("digiy_logements")
@@ -1110,88 +1146,96 @@ async function saveRecord(mode){
     console.error(e);
     showNote(saveNote, "❌ Erreur:\n" + (e?.message || e), "bad");
   }finally{
-    btnSave.disabled = false;
-    btnPublish.disabled = false;
-    btnDraft.disabled = false;
-    btnSave.innerHTML = '💾 Enregistrer';
+    if(btnSave){
+      btnSave.disabled = false;
+      btnSave.innerHTML = "💾 Enregistrer";
+    }
+    if(btnPublish) btnPublish.disabled = false;
+    if(btnDraft) btnDraft.disabled = false;
   }
 }
-btnSave.addEventListener("click", ()=> saveRecord("save"));
-btnPublish.addEventListener("click", ()=> saveRecord("publish"));
-btnDraft.addEventListener("click", ()=> saveRecord("draft"));
+if(btnSave) btnSave.addEventListener("click", ()=> saveRecord("save"));
+if(btnPublish) btnPublish.addEventListener("click", ()=> saveRecord("publish"));
+if(btnDraft) btnDraft.addEventListener("click", ()=> saveRecord("draft"));
 
 /* =============================
    RETIRER
 ============================= */
-btnDelete.addEventListener("click", async ()=>{
-  if(!current || !current.id) return;
+if(btnDelete){
+  btnDelete.addEventListener("click", async ()=>{
+    if(!current || !current.id) return;
 
-  if(!confirm(`⚠️ Retirer définitivement "${current.nom}" ?`)) return;
-  if(!confirm("⚠️ Dernière confirmation : retirer ce logement ?")) return;
+    if(!confirm(`⚠️ Retirer définitivement "${current.nom}" ?`)) return;
+    if(!confirm("⚠️ Dernière confirmation : retirer ce logement ?")) return;
 
-  btnDelete.disabled = true;
-  btnDelete.innerHTML = '<span class="spinner"></span> Suppression...';
+    btnDelete.disabled = true;
+    btnDelete.innerHTML = '<span class="spinner"></span> Suppression...';
 
-  try{
-    const { error } = await SB
-      .from("digiy_logements")
-      .delete()
-      .eq("id", current.id)
-      .eq("owner_id", sessionUser.owner_id);
+    try{
+      const { error } = await SB
+        .from("digiy_logements")
+        .delete()
+        .eq("id", current.id)
+        .eq("owner_id", sessionUser.owner_id);
 
-    if(error) throw error;
+      if(error) throw error;
 
-    showNote(editNote, "✅ Logement retiré!", "ok");
-    current = null;
-    paintEditor(null);
-    markClean();
-    btnDelete.style.display = "none";
-    await loadList();
-  }catch(e){
-    console.error(e);
-    showNote(editNote, "❌ Refusé:\n" + (e?.message || e), "bad");
-  }finally{
-    btnDelete.disabled = false;
-    btnDelete.innerHTML = '🗑️ Retirer';
-  }
-});
+      showNote(editNote, "✅ Logement retiré!", "ok");
+      current = null;
+      paintEditor(null);
+      markClean();
+      btnDelete.style.display = "none";
+      await loadList();
+    }catch(e){
+      console.error(e);
+      showNote(editNote, "❌ Refusé:\n" + (e?.message || e), "bad");
+    }finally{
+      btnDelete.disabled = false;
+      btnDelete.innerHTML = "🗑️ Retirer";
+    }
+  });
+}
 
 /* =============================
-   TEST MÉDIAS
+   TEST MÉDIAS + OUVRIR PUBLIC
 ============================= */
-btnTestMedia.addEventListener("click", ()=>{
-  if(!current) return;
-  hideNote(editNote);
+if(btnTestMedia){
+  btnTestMedia.addEventListener("click", ()=>{
+    if(!current) return;
+    hideNote(editNote);
 
-  const payload = collectForm();
-  pvImg.src = (payload.photo_url && payload.photo_url.startsWith("http")) ? payload.photo_url : FALLBACK_PHOTO;
+    const payload = collectForm();
+    if(pvImg) pvImg.src = (payload.photo_url && payload.photo_url.startsWith("http")) ? payload.photo_url : FALLBACK_PHOTO;
 
-  const embed = toEmbedUrl(payload.video_url);
-  if(embed){
-    pvVideo.src = embed;
-    pvVideoWrap.style.display = "block";
-    showNote(editNote, "✅ Photo/vidéo OK!", "ok");
-  }else{
-    pvVideo.src = "";
-    pvVideoWrap.style.display = "none";
-    if(payload.video_url){
-      showNote(editNote, "⚠️ Vidéo non reconnue. Mets un lien Drive/YouTube/Vimeo valide.", "warn");
+    const embed = toEmbedUrl(payload.video_url);
+    if(embed){
+      if(pvVideo) pvVideo.src = embed;
+      if(pvVideoWrap) pvVideoWrap.style.display = "block";
+      showNote(editNote, "✅ Photo/vidéo OK!", "ok");
     }else{
-      showNote(editNote, "ℹ️ Pas de vidéo. Photo OK.", "ok");
+      if(pvVideo) pvVideo.src = "";
+      if(pvVideoWrap) pvVideoWrap.style.display = "none";
+      if(payload.video_url){
+        showNote(editNote, "⚠️ Vidéo non reconnue. Mets un lien Drive/YouTube/Vimeo valide.", "warn");
+      }else{
+        showNote(editNote, "ℹ️ Pas de vidéo. Photo OK.", "ok");
+      }
     }
-  }
 
-  const wn = payload.wave_name.trim();
-  const wp = payload.wave_phone.trim();
-  pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
-  pvVille.textContent = payload.ville || "—";
-  pvStatus.textContent = payload.status || "—";
-});
+    const wn = payload.wave_name.trim();
+    const wp = payload.wave_phone.trim();
+    if(pvWave) pvWave.textContent = (wn ? wn + " • " : "") + (wp || "—");
+    if(pvVille) pvVille.textContent = payload.ville || "—";
+    if(pvStatus) pvStatus.textContent = payload.status || "—";
+  });
+}
 
-btnOpenPublic.addEventListener("click", ()=>{
-  if(!current || !current.id) return showNote(editNote, "❌ Enregistre d'abord (pas d'ID).", "bad");
-  window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
-});
+if(btnOpenPublic){
+  btnOpenPublic.addEventListener("click", ()=>{
+    if(!current || !current.id) return showNote(editNote, "❌ Enregistre d'abord (pas d'ID).", "bad");
+    window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
+  });
+}
 
 /* =============================
    DUPLIQUER
@@ -1242,7 +1286,7 @@ async function duplicateOne(id){
     return showNote(listNote, "❌ Copie refusée:\n" + (e2?.message || ""), "bad");
   }
 
-  showNote(listNote, `✅ Copié!`, "ok");
+  showNote(listNote, "✅ Copié!", "ok");
   await loadList();
   await openOne(created.id);
   showNote(editNote, "✨ Copie prête. Renomme puis mets en ligne.", "ok");
@@ -1251,51 +1295,52 @@ async function duplicateOne(id){
 /* =============================
    CALENDRIER BLOCKS
 ============================= */
-btnAddBlock.addEventListener("click", async ()=>{
-  hideNote(calNote);
-  if(!sessionUser) return showNote(calNote, "❌ Connecte-toi.", "bad");
-  if(!current || !current.id) return showNote(calNote, "❌ Enregistre le logement avant.", "bad");
+if(btnAddBlock){
+  btnAddBlock.addEventListener("click", async ()=>{
+    hideNote(calNote);
+    if(!sessionUser) return showNote(calNote, "❌ Connecte-toi.", "bad");
+    if(!current || !current.id) return showNote(calNote, "❌ Enregistre le logement avant.", "bad");
 
-  const s = calStart.value;
-  const e = calEnd.value;
-  if(!s || !e) return showNote(calNote, "❌ Choisis début + fin.", "bad");
-  if(e < s) return showNote(calNote, "❌ Fin doit être >= début.", "bad");
+    const s = calStart?.value || "";
+    const e = calEnd?.value || "";
+    if(!s || !e) return showNote(calNote, "❌ Choisis début + fin.", "bad");
+    if(e < s) return showNote(calNote, "❌ Fin doit être >= début.", "bad");
 
-  btnAddBlock.disabled = true;
-  btnAddBlock.innerHTML = '<span class="spinner"></span> Ajout...';
+    btnAddBlock.disabled = true;
+    btnAddBlock.innerHTML = '<span class="spinner"></span> Ajout...';
 
-  try{
-    const insertPayload = {
-      listing_id: current.id,
-      owner_id: sessionUser.owner_id,
-      start_date: s,
-      end_date: e,
-      reason: calReason.value.trim() || null,
-      business_code: current.business_code || null
-    };
+    try{
+      const insertPayload = {
+        listing_id: current.id,
+        owner_id: sessionUser.owner_id,
+        start_date: s,
+        end_date: e,
+        reason: (calReason?.value || "").trim() || null,
+        business_code: current.business_code || null
+      };
 
-    const { error } = await SB.from("loc_availability_blocks").insert(insertPayload);
-    if(error) throw error;
+      const { error } = await SB.from("loc_availability_blocks").insert(insertPayload);
+      if(error) throw error;
 
-    showNote(calNote, "✅ Dates bloquées!", "ok");
-    calStart.value = "";
-    calEnd.value = "";
-    calReason.value = "";
-    await loadBlocksForCurrent();
-  }catch(err){
-    console.error(err);
-    showNote(calNote, "❌ Refusé:\n" + (err?.message || err), "bad");
-  }finally{
-    btnAddBlock.disabled = false;
-    btnAddBlock.innerHTML = '➕ Bloquer';
-  }
-});
-
-btnReloadBlocks.addEventListener("click", loadBlocksForCurrent);
+      showNote(calNote, "✅ Dates bloquées!", "ok");
+      if(calStart) calStart.value = "";
+      if(calEnd) calEnd.value = "";
+      if(calReason) calReason.value = "";
+      await loadBlocksForCurrent();
+    }catch(err){
+      console.error(err);
+      showNote(calNote, "❌ Refusé:\n" + (err?.message || err), "bad");
+    }finally{
+      btnAddBlock.disabled = false;
+      btnAddBlock.innerHTML = "➕ Bloquer";
+    }
+  });
+}
+if(btnReloadBlocks) btnReloadBlocks.addEventListener("click", loadBlocksForCurrent);
 
 async function loadBlocksForCurrent(){
   hideNote(calNote);
-  calList.innerHTML = "";
+  if(calList) calList.innerHTML = "";
   if(!current || !current.id) return;
 
   try{
@@ -1322,30 +1367,32 @@ async function loadBlocksForCurrent(){
         </div>
         <div class="rowSub">${b.reason || "—"}</div>
       `;
-      calList.appendChild(div);
+      if(calList) calList.appendChild(div);
     });
 
-    calList.querySelectorAll("[data-delblk]").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const bid = btn.getAttribute("data-delblk");
-        if(!confirm("Supprimer ce bloc de dates ?")) return;
+    if(calList){
+      calList.querySelectorAll("[data-delblk]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const bid = btn.getAttribute("data-delblk");
+          if(!confirm("Supprimer ce bloc de dates ?")) return;
 
-        try{
-          const { error } = await SB
-            .from("loc_availability_blocks")
-            .delete()
-            .eq("id", bid)
-            .eq("owner_id", sessionUser.owner_id);
+          try{
+            const { error } = await SB
+              .from("loc_availability_blocks")
+              .delete()
+              .eq("id", bid)
+              .eq("owner_id", sessionUser.owner_id);
 
-          if(error) throw error;
-          showNote(calNote, "✅ Bloc supprimé!", "ok");
-          await loadBlocksForCurrent();
-        }catch(e){
-          console.error(e);
-          showNote(calNote, "❌ Refusé:\n" + (e?.message || e), "bad");
-        }
+            if(error) throw error;
+            showNote(calNote, "✅ Bloc supprimé!", "ok");
+            await loadBlocksForCurrent();
+          }catch(e){
+            console.error(e);
+            showNote(calNote, "❌ Refusé:\n" + (e?.message || e), "bad");
+          }
+        });
       });
-    });
+    }
 
     showNote(calNote, `✅ ${data.length} bloc(s).`, "ok");
   }catch(e){
@@ -1357,11 +1404,11 @@ async function loadBlocksForCurrent(){
 /* =============================
    PAIEMENTS (preuves)
 ============================= */
-btnReloadPays.addEventListener("click", loadPaymentsForCurrent);
+if(btnReloadPays) btnReloadPays.addEventListener("click", loadPaymentsForCurrent);
 
 async function loadPaymentsForCurrent(){
   hideNote(payAdminNote);
-  payList.innerHTML = "";
+  if(payList) payList.innerHTML = "";
   if(!current || !current.id) return;
 
   try{
@@ -1401,15 +1448,17 @@ async function loadPaymentsForCurrent(){
           🧾 Référence : <strong>${p.wave_tx_ref || "—"}</strong>
         </div>
       `;
-      payList.appendChild(div);
+      if(payList) payList.appendChild(div);
     });
 
-    payList.querySelectorAll("[data-okpay]").forEach(btn=>{
-      btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-okpay"), "confirmed"));
-    });
-    payList.querySelectorAll("[data-badpay]").forEach(btn=>{
-      btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected"));
-    });
+    if(payList){
+      payList.querySelectorAll("[data-okpay]").forEach(btn=>{
+        btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-okpay"), "confirmed"));
+      });
+      payList.querySelectorAll("[data-badpay]").forEach(btn=>{
+        btn.addEventListener("click", ()=> updatePayStatus(btn.getAttribute("data-badpay"), "rejected"));
+      });
+    }
 
     showNote(payAdminNote, `✅ ${data.length} preuve(s).`, "ok");
   }catch(e){
@@ -1420,7 +1469,6 @@ async function loadPaymentsForCurrent(){
 
 async function updatePayStatus(id, status){
   hideNote(payAdminNote);
-
   try{
     const { error } = await SB
       .from("loc_payment_intents")
@@ -1438,19 +1486,29 @@ async function updatePayStatus(id, status){
 }
 
 /* =============================
-   INIT
+   INIT (ordre PROPRE)
 ============================= */
-(function init(){
+(async function init(){
+  // 1) Guard en premier (redirige si besoin)
+  const boot = await bootGuard();
+  if(!boot?.ok){
+    // boot redirige souvent déjà, mais on assure:
+    logoutSafe();
+    return;
+  }
+
+  // 2) Session PIN
   setPinConnectedUI();
   setConnectedUI();
   paintEditor(null);
 
+  // 3) Listing
   if(sessionUser){
     loadList();
     showNote(listNote, "✅ Session OK. Chargement des logements…", "ok");
   }else{
     showNote(listNote, "🔒 Session manquante. Retour login…", "warn");
-    setTimeout(()=> window.DIGIY_GUARD?.logout("./pin.html"), 250);
+    setTimeout(logoutSafe, 150);
   }
 })();
 </script>
