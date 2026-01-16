@@ -296,12 +296,13 @@ input[type="date"]{color-scheme:dark}
         <div class="navLabel" id="navSlug">slug: —</div>
       </div>
       <div class="navRight">
-        <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
-        <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
-        <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
-        <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
-        <button class="btn small navBtn" id="goHealth">🧪 Health</button>
-      </div>
+  <button class="btn small navBtn" id="goApp">🏠 APP</button>
+  <button class="btn small navBtn" id="goPulse">📲 Pulse</button>
+  <button class="btn small navBtn" id="goPlanning">🗓️ Planning</button>
+  <button class="btn small navBtn" id="goListing">📋 Listing du jour</button>
+  <button class="btn small navBtn" id="goLinks">🔗 Liens / QR</button>
+  <button class="btn small navBtn" id="goHealth">🧪 Health</button>
+</div>
     </div>
   </div>
 
@@ -527,7 +528,7 @@ input[type="date"]{color-scheme:dark}
         <!-- ACOMPTES -->
         <div class="previewBox">
           <div style="font-weight:1100">🧾 Avances reçues (preuves Wave)</div>
-          <small class="hint">Tu peux confirmer ou refuser chaque preuve.</small>
+          <small class="hint">Tu peux confirmer chaque preuve.</small>
 
           <div class="btnRow" style="margin-top:10px">
             <button class="btn" id="btnReloadPays" disabled>↻ Recharger</button>
@@ -575,6 +576,9 @@ setNavSlug();
 document.getElementById("btnBack").addEventListener("click", ()=>{
   if(history.length > 1) return history.back();
   location.href = withSlug("./index.html");
+});
+document.getElementById("goApp").addEventListener("click", ()=>{
+  location.href = withSlug("./app.html");
 });
 document.getElementById("goPulse").addEventListener("click", ()=>{
   location.href = withSlug("./proprio-loc.html");
