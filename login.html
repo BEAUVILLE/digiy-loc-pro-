@@ -89,85 +89,87 @@
   </div>
 
   <script>
-    (function(){
-      const MODULE = "LOC";                 // ✅ IMPORTANT: MAJUSCULE
-      const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
-      const SUPPORT_WA = "+221771342889";   // ✅ support WhatsApp
+  (function(){
+    const MODULE = "LOC";
+    const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
+    const SUPPORT_WA = "+221771342889";
 
-      const $ = (id)=>document.getElementById(id);
+    const $ = (id)=>document.getElementById(id);
 
-      function setEtat(t){ $("etat").textContent = t; }
-      function setStatus(msg, cls){
-        $("status").textContent = msg;
-        $("status").className = "status " + (cls || "warn");
-      }
-      function setHint(msg){ $("hint").textContent = msg || ""; }
+    function setEtat(t){ $("etat").textContent = t; }
+    function setStatus(msg, cls){
+      $("status").textContent = msg;
+      $("status").className = "status " + (cls || "warn");
+    }
+    function setHint(msg){ $("hint").textContent = msg || ""; }
 
-      function lock(on){
-        $("btnEnter").disabled = !!on;
-        $("btnClear").disabled = !!on;
-        $("btnForgot").disabled = !!on;
-        $("phone").disabled = !!on;
-        $("pin").disabled = !!on;
-      }
+    function lock(on){
+      $("btnEnter").disabled = !!on;
+      $("btnClear").disabled = !!on;
+      $("btnForgot").disabled = !!on;
+      $("phone").disabled = !!on;
+      $("pin").disabled = !!on;
+    }
 
-      function withSlug(u){
-        return (window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(u) : u);
-      }
+    function withSlug(u){
+      return (window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(u) : u);
+    }
 
-      if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.loginWithPin !== "function"){
-        setEtat("Guard absent");
-        setStatus("Erreur: guard.js non chargé (DIGIY_GUARD introuvable).", "bad");
-        setHint("Vérifie que guard.js est bien à la racine du repo et chargé avant ce script.");
+    if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.loginWithPin !== "function"){
+      setEtat("Guard absent");
+      setStatus("Erreur: guard.js non chargé (DIGIY_GUARD introuvable).", "bad");
+      setHint("Vérifie que guard.js est bien chargé (et que supabase-js est avant).");
+      return;
+    }
+
+    // slug UI
+    const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
+    $("pillSlug").textContent = "slug: " + (slug || "—");
+    $("pillModule").textContent = MODULE;
+
+    // Prefill phone si connu
+    try{
+      const p = window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone();
+      if(p) $("phone").value = p;
+    }catch(_){}
+
+    // ✅ Si déjà une session valide → le guard redirige (planning / pay / diagnostic)
+    try{
+      const sess = window.DIGIY_GUARD.getSession ? window.DIGIY_GUARD.getSession() : null;
+      if(sess && sess.phone){
+        setEtat("Session détectée");
+        setStatus("⏳ Vérification abonnement…", "warn");
+
+        window.DIGIY_GUARD.boot({
+          module: MODULE,
+          login: "./pin.html",
+          dashboard: "./planning.html",
+          pay: PAY_URL,
+          diagnostic: "./health-loc.html",
+          requireSlug: true,
+          checkSubscription: true,
+          redirectToDashboard: true // ✅ le guard décide & redirige si OK
+        });
         return;
       }
+    }catch(_){}
 
-      // slug UI
-      const slug = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
-      $("pillSlug").textContent = "slug: " + (slug || "—");
-      $("pillModule").textContent = MODULE;
+    setEtat("Prêt");
+    setStatus("PIN requis", "warn");
 
-      // ✅ Si session existe déjà → on passe direct au guard (il gère planning vs pay)
-      try{
-        const sess = window.DIGIY_GUARD.getSession ? window.DIGIY_GUARD.getSession() : null;
-        if(sess && sess.phone){
-          window.DIGIY_GUARD.boot({
-            module: MODULE,
-            dashboard: "./planning.html",
-            login: "./pin.html",       // ✅ retour ici si besoin
-            pay: PAY_URL,
-            requireSlug: true,
-            checkSubscription: true
-          });
-
-          // si pas redirigé par le guard → planning
-          setTimeout(()=> location.replace(withSlug("./planning.html")), 350);
-          return;
-        }
-      }catch(_){}
-
-      setEtat("Prêt");
+    $("btnClear").onclick = ()=>{
+      $("pin").value = "";
       setStatus("PIN requis", "warn");
+      setHint("");
+      $("pin").focus();
+    };
 
-      // Prefill phone (si guard l’a)
-      try{
-        const p = window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone();
-        if(p) $("phone").value = p;
-      }catch(_){}
+    $("btnForgot").onclick = ()=>{
+      const rawPhone = ($("phone").value || "").trim();
+      const phone = window.DIGIY_GUARD.normPhone ? window.DIGIY_GUARD.normPhone(rawPhone) : rawPhone;
+      const s = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
 
-      $("btnClear").onclick = ()=>{
-        $("pin").value = "";
-        setStatus("PIN requis", "warn");
-        setHint("");
-        $("pin").focus();
-      };
-
-      $("btnForgot").onclick = ()=>{
-        const rawPhone = ($("phone").value || "").trim();
-        const phone = window.DIGIY_GUARD.normPhone ? window.DIGIY_GUARD.normPhone(rawPhone) : rawPhone;
-        const s = window.DIGIY_GUARD.getSlug ? window.DIGIY_GUARD.getSlug() : "";
-
-        const msg =
+      const msg =
 `DIGIY • Support LOC PRO
 Demande: Reset PIN
 
@@ -177,62 +179,60 @@ Téléphone: ${phone || "—"}
 
 Merci. — DIGIY`;
 
-        const url = "https://wa.me/" + SUPPORT_WA.replace(/[^\d]/g,"") + "?text=" + encodeURIComponent(msg);
-        window.location.href = url;
-      };
+      const url = "https://wa.me/" + SUPPORT_WA.replace(/[^\d]/g,"") + "?text=" + encodeURIComponent(msg);
+      window.location.href = url;
+    };
 
-      async function doLogin(){
-        const rawPhone = ($("phone").value || "").trim();
-        const pin = ($("pin").value || "").trim();
+    async function doLogin(){
+      const rawPhone = ($("phone").value || "").trim();
+      const pin = ($("pin").value || "").trim();
+      const phone = window.DIGIY_GUARD.normPhone ? window.DIGIY_GUARD.normPhone(rawPhone) : rawPhone;
 
-        const phone = window.DIGIY_GUARD.normPhone ? window.DIGIY_GUARD.normPhone(rawPhone) : rawPhone;
+      if(!phone){ setStatus("Téléphone requis.", "bad"); $("phone").focus(); return; }
+      if(!pin || pin.length < 4){ setStatus("PIN invalide (4–8 chiffres).", "bad"); $("pin").focus(); return; }
 
-        if(!phone){ setStatus("Téléphone requis.", "bad"); $("phone").focus(); return; }
-        if(!pin || pin.length < 4){ setStatus("PIN invalide (4–8 chiffres).", "bad"); $("pin").focus(); return; }
+      lock(true);
+      setStatus("⏳ Vérification PIN…", "warn");
+      setHint("");
 
-        lock(true);
-        setStatus("⏳ Vérification PIN…", "warn");
-        setHint("");
+      try{
+        const out = await window.DIGIY_GUARD.loginWithPin(phone, pin, MODULE);
 
-        try{
-          const out = await window.DIGIY_GUARD.loginWithPin(phone, pin, MODULE);
-
-          if(!out || out.ok !== true){
-            const reason = out?.res?.reason ? String(out.res.reason) : "";
-            setStatus("❌ PIN incorrect. Réessaie.", "bad");
-            setHint(reason ? ("Raison: " + reason) : "Si tu as oublié: clique “PIN oublié”.");
-            lock(false);
-            return;
-          }
-
-          // ✅ Ici, on laisse le guard faire la règle :
-          // abo actif → planning ; sinon → pay ; et après pay → dashboard(planning)
-          setStatus("✅ OK. Vérification abonnement…", "ok");
-
-          window.DIGIY_GUARD.boot({
-            module: MODULE,
-            dashboard: "./planning.html",  // ✅ après paiement -> planning
-            login: "./pin.html",
-            pay: PAY_URL,
-            requireSlug: true,
-            checkSubscription: true
-          });
-
-          // si pas redirigé, on ouvre planning
-          setTimeout(()=> location.replace(withSlug("./planning.html")), 450);
-
-        }catch(e){
-          console.error(e);
-          setStatus("Erreur vérification (réseau / Supabase / RPC).", "bad");
-          setHint(String(e?.message || e));
+        if(!out || out.ok !== true){
+          const reason = out?.res?.reason ? String(out.res.reason) : "";
+          setStatus("❌ PIN incorrect. Réessaie.", "bad");
+          setHint(reason ? ("Raison: " + reason) : "Si tu as oublié: clique “PIN oublié”.");
           lock(false);
+          return;
         }
-      }
 
-      $("btnEnter").onclick = doLogin;
-      $("pin").addEventListener("keydown", (ev)=>{ if(ev.key === "Enter") doLogin(); });
-    })();
-  </script>
+        setStatus("✅ OK. Vérification abonnement…", "ok");
+
+        // ✅ Après PIN OK, le guard décide la destination
+        window.DIGIY_GUARD.boot({
+          module: MODULE,
+          login: "./pin.html",
+          dashboard: "./planning.html",
+          pay: PAY_URL,
+          diagnostic: "./health-loc.html",
+          requireSlug: true,
+          checkSubscription: true,
+          redirectToDashboard: true // ✅ planning si actif, pay si pas actif, diagnostic si erreur
+        });
+
+        // ⚠️ PAS de timeout vers planning : on laisse le guard faire.
+      }catch(e){
+        console.error(e);
+        setStatus("Erreur vérification (réseau / Supabase / RPC).", "bad");
+        setHint(String(e?.message || e));
+        lock(false);
+      }
+    }
+
+    $("btnEnter").onclick = doLogin;
+    $("pin").addEventListener("keydown", (ev)=>{ if(ev.key === "Enter") doLogin(); });
+  })();
+</script>
 </body>
 </html>
 
