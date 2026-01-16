@@ -1,134 +1,161 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#022c22" />
-  <title>DIGIY LOC PRO — PIN</title>
-  <meta name="referrer" content="no-referrer" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>DIGIY LOC — GO PIN ♾️</title>
+  <meta name="theme-color" content="#0b1020"/>
+
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto;margin:0;background:#022c22;color:#e5e7eb}
-    .wrap{max-width:520px;margin:0 auto;padding:16px}
-    .card{background:rgba(255,255,255,.06);border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:16px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    input{
-      width:100%;font-size:20px;letter-spacing:6px;text-align:center;
-      padding:12px 12px;border-radius:14px;border:1px solid rgba(148,163,184,.25);
-      background:rgba(0,0,0,.22);color:#e5e7eb;outline:none
+    :root{
+      --bg:#020617; --bg2:#0b1020; --line:#1f2937;
+      --ink:#f9fafb; --muted:#cbd5f5;
+      --gold:#facc15; --green:#22c55e;
+      --shadow:0 22px 50px rgba(0,0,0,.55);
+      --card:rgba(255,255,255,.03);
     }
-    button{
-      width:100%;padding:12px 12px;border-radius:14px;border:0;
-      background:#facc15;color:#052e16;font-weight:800;font-size:16px;cursor:pointer
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
+        radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      padding:16px;
     }
-    .muted{opacity:.85}
-    .err{margin-top:10px;color:#fca5a5}
-    .ok{margin-top:10px;color:#86efac}
-    .small{font-size:13px}
+    .wrap{max-width:620px;margin:0 auto}
+    .top{
+      display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;
+      padding:14px;border:1px solid var(--line);border-radius:18px;background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{
+      width:46px;height:46px;border-radius:16px;
+      background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
+      border:1px solid rgba(250,204,21,.35);
+      display:grid;place-items:center;
+      font-weight:1100;color:#061b14;
+    }
+    h1{font-size:1.25rem}
+    .sub{color:var(--muted);font-weight:800;margin-top:4px}
+    .pill{
+      border:1px solid rgba(148,163,184,.35);
+      padding:7px 10px;border-radius:999px;
+      background:rgba(255,255,255,.02);
+      color:var(--muted);font-weight:900;font-size:.86rem;
+    }
+    .card{
+      margin-top:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .btn{
+      width:100%;
+      min-height:54px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      font-weight:1100;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:12px;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .btn.gold{
+      background:rgba(250,204,21,.12);
+      border-color:rgba(250,204,21,.35);
+      color:#fde68a;
+    }
+    .btn.primary{
+      background:rgba(34,197,94,.14);
+      border-color:rgba(34,197,94,.35);
+      color:#bbf7d0;
+    }
+    .note{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-weight:900;
+      white-space:pre-wrap;
+      display:none;
+    }
+    .note.warn{display:block;border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.09);color:#fde68a}
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div style="font-weight:900;font-size:18px">🔐 Validation PIN</div>
-      <div class="muted small" id="slugLine">slug: —</div>
+<div class="wrap">
 
-      <div style="height:12px"></div>
-
-      <input id="pin" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••" />
-      <div style="height:10px"></div>
-      <button id="btn">Déverrouiller</button>
-
-      <div id="msg" class="muted"></div>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">∞</div>
+      <div>
+        <h1>DIGIY LOC — GO PIN</h1>
+        <div class="sub">Accès sécurisé aux espaces professionnels</div>
+      </div>
     </div>
+    <div class="pill" id="pillSlug">slug: —</div>
   </div>
 
-  <!-- Supabase JS (obligatoire) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div class="card">
+    <p style="font-weight:900;line-height:1.5">
+      Cet espace permet aux <strong>propriétaires</strong> d’accéder à leur
+      cockpit DIGIY LOC via un <strong>code PIN sécurisé</strong>.
+    </p>
 
-  <!-- Guard -->
-  <script src="./guard.js"></script>
+    <a id="btnAccess" class="btn primary" href="#">
+      🔐 Accéder à mon cockpit (PIN)
+    </a>
 
-  <script>
-    (async () => {
-      // Ici on exige slug + session, MAIS pas besoin du PIN (c’est la page PIN)
-      const res = await window.DigiyGuard.require({
-        requireSlug: true,
-        requireAuth: true,
-        requirePin: false,
-        loginUrl: "login.html",
-        pinUrl: "pin.html"
-      });
-      if (!res.ok) return;
+    <a id="btnPublic" class="btn gold" href="#">
+      👁️ Voir la fiche publique
+    </a>
 
-      const slug = res.slug;
-      document.getElementById("slugLine").textContent = "slug: " + slug;
+    <div class="note warn" id="note"></div>
+  </div>
+</div>
 
-      const sb = window.DigiyGuard.supabase();
-      const pinEl = document.getElementById("pin");
-      const msgEl = document.getElementById("msg");
-      const btn = document.getElementById("btn");
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const u = new URL(location.href);
+  let slug = (u.searchParams.get("slug") || "").trim().toLowerCase();
 
-      function setMsg(text, kind) {
-        msgEl.className = kind === "err" ? "err" : (kind === "ok" ? "ok" : "muted");
-        msgEl.textContent = text || "";
-      }
+  // fallback localStorage (si déjà passé quelque part)
+  if(!slug){
+    try{ slug = (localStorage.getItem("digiy_loc_slug") || "").trim().toLowerCase(); }catch(_){}
+  }
 
-      function cleanPin(v) {
-        return (v || "").replace(/\D/g, "").slice(0, 6);
-      }
+  if(slug){
+    $("pillSlug").textContent = "slug: " + slug;
+    localStorage.setItem("digiy_loc_slug", slug);
 
-      async function verifyPin() {
-        const pin = cleanPin(pinEl.value);
-        pinEl.value = pin;
+    $("btnAccess").href = "./pin.html?slug=" + encodeURIComponent(slug);
+    $("btnPublic").href = "./loc.html?slug=" + encodeURIComponent(slug);
+  }else{
+    $("note").textContent =
+      "⚠️ Slug manquant.\n\nExemple :\n/go-pin.html?slug=chez-astou-saly";
+    $("note").style.display = "block";
+    $("btnAccess").href = "#";
+    $("btnPublic").href = "#";
+  }
+})();
+</script>
 
-        if (pin.length < 4) {
-          setMsg("Entre ton PIN (4 à 6 chiffres).", "err");
-          return;
-        }
-
-        btn.disabled = true;
-        btn.textContent = "Vérification...";
-        setMsg("", "");
-
-        try {
-          // ✅ ICI LA LIGNE À ADAPTER SI TON RPC A UN AUTRE NOM
-          const { data, error } = await sb.rpc("digiy_loc_verify_pin", { p_slug: slug, p_pin: pin });
-
-          if (error) throw error;
-
-          // on accepte boolean true, ou {ok:true}
-          const ok = (data === true) || (data && data.ok === true);
-
-          if (!ok) {
-            setMsg("PIN incorrect. Réessaie doucement.", "err");
-            return;
-          }
-
-          window.DigiyGuard.markPinOk(slug);
-          setMsg("✅ PIN validé. Bienvenue.", "ok");
-
-          // retourne à l’accueil (ou la page que tu veux)
-          setTimeout(() => {
-            window.location.href = "index.html?slug=" + encodeURIComponent(slug);
-          }, 450);
-
-        } catch (e) {
-          setMsg("Erreur de vérification PIN. (RPC/Policy à checker)", "err");
-          console.error(e);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Déverrouiller";
-        }
-      }
-
-      btn.addEventListener("click", verifyPin);
-      pinEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") verifyPin();
-      });
-
-      // focus direct
-      pinEl.focus();
-    })();
-  </script>
 </body>
 </html>
+
