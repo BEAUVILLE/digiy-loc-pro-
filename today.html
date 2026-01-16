@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>DIGIY LOC PRO — Vue du jour</title>
+  <meta name="theme-color" content="#0b1020"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg:#020617; --bg2:#0b1020; --card:rgba(255,255,255,.03);
+      --line:#1f2937; --ink:#f9fafb; --muted:#cbd5f5;
+      --gold:#facc15; --green:#22c55e; --danger:#ef4444; --warn:#f59e0b;
+      --shadow:0 22px 50px rgba(0,0,0,.55);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:
+        radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
+        radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+    .wrap{max-width:1150px;margin:0 auto;padding:14px}
+    .top{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      padding:12px 12px;border:1px solid var(--line);border-radius:18px;background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    .brand{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
+      border:1px solid rgba(250,204,21,.35);
+      box-shadow:0 0 22px rgba(250,204,21,.12);
+    }
+    h1{margin:0;font-size:1.05rem}
+    .sub{color:var(--muted);font-weight:800;font-size:.92rem;margin-top:4px;line-height:1.2}
+    .pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .pill{
+      border:1px solid rgba(148,163,184,.35);
+      padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
+      color:var(--muted);font-weight:900;font-size:.86rem;
+    }
+    .pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+    .pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+    .pill.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
+    .btn{
+      border:0; cursor:pointer; border-radius:14px;
+      padding:11px 12px; font-weight:1000;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      color:var(--muted);
+      transition:all .2s ease;
+      min-height:44px;
+    }
+    .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    .btn.primary{background:var(--green);border-color:rgba(34,197,94,.25);color:#022c22}
+    .btn.gold{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.35);color:#fde68a}
+    .btn.ghost{background:rgba(255,255,255,.02)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:14px}
+    .card{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      grid-column:span 12;
+    }
+    .head{
+      padding:12px 14px;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+    }
+    .head h2{margin:0;font-size:1.02rem}
+    .head small{color:var(--muted);font-weight:800}
+    .body{padding:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .note{
+      margin-top:10px; padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      white-space:pre-wrap;
+      display:none;
+    }
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(255,255,255,.02);
+      border-radius:16px;
+      padding:12px;
+    }
+    .itemTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .itemTitle{font-weight:1000}
+    .itemMeta{color:var(--muted);font-weight:850;font-size:.92rem;margin-top:5px;line-height:1.35}
+    .tag{
+      display:inline-flex;align-items:center;gap:7px;
+      padding:6px 9px;border-radius:999px;
+      border:1px solid rgba(148,163,184,.25);
+      color:var(--muted);font-weight:950;font-size:.82rem;
+    }
+    .tag.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+    .tag.warn{border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.10);color:#fde68a}
+    .tag.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+    .stat{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(255,255,255,.02);
+      border-radius:16px;
+      padding:12px;
+      text-align:center;
+    }
+    .stat .num{font-size:1.7rem;font-weight:1100;color:var(--gold)}
+    .stat .lbl{color:var(--muted);font-weight:850;font-size:.82rem;margin-top:4px}
+    @media(min-width:980px){
+      .col6{grid-column:span 6}
+      .col4{grid-column:span 4}
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>DIGIY LOC PRO — Vue du jour</h1>
+        <div class="sub">Arrivées • Départs • En attente • Pulse • Paiements</div>
+      </div>
+    </div>
+
+    <div class="pills">
+      <div class="pill" id="pillUser">👤 <strong>—</strong></div>
+      <div class="pill warn" id="pillState">🔒 Déconnecté</div>
+      <button class="btn ghost" id="btnBack">⬅️ Retour</button>
+      <button class="btn gold" id="btnRefresh">↻ Rafraîchir</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <section class="card col4">
+      <div class="head">
+        <div>
+          <h2>📊 Résumé</h2>
+          <small>Aujourd’hui</small>
+        </div>
+      </div>
+      <div class="body">
+        <div class="stats" id="stats"></div>
+        <div class="note" id="noteStats"></div>
+      </div>
+    </section>
+
+    <section class="card col4">
+      <div class="head">
+        <div>
+          <h2>📲 Pulse</h2>
+          <small>Outbox</small>
+        </div>
+        <div class="row">
+          <span class="tag warn">À venir: <span id="pulseQueued">0</span></span>
+          <span class="tag ok">Envoyés: <span id="pulseSent">0</span></span>
+          <span class="tag bad">Échecs: <span id="pulseFailed">0</span></span>
+        </div>
+      </div>
+      <div class="body">
+        <div class="list" id="pulseList"></div>
+        <div class="note" id="notePulse"></div>
+      </div>
+    </section>
+
+    <section class="card col4">
+      <div class="head">
+        <div>
+          <h2>💳 Paiements</h2>
+          <small>preuves Wave</small>
+        </div>
+      </div>
+      <div class="body">
+        <div class="list" id="payList"></div>
+        <div class="note" id="notePay"></div>
+      </div>
+    </section>
+
+    <section class="card col6">
+      <div class="head">
+        <div>
+          <h2>🧳 Arrivées / Départs</h2>
+          <small>si table réservations dispo</small>
+        </div>
+      </div>
+      <div class="body">
+        <div class="list" id="arrdepList"></div>
+        <div class="note" id="noteArrDep"></div>
+      </div>
+    </section>
+
+    <section class="card col6">
+      <div class="head">
+        <div>
+          <h2>⏳ Réservations en attente</h2>
+          <small>à confirmer</small>
+        </div>
+      </div>
+      <div class="body">
+        <div class="list" id="pendingList"></div>
+        <div class="note" id="notePending"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* =============================
+   SUPABASE CONFIG
+============================= */
+const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* =============================
+   ROUTING (slug)
+============================= */
+const url = new URL(location.href);
+const SLUG = (url.searchParams.get("slug") || "").trim();
+function withSlug(path){
+  if(!SLUG) return path;
+  const u = new URL(path, location.href);
+  u.searchParams.set("slug", SLUG);
+  return u.toString();
+}
+document.getElementById("btnBack").onclick = ()=>{
+  if(history.length > 1) return history.back();
+  location.href = withSlug("./index.html");
+};
+
+/* =============================
+   UI helpers
+============================= */
+const $ = (id)=>document.getElementById(id);
+function showNote(id, msg){
+  const el = $(id);
+  if(!el) return;
+  el.style.display = "block";
+  el.textContent = msg;
+}
+function hideNote(id){
+  const el = $(id);
+  if(!el) return;
+  el.style.display = "none";
+  el.textContent = "";
+}
+function esc(s){ return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+function fmtMoney(x){ try{ return Number(x||0).toLocaleString("fr-FR")+" F"; }catch(_){ return (x||"—")+" F"; } }
+function todayISO(){
+  const d=new Date();
+  const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,"0"); const da=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${da}`;
+}
+function pillUser(user){
+  $("pillUser").innerHTML = `👤 <strong>${user ? (user.email || "PRO") : "—"}</strong>`;
+  if(user){
+    $("pillState").textContent = "✅ Connecté";
+    $("pillState").classList.remove("warn"); $("pillState").classList.add("ok");
+  }else{
+    $("pillState").textContent = "🔒 Déconnecté";
+    $("pillState").classList.remove("ok"); $("pillState").classList.add("warn");
+  }
+}
+
+/* =============================
+   DATA loaders
+============================= */
+async function getUser(){
+  const { data } = await SB.auth.getSession();
+  return data?.session?.user || null;
+}
+
+async function loadPulse(){
+  hideNote("notePulse");
+  $("pulseList").innerHTML = "";
+  $("pulseQueued").textContent = "0";
+  $("pulseSent").textContent = "0";
+  $("pulseFailed").textContent = "0";
+
+  try{
+    const { data, error } = await SB
+      .from("digiy_loc_outbox")
+      .select("id, due_at, pulse_kind, status, last_error, sent_at, phone, business_code")
+      .order("due_at", { ascending:true })
+      .limit(40);
+
+    if(error) throw error;
+
+    const rows = data || [];
+    const queued = rows.filter(r=>r.status==="queued" || r.status==="sending");
+    const sent = rows.filter(r=>r.status==="sent");
+    const failed = rows.filter(r=>r.status==="failed");
+
+    $("pulseQueued").textContent = String(queued.length);
+    $("pulseSent").textContent = String(sent.length);
+    $("pulseFailed").textContent = String(failed.length);
+
+    if(!rows.length){
+      showNote("notePulse","Aucun Pulse visible (ou RLS bloque).");
+      return;
+    }
+
+    const show = queued.slice(0,10).concat(failed.slice(0,5)).concat(sent.slice(0,5));
+
+    show.forEach(r=>{
+      const div = document.createElement("div");
+      div.className="item";
+      const st = r.status==="sent" ? "ok" : (r.status==="failed" ? "bad" : "warn");
+      div.innerHTML = `
+        <div class="itemTop">
+          <div class="itemTitle">${esc(r.pulse_kind||"Pulse")} <span class="tag ${st}">${esc(r.status||"")}</span></div>
+          <div class="tag">⏱️ ${esc((r.due_at||"").toString().slice(0,16).replace("T"," "))}</div>
+        </div>
+        <div class="itemMeta">
+          📞 ${esc(r.phone||"—")} • 🧾 ${esc(r.business_code||"—")}
+          ${r.last_error ? `<div style="margin-top:6px;color:#fecaca">⚠️ ${esc(r.last_error)}</div>` : ``}
+        </div>
+      `;
+      $("pulseList").appendChild(div);
+    });
+
+  }catch(e){
+    const msg = (e?.message || String(e));
+    showNote("notePulse","Pulse indisponible (souvent RLS):\n" + msg);
+  }
+}
+
+async function loadPayments(uid){
+  hideNote("notePay");
+  $("payList").innerHTML = "";
+
+  try{
+    // Paiements du jour (ou récents) — simple et robuste
+    const { data, error } = await SB
+      .from("loc_payment_intents")
+      .select("id, status, amount_expected, currency, client_name, client_phone, wave_tx_ref, created_at")
+      .order("created_at",{ascending:false})
+      .limit(12);
+
+    if(error) throw error;
+    const rows = data || [];
+    if(!rows.length){
+      showNote("notePay","Aucune preuve récente.");
+      return;
+    }
+
+    rows.forEach(p=>{
+      const div=document.createElement("div");
+      div.className="item";
+      const st = (p.status||"pending").toLowerCase();
+      const tag = st==="confirmed" ? "ok" : (st==="rejected" ? "bad" : "warn");
+      div.innerHTML = `
+        <div class="itemTop">
+          <div class="itemTitle">${esc((p.status||"PENDING").toUpperCase())} <span class="tag ${tag}">${fmtMoney(p.amount_expected)}</span></div>
+          <div class="tag">🧾 ${esc(p.wave_tx_ref||"—")}</div>
+        </div>
+        <div class="itemMeta">
+          👤 ${esc(p.client_name||"Client")} ${p.client_phone?(" • "+esc(p.client_phone)):""}<br>
+          🕒 ${esc((p.created_at||"").toString().slice(0,16).replace("T"," "))}
+        </div>
+      `;
+      $("payList").appendChild(div);
+    });
+  }catch(e){
+    showNote("notePay","Paiements indisponibles:\n"+(e?.message||e));
+  }
+}
+
+async function loadPendingReservations(uid){
+  hideNote("notePending");
+  $("pendingList").innerHTML = "";
+
+  try{
+    const { data, error } = await SB
+      .from("digiy_reservations")
+      .select("id, client_nom, client_phone, date_arrivee, date_depart, nb_nuits, montant_total, status, tracking_code, created_at")
+      .eq("status","en_attente")
+      .order("created_at",{ascending:false})
+      .limit(15);
+
+    if(error) throw error;
+    const rows = data || [];
+    if(!rows.length){
+      showNote("notePending","Aucune réservation en attente.");
+      return;
+    }
+
+    rows.forEach(r=>{
+      const div=document.createElement("div");
+      div.className="item";
+      div.innerHTML = `
+        <div class="itemTop">
+          <div class="itemTitle">${esc(r.client_nom||"Client")} <span class="tag warn">EN ATTENTE</span></div>
+          <div class="tag">${esc(r.tracking_code||"—")}</div>
+        </div>
+        <div class="itemMeta">
+          📅 ${esc(r.date_arrivee||"—")} → ${esc(r.date_depart||"—")} (${esc(r.nb_nuits||0)} nuits)<br>
+          📞 ${esc(r.client_phone||"—")} • 💰 ${esc(fmtMoney(r.montant_total))}
+        </div>
+      `;
+      $("pendingList").appendChild(div);
+    });
+  }catch(e){
+    showNote("notePending","Réservations indisponibles:\n"+(e?.message||e));
+  }
+}
+
+async function loadArrDep(uid){
+  hideNote("noteArrDep");
+  $("arrdepList").innerHTML = "";
+
+  const t = todayISO();
+
+  try{
+    // Si tu as digiy_reservations: on prend arrivées/départs du jour
+    const { data, error } = await SB
+      .from("digiy_reservations")
+      .select("id, client_nom, client_phone, date_arrivee, date_depart, status, montant_total, tracking_code")
+      .or(`date_arrivee.eq.${t},date_depart.eq.${t}`)
+      .order("date_arrivee",{ascending:true})
+      .limit(30);
+
+    if(error) throw error;
+
+    const rows = data || [];
+    if(!rows.length){
+      showNote("noteArrDep","Aucune arrivée/départ aujourd’hui.");
+      return;
+    }
+
+    rows.forEach(r=>{
+      const type = (r.date_arrivee===t) ? "Arrivée" : (r.date_depart===t ? "Départ" : "Jour");
+      const tag = (type==="Arrivée") ? "ok" : "warn";
+      const div=document.createElement("div");
+      div.className="item";
+      div.innerHTML = `
+        <div class="itemTop">
+          <div class="itemTitle">${esc(type)} — ${esc(r.client_nom||"Client")} <span class="tag ${tag}">${esc((r.status||"").toUpperCase())}</span></div>
+          <div class="tag">${esc(r.tracking_code||"—")}</div>
+        </div>
+        <div class="itemMeta">
+          📅 ${esc(r.date_arrivee||"—")} → ${esc(r.date_depart||"—")} • 📞 ${esc(r.client_phone||"—")} • 💰 ${esc(fmtMoney(r.montant_total))}
+        </div>
+      `;
+      $("arrdepList").appendChild(div);
+    });
+
+  }catch(e){
+    showNote("noteArrDep","Arrivées/Départs indisponibles:\n"+(e?.message||e));
+  }
+}
+
+async function loadStats(){
+  hideNote("noteStats");
+  $("stats").innerHTML = "";
+  const t = todayISO();
+
+  try{
+    // Stats rapides (best effort)
+    const [
+      outboxRes,
+      pendRes
+    ] = await Promise.allSettled([
+      SB.from("digiy_loc_outbox").select("id,status").limit(500),
+      SB.from("digiy_reservations").select("id,status,date_arrivee,date_depart").limit(500)
+    ]);
+
+    let queued=0,sent=0,failed=0,arr=0,dep=0,pend=0;
+
+    if(outboxRes.status==="fulfilled" && !outboxRes.value.error){
+      const rows = outboxRes.value.data || [];
+      queued = rows.filter(r=>r.status==="queued"||r.status==="sending").length;
+      sent = rows.filter(r=>r.status==="sent").length;
+      failed = rows.filter(r=>r.status==="failed").length;
+    }
+
+    if(pendRes.status==="fulfilled" && !pendRes.value.error){
+      const rows = pendRes.value.data || [];
+      pend = rows.filter(r=>r.status==="en_attente").length;
+      arr = rows.filter(r=>r.date_arrivee===t).length;
+      dep = rows.filter(r=>r.date_depart===t).length;
+    }
+
+    const cards = [
+      ["Arrivées", arr],
+      ["Départs", dep],
+      ["En attente", pend],
+      ["Pulse à venir", queued],
+      ["Pulse échecs", failed],
+      ["Pulse envoyés", sent],
+    ];
+
+    cards.forEach(([lbl,val])=>{
+      const d=document.createElement("div");
+      d.className="stat";
+      d.innerHTML = `<div class="num">${val}</div><div class="lbl">${esc(lbl)}</div>`;
+      $("stats").appendChild(d);
+    });
+
+  }catch(e){
+    showNote("noteStats","Résumé indisponible:\n"+(e?.message||e));
+  }
+}
+
+/* =============================
+   BOOT
+============================= */
+async function refreshAll(){
+  const user = await getUser();
+  pillUser(user);
+
+  if(!user){
+    showNote("noteStats","Connecte-toi d’abord (via ta page propriétaire).");
+    showNote("notePulse","Connecte-toi d’abord.");
+    showNote("notePay","Connecte-toi d’abord.");
+    showNote("noteArrDep","Connecte-toi d’abord.");
+    showNote("notePending","Connecte-toi d’abord.");
+    return;
+  }
+
+  await Promise.allSettled([
+    loadStats(),
+    loadPulse(),
+    loadPayments(user.id),
+    loadArrDep(user.id),
+    loadPendingReservations(user.id),
+  ]);
+}
+
+document.getElementById("btnRefresh").onclick = refreshAll;
+
+// refresh sur changement session
+SB.auth.onAuthStateChange(()=> refreshAll());
+
+// start
+refreshAll();
+</script>
+</body>
+</html>
