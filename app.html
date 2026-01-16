@@ -1,1224 +1,449 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>DIGIY LOC PRO — Gestion Location</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>DIGIY LOC PRO ♾️ — Cockpit</title>
+  <meta name="theme-color" content="#0b1020" />
 
+  <!-- Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- ✅ Guard (cache-bust) -->
-  <script src="./guard.js?v=locpro-2"></script>
+  <script src="./guard.js?v=locpro-final"></script>
 
   <style>
     :root{
-      --bg:#061b14;
-      --bg2:#0a2820;
-      --card:#052e16;
-      --accent:#facc15;
-      --success:#22c55e;
+      --bg:#020617;
+      --bg2:#0b1020;
+      --card:rgba(255,255,255,.03);
+      --line:#1f2937;
+      --ink:#f9fafb;
+      --muted:#cbd5f5;
+      --gold:#facc15;
+      --green:#22c55e;
       --danger:#ef4444;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --border:rgba(148,163,184,0.2);
+      --shadow:0 22px 50px rgba(0,0,0,.55);
+      --soft:rgba(255,255,255,.04);
     }
-    *{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box}
     body{
-      margin:0;
-      font-family:system-ui,sans-serif;
-      background:linear-gradient(135deg,var(--bg),var(--bg2));
-      color:var(--text);
-      min-height:100vh;
+      margin:0; min-height:100vh; color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:
+        radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
+        radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
     }
-    .container{max-width:1400px;margin:0 auto;padding:1rem}
-
-    /* HEADER */
-    .header{
-      background:rgba(255,255,255,0.05);
-      backdrop-filter:blur(20px);
-      padding:1.5rem;
-      border-radius:16px;
-      margin-bottom:1.5rem;
-      border:1px solid var(--border);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:1rem;
-    }
-    .header h1{
-      font-size:1.8rem;
-      margin:0;
-      background:linear-gradient(135deg,#10b981,#06d6a0);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    .header-actions{display:flex;gap:0.5rem;flex-wrap:wrap;}
-
-    /* TABS */
-    .tabs{
-      display:flex;
-      gap:0.5rem;
-      margin-bottom:1.5rem;
-      overflow-x:auto;
-      padding-bottom:0.5rem;
-    }
-    .tab{
-      padding:0.75rem 1.5rem;
-      background:rgba(255,255,255,0.05);
-      border:1px solid var(--border);
-      border-radius:12px;
-      cursor:pointer;
-      transition:all 0.2s;
-      white-space:nowrap;
-      font-weight:600;
-      font-size:0.9rem;
-    }
-    .tab:hover{background:rgba(255,255,255,0.1);border-color:var(--accent);}
-    .tab.active{background:var(--accent);color:#000;border-color:var(--accent);}
-
-    /* CONTENT */
-    .content{display:none}
-    .content.active{display:block}
-
-    /* CARDS */
-    .card{
-      background:rgba(255,255,255,0.05);
-      backdrop-filter:blur(20px);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:1.5rem;
-      margin-bottom:1rem;
-    }
-    .card h2{
-      font-size:1.3rem;
-      margin:0 0 1rem;
-      color:var(--accent);
-    }
-
-    /* STATS */
-    .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:1rem;
-      margin-bottom:1.5rem;
-    }
-    .stat-card{
-      background:rgba(255,255,255,0.05);
-      padding:1.5rem;
-      border-radius:12px;
-      border:1px solid var(--border);
-    }
-    .stat-label{
-      font-size:0.85rem;
-      color:var(--muted);
-      margin-bottom:0.5rem;
-      font-weight:600;
-      text-transform:uppercase;
-    }
-    .stat-value{
-      font-size:2rem;
-      font-weight:900;
-      color:var(--accent);
-    }
-
-    /* BUTTONS */
-    .btn{
-      padding:0.75rem 1.5rem;
-      border:none;
-      border-radius:10px;
-      font-size:0.9rem;
-      font-weight:700;
-      cursor:pointer;
-      transition:all 0.2s;
-      display:inline-flex;
-      align-items:center;
-      gap:0.5rem;
-    }
-    .btn-primary{background:var(--accent);color:#000;}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(250,204,21,0.3);}
-    .btn-success{background:var(--success);color:#fff;}
-    .btn-danger{background:var(--danger);color:#fff;}
-    .btn-secondary{background:rgba(255,255,255,0.1);color:var(--text);border:1px solid var(--border);}
-
-    /* TABLE */
-    table{width:100%;border-collapse:collapse;}
-    th,td{padding:1rem;text-align:left;border-bottom:1px solid var(--border);}
-    th{font-size:0.85rem;color:var(--muted);font-weight:700;text-transform:uppercase;}
-    td{font-size:0.95rem;}
-    tr:hover{background:rgba(255,255,255,0.05);}
-
-    /* FORM */
-    .form-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-      gap:1rem;
-    }
-    .form-group{display:flex;flex-direction:column;gap:0.5rem;}
-    label{
-      font-size:0.85rem;
-      color:var(--muted);
-      font-weight:600;
-      text-transform:uppercase;
-    }
-    input,textarea,select{
-      padding:0.75rem;
-      border-radius:8px;
-      border:1px solid var(--border);
-      background:rgba(15,23,42,0.8);
-      color:var(--text);
-      font-size:0.95rem;
-      outline:none;
-      transition:all 0.2s;
-    }
-    input:focus,textarea:focus,select:focus{
-      border-color:var(--accent);
-      box-shadow:0 0 0 2px rgba(250,204,21,0.2);
-    }
-    textarea{resize:vertical;min-height:100px;}
-
-    /* BADGE */
-    .badge{
-      display:inline-block;
-      padding:0.25rem 0.75rem;
-      border-radius:6px;
-      font-size:0.75rem;
-      font-weight:700;
-    }
-    .badge-success{background:rgba(34,197,94,0.2);color:var(--success);}
-    .badge-warning{background:rgba(250,204,21,0.2);color:var(--accent);}
-    .badge-danger{background:rgba(239,68,68,0.2);color:var(--danger);}
-
-    /* MODAL */
-    .modal{
-      display:none;
-      position:fixed;
-      top:0;left:0;width:100%;height:100%;
-      background:rgba(0,0,0,0.8);
-      z-index:1000;
-      padding:2rem;
-      overflow-y:auto;
-    }
-    .modal.active{display:flex;align-items:center;justify-content:center;}
-    .modal-content{
+    a{color:inherit}
+    .wrap{max-width:1050px;margin:0 auto;padding:14px}
+    .top{
+      border:1px solid var(--line);
       background:var(--card);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:2rem;
-      max-width:800px;
-      width:100%;
-      max-height:90vh;
-      overflow-y:auto;
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
     }
-    .modal-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:1.5rem;
+    .topRow{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:12px 14px; flex-wrap:wrap;
+      border-bottom:1px solid rgba(148,163,184,.18);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
     }
-    .modal-header h3{font-size:1.5rem;color:var(--accent);margin:0;}
-    .modal-close{
-      font-size:1.5rem;
-      cursor:pointer;
+    .brand{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .logo{
+      width:42px;height:42px;border-radius:16px;
+      background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
+      border:1px solid rgba(250,204,21,.35);
+      box-shadow:0 0 22px rgba(250,204,21,.12);
+      display:grid;place-items:center;color:#061b14;font-weight:1100;
+    }
+    .brand h1{margin:0;font-size:1.08rem;letter-spacing:.2px}
+    .sub{margin-top:2px;color:var(--muted);font-weight:850;font-size:.92rem}
+    .pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .pill{
+      border:1px solid rgba(148,163,184,.35);
+      padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
+      color:var(--muted);font-weight:950;font-size:.86rem;
+    }
+    .pill strong{color:#fff}
+    .pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+    .pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+    .pill.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
+
+    .navRow{
+      padding:12px 14px;
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .navLeft,.navRight{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .navLabel{
       color:var(--muted);
-      background:none;
-      border:none;
-      padding:0.5rem;
+      font-weight:950;
+      font-size:.86rem;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.02);
     }
-    .modal-close:hover{color:var(--text);}
 
-    /* LOGEMENT CARD */
-    .logement-card{
-      background:rgba(255,255,255,0.05);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:1.5rem;
-      margin-bottom:1rem;
-      display:grid;
-      grid-template-columns:200px 1fr auto;
-      gap:1.5rem;
-      align-items:start;
+    .btn{
+      border:0; cursor:pointer;
+      border-radius:14px;
+      padding:11px 12px;
+      font-weight:1000;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      color:var(--muted);
+      transition:all 0.2s ease;
+      text-decoration:none;
+      display:inline-flex; align-items:center; justify-content:center;
+      min-height:44px;
     }
-    .logement-img{width:200px;height:150px;object-fit:cover;border-radius:8px;}
-    .logement-info h3{margin:0 0 0.5rem;color:var(--accent);font-size:1.2rem;}
-    .logement-info p{margin:0.25rem 0;color:var(--muted);font-size:0.9rem;}
-    .logement-actions{display:flex;flex-direction:column;gap:0.5rem;}
+    .btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+    .btn:active:not(:disabled){transform:translateY(0)}
+    .btn:disabled{opacity:0.55;cursor:not-allowed}
+    .btn.primary{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#bbf7d0}
+    .btn.gold{background:rgba(250,204,21,.12);border-color:rgba(250,204,21,.35);color:#fde68a}
+    .btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fecaca}
+    .btn.small{padding:9px 10px;border-radius:12px}
 
-    /* CALENDAR */
-    .cal-wrap{display:flex;gap:1rem;flex-wrap:wrap}
-    .cal-box{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:1rem;
-      background:rgba(255,255,255,0.04);
-      width:100%;
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
     }
-    .cal-head{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:0.5rem;margin-bottom:0.75rem;
+    .cardHead{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(148,163,184,.18);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
     }
-    .cal-grid{
+    .cardHead h2{margin:0;font-size:1.02rem}
+    .cardHead small{color:var(--muted);font-weight:850}
+    .cardBody{padding:14px}
+
+    .note{
+      margin-top:10px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      white-space:pre-wrap;
+      display:none;
+      font-weight:900;
+    }
+    .note.ok{display:block;border-color:rgba(34,197,94,.35);color:#bbf7d0;background:rgba(34,197,94,.09)}
+    .note.bad{display:block;border-color:rgba(239,68,68,.35);color:#fecaca;background:rgba(239,68,68,.09)}
+    .note.warn{display:block;border-color:rgba(250,204,21,.35);color:#fde68a;background:rgba(250,204,21,.09)}
+
+    .kv{display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:start}
+    @media (max-width:520px){ .kv{grid-template-columns:1fr} }
+    .k{color:var(--muted);font-weight:950}
+    .v{font-weight:1000}
+
+    .quick{
       display:grid;
-      grid-template-columns:repeat(7,1fr);
-      gap:0.5rem;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:10px;
+      margin-top:10px;
     }
-    .cal-dow{
-      font-size:0.75rem;color:var(--muted);
-      text-transform:uppercase;font-weight:700;
+
+    .footer{
+      margin-top:14px;
+      color:rgba(203,213,245,.75);
+      font-weight:900;
       text-align:center;
-      padding:0.25rem 0;
+      padding:10px 0 2px;
     }
-    .cal-day{
-      border:1px solid var(--border);
-      border-radius:10px;
-      background:rgba(0,0,0,0.15);
-      padding:0.6rem 0.5rem;
-      min-height:64px;
-    }
-    .cal-day .n{font-weight:800}
-    .cal-day .mini{font-size:0.75rem;color:var(--muted);margin-top:0.2rem}
-    .cal-day.busy{border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.10)}
-    .cal-day.free{border-color:rgba(34,197,94,0.25)}
-    .cal-day.off{opacity:0.35}
 
-    @media(max-width:768px){
-      .container{padding:0.5rem}
-      .header{padding:1rem}
-      .header h1{font-size:1.3rem}
-      .stats-grid{grid-template-columns:1fr}
-      .logement-card{grid-template-columns:1fr;gap:1rem;}
-      .logement-img{width:100%;height:200px}
-      .form-grid{grid-template-columns:1fr}
-      table{font-size:0.85rem}
-      th,td{padding:0.5rem}
+    .spinner{
+      display:inline-block;
+      width:16px;height:16px;
+      border:2px solid rgba(255,255,255,.2);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin 0.6s linear infinite;
+      margin-right:8px;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media (max-width:720px){
+      .wrap{padding:12px}
+      .btn{width:100%}
+      .navRight .btn{width:100%}
+      .navLeft,.navRight{width:100%}
     }
   </style>
 </head>
 
 <body>
+  <div class="wrap">
 
-<div class="container">
-  <!-- HEADER -->
-  <div class="header">
-    <div>
-      <h1>🏠 DIGIY LOC PRO</h1>
-      <p style="margin:0.5rem 0 0;color:var(--muted);font-size:0.9rem">
-        <span id="userName">Gestionnaire</span> ·
-        <span id="userPhone">—</span>
-      </p>
-    </div>
-    <div class="header-actions">
-      <button class="btn btn-primary" onclick="openAddLogement()">
-        ➕ Ajouter un logement
-      </button>
-      <button class="btn btn-secondary" onclick="logout()">
-        🚪 Déconnexion
-      </button>
-    </div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('dashboard', event)">📊 Dashboard</div>
-    <div class="tab" onclick="switchTab('logements', event)">🏠 Mes logements</div>
-    <div class="tab" onclick="switchTab('reservations', event)">📅 Réservations</div>
-    <div class="tab" onclick="switchTab('calendrier', event)">📆 Calendrier</div>
-    <div class="tab" onclick="switchTab('stats', event)">📈 Statistiques</div>
-  </div>
-
-  <!-- CONTENT: DASHBOARD -->
-  <div id="dashboard" class="content active">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Revenus ce mois</div>
-        <div class="stat-value" id="revenusMois">0 F</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Taux d'occupation</div>
-        <div class="stat-value" id="tauxOccupation">0%</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Réservations actives</div>
-        <div class="stat-value" id="resasActives">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Logements actifs</div>
-        <div class="stat-value" id="logementsActifs">0</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>📅 Prochaines arrivées</h2>
-      <div id="prochainesArrivees">
-        <p style="color:var(--muted)">Chargement...</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>⏳ Demandes en attente</h2>
-      <div id="demandesAttente">
-        <p style="color:var(--muted)">Chargement...</p>
-      </div>
-    </div>
-
-    <!-- (OPTIONNEL) PULSE TEST -->
-    <div class="card">
-      <h2>📲 Pulse (Test rapide)</h2>
-      <p style="color:var(--muted);margin-bottom:1rem">
-        Test d’envoi via l’API. (Tu peux désactiver dans le script si tu veux.)
-      </p>
-      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-secondary" onclick="pulseTest()">🚀 Envoyer test WhatsApp</button>
-        <span id="pulseMsg" style="color:var(--muted)"></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTENT: LOGEMENTS -->
-  <div id="logements" class="content">
-    <div class="card">
-      <h2>🏠 Mes logements</h2>
-      <div id="listeLogements"></div>
-    </div>
-  </div>
-
-  <!-- CONTENT: RÉSERVATIONS -->
-  <div id="reservations" class="content">
-    <div class="card">
-      <h2>📅 Toutes les réservations</h2>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Logement</th>
-              <th>Dates</th>
-              <th>Montant</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="tableReservations">
-            <tr>
-              <td colspan="6" style="text-align:center;color:var(--muted)">
-                Chargement...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTENT: CALENDRIER -->
-  <div id="calendrier" class="content">
-    <div class="card">
-      <h2>📆 Calendrier de disponibilité</h2>
-      <div id="calendarView">
-        <p style="color:var(--muted)">Chargement...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTENT: STATS -->
-  <div id="stats" class="content">
-    <div class="card">
-      <h2>📈 Statistiques détaillées</h2>
-      <div id="statsDetails">
-        <p>Statistiques à venir...</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: AJOUTER LOGEMENT -->
-<div id="modalAddLogement" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>➕ Ajouter un logement</h3>
-      <button class="modal-close" onclick="closeModal('modalAddLogement')">✕</button>
-    </div>
-
-    <form id="formAddLogement" onsubmit="saveLogement(event)">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Nom du logement *</label>
-          <input type="text" name="nom" required placeholder="Ex: CHEZ BAPTISTE">
+    <div class="top">
+      <div class="topRow">
+        <div class="brand">
+          <div class="logo">∞</div>
+          <div>
+            <h1>DIGIY LOC PRO — Cockpit</h1>
+            <div class="sub">Gère tes logements, réservations et paiements en toute simplicité.</div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Adresse *</label>
-          <input type="text" name="adresse" required placeholder="Saly, Sénégal">
-        </div>
-
-        <div class="form-group">
-          <label>Personnes max *</label>
-          <input type="number" name="personnes_max" required min="1" value="4">
-        </div>
-
-        <div class="form-group">
-          <label>Prix nuit (FCFA) *</label>
-          <input type="number" name="prix_nuit" required placeholder="30000">
-        </div>
-
-        <div class="form-group">
-          <label>Prix semaine (FCFA)</label>
-          <input type="number" name="prix_semaine" placeholder="175000">
-        </div>
-
-        <div class="form-group">
-          <label>Prix mois (FCFA)</label>
-          <input type="number" name="prix_mois" placeholder="550000">
+        <div class="pills">
+          <div class="pill" id="pillUser">👤 <strong>—</strong></div>
+          <div class="pill warn" id="pillState">🔒 Connexion requise</div>
+          <button class="btn small danger" id="btnLogout" style="display:none">🚪 Se déconnecter</button>
         </div>
       </div>
 
-      <div class="form-group" style="margin-top:1rem">
-        <label>Description</label>
-        <textarea name="description" placeholder="Quartier calme, Sénélec en sus, etc."></textarea>
-      </div>
+      <div class="navRow">
+        <div class="navLeft">
+          <a class="btn small" id="btnBack" href="./index.html">⬅️ Retour</a>
+          <div class="navLabel" id="navSlug">slug: —</div>
+        </div>
 
-      <div class="form-group" style="margin-top:1rem">
-        <label>URL Photo</label>
-        <input type="url" name="photo_url" placeholder="https://...">
+        <div class="navRight">
+          <a class="btn small" id="goToday" href="./today.html">📅 Vue du jour</a>
+          <a class="btn small gold" id="goLogements" href="./index.html">📋 Logements</a>
+          <a class="btn small" id="goPlanning" href="./planning.html">🗓️ Planning</a>
+          <a class="btn small" id="goPulse" href="./proprio-loc.html">📲 Pulse</a>
+          <a class="btn small" id="goLinks" href="./manage-links.html">🔗 Liens & QR</a>
+          <a class="btn small" id="goHealth" href="./health-loc.html">🧪 Diagnostic</a>
+        </div>
       </div>
+    </div>
 
-      <div style="margin-top:1.5rem;display:flex;gap:0.5rem;justify-content:flex-end">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modalAddLogement')">
-          Annuler
-        </button>
-        <button type="submit" class="btn btn-primary">
-          💾 Enregistrer
-        </button>
-      </div>
-    </form>
+    <div class="grid">
+
+      <!-- LEFT: Vue rapide -->
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2>⚡ Vue rapide</h2>
+            <small>Lieu + session + repères. (Tu sais toujours où tu es.)</small>
+          </div>
+          <button class="btn small" id="btnRefresh">↻ Actualiser</button>
+        </div>
+        <div class="cardBody">
+
+          <div class="kv">
+            <div class="k">Lieu</div>
+            <div class="v" id="kvSlug">—</div>
+
+            <div class="k">Téléphone</div>
+            <div class="v" id="kvPhone">—</div>
+
+            <div class="k">Owner ID</div>
+            <div class="v" id="kvOwner">—</div>
+
+            <div class="k">Session</div>
+            <div class="v" id="kvSession">—</div>
+
+            <div class="k">Commission</div>
+            <div class="v">0%</div>
+
+            <div class="k">Paiement</div>
+            <div class="v">Direct Wave</div>
+          </div>
+
+          <div class="quick">
+            <a class="btn primary" id="ctaLogements" href="./index.html">📋 Gérer mes logements</a>
+            <a class="btn" id="ctaPlanning" href="./planning.html">🗓️ Voir mon planning</a>
+            <a class="btn" id="ctaPulse" href="./proprio-loc.html">📲 Ouvrir Pulse</a>
+            <a class="btn gold" id="ctaPublic" href="./go-pin.html">👁️ GO PIN public</a>
+          </div>
+
+          <div class="note warn" id="noteMain"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Aide terrain -->
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2>🧭 Mode terrain</h2>
+            <small>Messages simples + actions sûres. Zéro panique.</small>
+          </div>
+        </div>
+        <div class="cardBody">
+
+          <div class="note ok" id="noteTips" style="display:block">
+✅ Rappel : le client paie directement au propriétaire.
+DIGIY ne prend aucune commission.
+
+Si quelque chose paraît “bizarre” :
+1) clique “Diagnostic”
+2) puis reconnecte-toi avec ton PIN.
+          </div>
+
+          <div class="note" id="noteSmall"></div>
+
+          <div style="margin-top:10px;color:rgba(203,213,245,.75);font-weight:900;line-height:1.4">
+            💡 Conseils rapides :
+            <br>• Pour être visible : mets ton logement “En ligne”.
+            <br>• Pour bloquer des dates : utilise le calendrier du logement.
+            <br>• Pour les avances : tu confirmes les preuves Wave dans “Logements”.
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <div class="footer">DIGIY LOC PRO — 0% commission • paiement direct • souverain ♾️</div>
   </div>
-</div>
 
 <script>
-/* =============================
-   SUPABASE (ANON)
-============================= */
-const SUPABASE_CONFIG = {
-  url: "https://wesqmwjjtsefyjnluosj.supabase.co",
-  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA"
-};
-const sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+(function(){
+  "use strict";
 
-/* =============================
-   CONFIG TABLES / FIELDS (ADAPTE ICI SI BESOIN)
-============================= */
-const DB = {
-  rooms: "digiy_loc_rooms",
-  reservations: "digiy_loc_reservations",
+  const $ = (id)=>document.getElementById(id);
 
-  // champs rooms
-  roomOwnerId: "owner_id",
-  roomTitle: "nom",
-  roomAddress: "adresse",
-  roomMaxPeople: "personnes_max",
-  roomPriceNight: "prix_nuit",
-  roomPriceWeek: "prix_semaine",
-  roomPriceMonth: "prix_mois",
-  roomDesc: "description",
-  roomPhoto: "photo_url",
-  roomStatus: "status",
+  // slug (priorité URL -> fallback guard localStorage)
+  const url = new URL(location.href);
+  const SLUG = (url.searchParams.get("slug") || "").trim();
 
-  // champs reservations
-  resOwnerId: "owner_id",
-  resRoomId: "room_id",
-  resClientName: "client_name",
-  resPhone: "phone",
-  resCheckin: "checkin",
-  resCheckout: "checkout",
-  resAmount: "amount_total",
-  resStatus: "status",
-  resPayStatus: "payment_status",
-};
+  function safe(v){ return (v===null || v===undefined) ? "" : String(v); }
 
-/* =============================
-   PULSE API (OPTIONNEL)
-============================= */
-const PULSE = {
-  enabled: true,
-  base: "https://api.digiylyfe.com",
-  apiKey: "",
-  endpoint: "/loc/pulse/send"
-};
-
-/* =============================
-   STATE
-============================= */
-const State = {
-  user: null,        // { id: owner_id }
-  ownerId: null,     // string
-  phone: "",
-  business_code: "TEST",
-  rooms: [],
-  reservations: [],
-  _calRoom: null
-};
-
-/* =============================
-   HELPERS
-============================= */
-function moneyFCFA(x){
-  const n = Number(x || 0);
-  return n.toLocaleString("fr-FR") + " F";
-}
-function fmtDate(d){
-  if(!d) return "—";
-  try { return new Date(d).toLocaleDateString("fr-FR"); } catch { return String(d); }
-}
-function startOfMonth(dt){ return new Date(dt.getFullYear(), dt.getMonth(), 1); }
-function endOfMonth(dt){ return new Date(dt.getFullYear(), dt.getMonth()+1, 0); }
-function ymd(dt){
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,"0");
-  const d = String(dt.getDate()).padStart(2,"0");
-  return `${y}-${m}-${d}`;
-}
-function todayYMD(){
-  const t = new Date();
-  return ymd(new Date(t.getFullYear(), t.getMonth(), t.getDate()));
-}
-function badgeForStatus(res){
-  const pay = (res?.[DB.resPayStatus] || "").toLowerCase();
-  const st = (res?.[DB.resStatus] || "").toLowerCase();
-
-  if(pay === "paid" || pay === "succeeded") return `<span class="badge badge-success">Payé</span>`;
-  if(pay === "pending" || pay === "requires_payment" || pay === "unpaid") return `<span class="badge badge-warning">Paiement en attente</span>`;
-
-  if(st.includes("pending")) return `<span class="badge badge-warning">En attente</span>`;
-  if(st.includes("confirm")) return `<span class="badge badge-success">Confirmée</span>`;
-  if(st.includes("cancel")) return `<span class="badge badge-danger">Annulée</span>`;
-  return `<span class="badge badge-warning">${res?.[DB.resStatus] || "—"}</span>`;
-}
-
-/* =============================
-   UI
-============================= */
-function switchTab(tabName, ev) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-  if(ev && ev.target) ev.target.classList.add('active');
-
-  const el = document.getElementById(tabName);
-  if(el) el.classList.add('active');
-
-  if (tabName === 'logements') loadLogements();
-  if (tabName === 'reservations') loadReservations();
-  if (tabName === 'calendrier') loadCalendar();
-}
-function openAddLogement() {
-  document.getElementById('modalAddLogement').classList.add('active');
-}
-function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove('active');
-}
-
-/* =============================
-   ✅ AUTH / CONTEXT (PIN GUARD)
-   LOC PRO = pas Supabase Auth
-============================= */
-async function resolveUser() {
-  const sess = window.DIGIY_GUARD?.getSession?.() || null;
-  if (sess?.owner_id) return { id: sess.owner_id }; // ✅ source de vérité
-
-  // fallback si un jour Supabase Auth est activé
-  try{
-    const { data } = await sb.auth.getSession();
-    const user = data?.session?.user || null;
-    if(user?.id) return user;
-  }catch(_){}
-
-  return null;
-}
-
-function hydrateHeader() {
-  const phoneEl = document.getElementById("userPhone");
-  if(phoneEl) phoneEl.textContent = State.phone || "—";
-
-  const nameEl = document.getElementById("userName");
-  if(nameEl) nameEl.textContent = "Gestionnaire";
-}
-
-/* =============================
-   DB CALLS (owner_id = State.ownerId)
-============================= */
-async function fetchRooms() {
-  const ownerId = State.ownerId;
-  if(!ownerId) return [];
-
-  const { data, error } = await sb
-    .from(DB.rooms)
-    .select("*")
-    .eq(DB.roomOwnerId, ownerId)
-    .order("created_at", { ascending: false });
-
-  if(error) throw error;
-  return data || [];
-}
-
-async function fetchReservations() {
-  const ownerId = State.ownerId;
-  if(!ownerId) return [];
-
-  const { data, error } = await sb
-    .from(DB.reservations)
-    .select("*")
-    .eq(DB.resOwnerId, ownerId)
-    .order(DB.resCheckin, { ascending: true })
-    .limit(200);
-
-  if(error) throw error;
-  return data || [];
-}
-
-function roomNameById(id) {
-  const r = State.rooms.find(x => String(x.id) === String(id));
-  return r?.[DB.roomTitle] || r?.title || "—";
-}
-
-/* =============================
-   RENDER: LOGEMENTS
-============================= */
-function renderRooms(list) {
-  const container = document.getElementById('listeLogements');
-  if(!container) return;
-
-  if(!list.length){
-    container.innerHTML = `<p style="color:var(--muted)">Aucun logement. Clique “Ajouter un logement”.</p>`;
-    return;
+  // withSlug : priorise guard.js si dispo (meilleure gestion)
+  function withSlug(path){
+    if (window.DIGIY_GUARD?.withSlug) return window.DIGIY_GUARD.withSlug(path);
+    const s = SLUG;
+    if(!s) return path;
+    const u = new URL(path, location.href);
+    if(!u.searchParams.get("slug")) u.searchParams.set("slug", s);
+    return u.toString();
   }
 
-  container.innerHTML = list.map(room => {
-    const title = room?.[DB.roomTitle] || room?.title || "Logement";
-    const addr = room?.[DB.roomAddress] || room?.address || "—";
-    const desc = room?.[DB.roomDesc] || "";
-    const pmax = room?.[DB.roomMaxPeople] ?? room?.max_people ?? "—";
-    const pn = room?.[DB.roomPriceNight] ?? room?.price_per_night ?? 0;
-    const pw = room?.[DB.roomPriceWeek] ?? room?.price_per_week ?? 0;
-    const pm = room?.[DB.roomPriceMonth] ?? room?.price_per_month ?? 0;
-    const img = room?.[DB.roomPhoto] || room?.cover_url || "https://via.placeholder.com/600x400?text=DIGIY+LOC";
-    const status = String(room?.[DB.roomStatus] || room?.status || "actif").toLowerCase();
-    const badge = status.includes("act") ? `<span class="badge badge-success">Actif</span>` : `<span class="badge badge-warning">${status}</span>`;
-
-    return `
-      <div class="logement-card">
-        <img src="${img}" alt="${title}" class="logement-img">
-        <div class="logement-info">
-          <h3>${title}</h3>
-          <p>📍 ${addr}</p>
-          <p>👥 ${pmax} personnes max</p>
-          ${desc ? `<p>${desc}</p>` : `<p style="color:var(--muted)">—</p>`}
-          <p style="margin-top:0.5rem">
-            <strong>Tarifs:</strong><br>
-            Nuit: ${moneyFCFA(pn)}<br>
-            Semaine: ${moneyFCFA(pw)}<br>
-            Mois: ${moneyFCFA(pm)}
-          </p>
-          <p style="margin-top:0.5rem">${badge}</p>
-        </div>
-        <div class="logement-actions">
-          <button class="btn btn-secondary" onclick="openEditLogement('${room.id}')">✏️ Modifier</button>
-          <button class="btn btn-secondary" onclick="goCalendarRoom('${room.id}')">📅 Calendrier</button>
-          <button class="btn btn-danger" onclick="deleteLogement('${room.id}')">🗑️ Supprimer</button>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-async function loadLogements() {
-  try{
-    State.rooms = await fetchRooms();
-    renderRooms(State.rooms);
-
-    const actifs = State.rooms.filter(r => String(r?.[DB.roomStatus] || r?.status || "actif").toLowerCase().includes("act")).length;
-    const el = document.getElementById("logementsActifs");
-    if(el) el.textContent = String(actifs);
-  }catch(e){
-    console.error(e);
-    document.getElementById('listeLogements').innerHTML =
-      `<p style="color:var(--danger)">Erreur chargement logements: ${e.message || e}</p>`;
-  }
-}
-
-/* =============================
-   CRUD: LOGEMENT
-============================= */
-async function saveLogement(e) {
-  e.preventDefault();
-
-  try{
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-
-    const payload = {
-      [DB.roomOwnerId]: State.ownerId, // ✅ owner_id (PIN)
-      [DB.roomTitle]: (data.nom || "").trim(),
-      [DB.roomAddress]: (data.adresse || "").trim(),
-      [DB.roomMaxPeople]: Number(data.personnes_max || 1),
-      [DB.roomPriceNight]: Number(data.prix_nuit || 0),
-      [DB.roomPriceWeek]: data.prix_semaine ? Number(data.prix_semaine) : null,
-      [DB.roomPriceMonth]: data.prix_mois ? Number(data.prix_mois) : null,
-      [DB.roomDesc]: (data.description || "").trim() || null,
-      [DB.roomPhoto]: (data.photo_url || "").trim() || null,
-      [DB.roomStatus]: "actif",
-      phone: State.phone || null,
-      business_code: State.business_code || null,
-    };
-
-    const { error } = await sb.from(DB.rooms).insert(payload);
-    if(error) throw error;
-
-    alert("✅ Logement enregistré !");
-    closeModal('modalAddLogement');
-    e.target.reset();
-
-    await loadLogements();
-    await loadDashboard();
-  }catch(err){
-    console.error(err);
-    alert("❌ Erreur: " + (err?.message || err));
-  }
-}
-
-function openEditLogement(roomId){
-  const room = State.rooms.find(r => String(r.id) === String(roomId));
-  if(!room) return alert("Logement introuvable");
-
-  const newName = prompt("Nom du logement :", room?.[DB.roomTitle] || room?.title || "");
-  if(newName === null) return;
-
-  const newAddr = prompt("Adresse :", room?.[DB.roomAddress] || room?.address || "");
-  if(newAddr === null) return;
-
-  updateLogement(roomId, {
-    [DB.roomTitle]: newName.trim(),
-    [DB.roomAddress]: newAddr.trim()
-  });
-}
-
-async function updateLogement(roomId, patch){
-  try{
-    const { error } = await sb
-      .from(DB.rooms)
-      .update(patch)
-      .eq("id", roomId)
-      .eq(DB.roomOwnerId, State.ownerId); // ✅ sécurité
-
-    if(error) throw error;
-    await loadLogements();
-    alert("✅ Modifié !");
-  }catch(e){
-    console.error(e);
-    alert("❌ " + (e?.message || e));
-  }
-}
-
-async function deleteLogement(roomId){
-  if(!confirm("Supprimer ce logement ?")) return;
-  try{
-    const { error } = await sb
-      .from(DB.rooms)
-      .delete()
-      .eq("id", roomId)
-      .eq(DB.roomOwnerId, State.ownerId); // ✅ sécurité
-
-    if(error) throw error;
-    await loadLogements();
-    alert("✅ Supprimé !");
-  }catch(e){
-    console.error(e);
-    alert("❌ " + (e?.message || e));
-  }
-}
-
-function goCalendarRoom(roomId){
-  switchTab("calendrier", null);
-  loadCalendar(roomId);
-}
-
-/* =============================
-   RENDER: RESERVATIONS
-============================= */
-function renderReservations(list){
-  const tb = document.getElementById("tableReservations");
-  if(!tb) return;
-
-  if(!list.length){
-    tb.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align:center;color:var(--muted)">Aucune réservation</td>
-      </tr>`;
-    return;
+  // applique slug aux liens (anti 404 + anti “slug: —”)
+  function applySlugToLinks(){
+    const ids = ["btnBack","goToday","goLogements","goPlanning","goPulse","goLinks","goHealth","ctaLogements","ctaPlanning","ctaPulse","ctaPublic"];
+    ids.forEach(id=>{
+      const el = $(id);
+      if(!el) return;
+      const href = el.getAttribute("href");
+      if(!href) return;
+      el.setAttribute("href", withSlug(href));
+    });
+    $("navSlug").textContent = "slug: " + (SLUG || window.DIGIY_GUARD?.getSlug?.() || "—");
   }
 
-  tb.innerHTML = list.map(r => {
-    const client = r?.[DB.resClientName] || "Client";
-    const logement = roomNameById(r?.[DB.resRoomId]);
-    const dates = `${fmtDate(r?.[DB.resCheckin])} → ${fmtDate(r?.[DB.resCheckout])}`;
-    const amount = moneyFCFA(r?.[DB.resAmount]);
-    const status = badgeForStatus(r);
-
-    return `
-      <tr>
-        <td>${client}<div style="color:var(--muted);font-size:0.85rem">${r?.[DB.resPhone] || ""}</div></td>
-        <td>${logement}</td>
-        <td>${dates}</td>
-        <td><strong>${amount}</strong></td>
-        <td>${status}</td>
-        <td>
-          <button class="btn btn-secondary" style="padding:0.5rem 0.8rem" onclick="viewReservation('${r.id}')">👁️</button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function viewReservation(resId){
-  const r = State.reservations.find(x => String(x.id) === String(resId));
-  if(!r) return alert("Réservation introuvable");
-
-  const lines = [
-    `Client: ${r?.[DB.resClientName] || "—"}`,
-    `Tel: ${r?.[DB.resPhone] || "—"}`,
-    `Logement: ${roomNameById(r?.[DB.resRoomId])}`,
-    `Dates: ${fmtDate(r?.[DB.resCheckin])} → ${fmtDate(r?.[DB.resCheckout])}`,
-    `Montant: ${moneyFCFA(r?.[DB.resAmount])}`,
-    `Status: ${r?.[DB.resStatus] || "—"}`,
-    `Paiement: ${r?.[DB.resPayStatus] || "—"}`
-  ];
-  alert(lines.join("\n"));
-}
-
-async function loadReservations(){
-  try{
-    if(!State.rooms.length) State.rooms = await fetchRooms();
-    State.reservations = await fetchReservations();
-    renderReservations(State.reservations);
-    await loadDashboard();
-  }catch(e){
-    console.error(e);
-    const tb = document.getElementById("tableReservations");
-    if(tb) tb.innerHTML =
-      `<tr><td colspan="6" style="text-align:center;color:var(--danger)">Erreur: ${e.message || e}</td></tr>`;
+  function showNote(id, msg, cls){
+    const el = $(id);
+    if(!el) return;
+    el.className = "note " + (cls || "warn");
+    el.textContent = msg;
+    el.style.display = msg ? "block" : "none";
   }
-}
 
-/* =============================
-   DASHBOARD (KPIs + listes)
-============================= */
-function reservationIsActive(r){
-  const st = String(r?.[DB.resStatus] || "").toLowerCase();
-  if(st.includes("cancel")) return false;
-
-  const t = todayYMD();
-  const ci = String(r?.[DB.resCheckin] || "").slice(0,10);
-  const co = String(r?.[DB.resCheckout] || "").slice(0,10);
-  return ci && co && t >= ci && t < co;
-}
-function reservationIsUpcoming(r){
-  const t = todayYMD();
-  const ci = String(r?.[DB.resCheckin] || "").slice(0,10);
-  return ci && ci >= t;
-}
-function reservationIsPending(r){
-  const st = String(r?.[DB.resStatus] || "").toLowerCase();
-  const pay = String(r?.[DB.resPayStatus] || "").toLowerCase();
-  return st.includes("pending") || pay.includes("pending") || pay.includes("requires");
-}
-
-async function loadDashboard(){
-  try{
-    if(!State.rooms.length) State.rooms = await fetchRooms();
-    if(!State.reservations.length) State.reservations = await fetchReservations();
-
-    const now = new Date();
-    const mStart = startOfMonth(now);
-    const mEnd = endOfMonth(now);
-    const mStartY = ymd(mStart);
-    const mEndY = ymd(mEnd);
-
-    let revenus = 0;
-    let activeCount = 0;
-    let upcoming = [];
-    let pending = [];
-
-    const daysInMonth = mEnd.getDate();
-    const busyDays = new Set(); // roomId|yyyy-mm-dd
-
-    for(const r of State.reservations){
-      const pay = String(r?.[DB.resPayStatus] || "").toLowerCase();
-      const ci = String(r?.[DB.resCheckin] || "").slice(0,10);
-      const co = String(r?.[DB.resCheckout] || "").slice(0,10);
-      const roomId = r?.[DB.resRoomId];
-
-      if(ci >= mStartY && ci <= mEndY && (pay === "paid" || pay === "succeeded")){
-        revenus += Number(r?.[DB.resAmount] || 0);
-      }
-
-      if(reservationIsActive(r)) activeCount++;
-      if(reservationIsUpcoming(r)) upcoming.push(r);
-      if(reservationIsPending(r)) pending.push(r);
-
-      if(roomId && ci && co){
-        let d = new Date(ci + "T00:00:00");
-        const end = new Date(co + "T00:00:00");
-        while(d < end){
-          const dy = ymd(d);
-          if(dy >= mStartY && dy <= mEndY) busyDays.add(`${roomId}|${dy}`);
-          d.setDate(d.getDate()+1);
-        }
-      }
-    }
-
-    document.getElementById('revenusMois').textContent = moneyFCFA(revenus);
-    document.getElementById('resasActives').textContent = String(activeCount);
-
-    const actifs = State.rooms.filter(r => String(r?.[DB.roomStatus] || r?.status || "actif").toLowerCase().includes("act")).length;
-    document.getElementById('logementsActifs').textContent = String(actifs);
-
-    const denom = Math.max(1, actifs * daysInMonth);
-    const occ = Math.round((busyDays.size / denom) * 100);
-    document.getElementById('tauxOccupation').textContent = String(occ) + "%";
-
-    upcoming = upcoming
-      .filter(r => !String(r?.[DB.resStatus]||"").toLowerCase().includes("cancel"))
-      .sort((a,b) => String(a?.[DB.resCheckin]).localeCompare(String(b?.[DB.resCheckin])))
-      .slice(0,5);
-
-    const upBox = document.getElementById("prochainesArrivees");
-    if(upBox){
-      upBox.innerHTML = !upcoming.length
-        ? `<p style="color:var(--muted)">Aucune réservation à venir</p>`
-        : upcoming.map(r => `
-          <div style="padding:0.75rem;border-bottom:1px solid var(--border)">
-            <div style="font-weight:800">${r?.[DB.resClientName] || "Client"} — ${roomNameById(r?.[DB.resRoomId])}</div>
-            <div style="color:var(--muted);margin-top:0.2rem">${fmtDate(r?.[DB.resCheckin])} → ${fmtDate(r?.[DB.resCheckout])} · <strong>${moneyFCFA(r?.[DB.resAmount])}</strong></div>
-          </div>
-        `).join("");
-    }
-
-    pending = pending
-      .filter(r => !String(r?.[DB.resStatus]||"").toLowerCase().includes("cancel"))
-      .sort((a,b) => String(a?.[DB.resCheckin]).localeCompare(String(b?.[DB.resCheckin])))
-      .slice(0,5);
-
-    const pBox = document.getElementById("demandesAttente");
-    if(pBox){
-      pBox.innerHTML = !pending.length
-        ? `<p style="color:var(--muted)">Aucune demande en attente</p>`
-        : pending.map(r => `
-          <div style="padding:0.75rem;border-bottom:1px solid var(--border)">
-            <div style="font-weight:800">${r?.[DB.resClientName] || "Client"} — ${roomNameById(r?.[DB.resRoomId])}</div>
-            <div style="color:var(--muted);margin-top:0.2rem">${fmtDate(r?.[DB.resCheckin])} → ${fmtDate(r?.[DB.resCheckout])} · ${badgeForStatus(r)}</div>
-          </div>
-        `).join("");
-    }
-
-  }catch(e){
-    console.error(e);
-  }
-}
-
-/* =============================
-   CALENDAR (mois en cours + jours occupés)
-============================= */
-function buildCalendar(monthDate, reservations, roomIdFilter=null){
-  const view = document.getElementById("calendarView");
-  if(!view) return;
-
-  const monthStart = startOfMonth(monthDate);
-  const monthEnd = endOfMonth(monthDate);
-  const firstDow = (monthStart.getDay() + 6) % 7; // Lundi=0
-  const days = monthEnd.getDate();
-
-  const busy = new Set(); // yyyy-mm-dd
-  for(const r of reservations){
-    if(roomIdFilter && String(r?.[DB.resRoomId]) !== String(roomIdFilter)) continue;
-    const st = String(r?.[DB.resStatus] || "").toLowerCase();
-    if(st.includes("cancel")) continue;
-
-    const ci = String(r?.[DB.resCheckin] || "").slice(0,10);
-    const co = String(r?.[DB.resCheckout] || "").slice(0,10);
-    if(!ci || !co) continue;
-
-    let d = new Date(ci + "T00:00:00");
-    const end = new Date(co + "T00:00:00");
-    while(d < end){
-      const key = ymd(d);
-      if(key.slice(0,7) === ymd(monthStart).slice(0,7)) busy.add(key);
-      d.setDate(d.getDate()+1);
+  function fmtExp(ts){
+    if(!ts) return "—";
+    try{
+      const d = new Date(Number(ts));
+      return d.toLocaleString("fr-FR");
+    }catch(_){
+      return "—";
     }
   }
 
-  const monthLabel = monthStart.toLocaleDateString("fr-FR", { month:"long", year:"numeric" });
-  const dows = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map(x=>`<div class="cal-dow">${x}</div>`).join("");
+  function paintSession(){
+    const sess = window.DIGIY_GUARD?.getSession?.();
 
-  let cells = "";
-  for(let i=0;i<firstDow;i++) cells += `<div class="cal-day off"></div>`;
+    const phone = sess?.phone || "—";
+    const owner = (sess && (sess.owner_id || sess.ownerId)) ? (sess.owner_id || sess.ownerId) : "—";
+    const ok = !!(sess?.ok && sess?.phone);
 
-  for(let day=1; day<=days; day++){
-    const dt = new Date(monthStart.getFullYear(), monthStart.getMonth(), day);
-    const key = ymd(dt);
-    const isBusy = busy.has(key);
-    cells += `
-      <div class="cal-day ${isBusy ? "busy":"free"}">
-        <div class="n">${day}</div>
-        <div class="mini">${isBusy ? "Occupé" : "Libre"}</div>
-      </div>
-    `;
+    $("pillUser").innerHTML = "👤 <strong>" + safe(phone) + "</strong>";
+
+    if(ok){
+      $("pillState").textContent = "✅ Connecté";
+      $("pillState").className = "pill ok";
+      $("btnLogout").style.display = "inline-flex";
+    }else{
+      $("pillState").textContent = "🔒 Connexion requise";
+      $("pillState").className = "pill warn";
+      $("btnLogout").style.display = "none";
+    }
+
+    $("kvSlug").textContent = SLUG || window.DIGIY_GUARD?.getSlug?.() || "—";
+    $("kvPhone").textContent = phone;
+    $("kvOwner").textContent = owner;
+
+    if(ok){
+      $("kvSession").textContent = sess?.exp ? ("OK (expire : " + fmtExp(sess.exp) + ")") : "OK";
+    }else{
+      $("kvSession").textContent = "Session manquante";
+    }
+
+    // Si connecté mais owner_id manquant, on ne bloque pas le cockpit,
+    // mais on affiche un message clair (ça aide à diagnostiquer sans paniquer).
+    if(ok && owner === "—"){
+      showNote("noteMain",
+        "⚠️ Session OK, mais Owner ID est vide.\n" +
+        "➡️ Si tu ne peux pas voir tes logements, déconnecte-toi puis reconnecte-toi avec ton PIN.\n" +
+        "Sinon tu peux continuer.",
+        "warn"
+      );
+    }else{
+      showNote("noteMain", "", "warn");
+    }
   }
 
-  let filterLabel = "";
-  if(roomIdFilter){
-    filterLabel = ` · <span style="color:var(--muted)">Logement: <strong>${roomNameById(roomIdFilter)}</strong></span>`;
+  async function boot(){
+    applySlugToLinks();
+
+    // Si pas de slug, on renvoie vers pin avec explication “humaine”
+    if(!SLUG && window.DIGIY_GUARD?.getSlug?.() === ""){
+      showNote("noteMain",
+        "❌ Il manque le slug (le nom du lieu).\n" +
+        "➡️ Ouvre par exemple : app.html?slug=chez-astou-saly",
+        "bad"
+      );
+    }
+
+    // Boot guard (protège les pages connectées)
+    try{
+      await window.DIGIY_GUARD?.boot?.({
+        module: "LOC",
+        login: "./pin.html",
+        dashboard: "./index.html",
+        requireSlug: true
+      });
+    }catch(e){
+      console.warn(e);
+      showNote("noteMain",
+        "Petit souci technique.\nRéessaie dans quelques secondes.\nDétail: " + (e?.message || e),
+        "warn"
+      );
+    }
+
+    paintSession();
   }
 
-  view.innerHTML = `
-    <div class="cal-wrap">
-      <div class="cal-box">
-        <div class="cal-head">
-          <div style="font-weight:900;text-transform:capitalize">${monthLabel}${filterLabel}</div>
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-            <button class="btn btn-secondary" style="padding:0.5rem 0.8rem" onclick="calPrev()">◀</button>
-            <button class="btn btn-secondary" style="padding:0.5rem 0.8rem" onclick="calNext()">▶</button>
-            ${roomIdFilter ? `<button class="btn btn-secondary" style="padding:0.5rem 0.8rem" onclick="loadCalendar()">Tout voir</button>` : ``}
-          </div>
-        </div>
-        <div class="cal-grid">${dows}${cells}</div>
-      </div>
-    </div>
-  `;
-}
-
-let _calCursor = new Date();
-
-function calPrev(){
-  _calCursor = new Date(_calCursor.getFullYear(), _calCursor.getMonth()-1, 1);
-  buildCalendar(_calCursor, State.reservations, State._calRoom || null);
-}
-function calNext(){
-  _calCursor = new Date(_calCursor.getFullYear(), _calCursor.getMonth()+1, 1);
-  buildCalendar(_calCursor, State.reservations, State._calRoom || null);
-}
-
-async function loadCalendar(roomId=null){
-  try{
-    State._calRoom = roomId || null;
-    if(!State.rooms.length) State.rooms = await fetchRooms();
-    if(!State.reservations.length) State.reservations = await fetchReservations();
-    buildCalendar(_calCursor, State.reservations, roomId);
-  }catch(e){
-    console.error(e);
-    const view = document.getElementById("calendarView");
-    if(view) view.innerHTML = `<p style="color:var(--danger)">Erreur calendrier: ${e.message || e}</p>`;
-  }
-}
-
-/* =============================
-   PULSE TEST (OPTIONNEL)
-============================= */
-async function pulseTest(){
-  const msgEl = document.getElementById("pulseMsg");
-  if(!PULSE.enabled){
-    if(msgEl) msgEl.textContent = "Pulse désactivé.";
-    return;
-  }
-  try{
-    if(msgEl) msgEl.textContent = "Envoi en cours…";
-
-    const headers = { "Content-Type":"application/json" };
-    if(PULSE.apiKey) headers["x-api-key"] = PULSE.apiKey;
-
-    const body = {
-      channel: "whatsapp",
-      phone: State.phone,
-      business_code: State.business_code || "TEST",
-      pulse_kind: "TEST",
-      message: "Test DIGIY PULSE ✅"
-    };
-
-    if(!body.phone) throw new Error("Téléphone introuvable (session).");
-
-    const r = await fetch(PULSE.base + PULSE.endpoint, { method:"POST", headers, body: JSON.stringify(body) });
-    const j = await r.json().catch(()=> ({}));
-    if(!r.ok) throw new Error(j?.error || ("HTTP " + r.status));
-
-    if(msgEl) msgEl.textContent = "✅ Test envoyé";
-  }catch(e){
-    console.error(e);
-    if(msgEl) msgEl.textContent = "❌ " + (e.message || e);
-  }
-}
-
-/* =============================
-   ✅ LOGOUT (Guard)
-============================= */
-function logout() {
-  if (!confirm("Se déconnecter ?")) return;
-  window.DIGIY_GUARD?.logout?.("./pin.html");
-}
-
-/* =============================
-   ✅ GUARD FIRST + INIT
-============================= */
-(async function(){
-  const MODULE = "LOC";
-  const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
-
-  if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.boot !== "function"){
-    console.warn("Guard absent (guard.js non chargé).");
-    return;
-  }
-
-  // 🔒 protège la page (redirige si pas session/slug)
-  const guardRes = await window.DIGIY_GUARD.boot({
-    module: MODULE,
-    dashboard: "./app.html",   // ✅ cette page = cockpit
-    login: "./pin.html",       // ✅ page PIN
-    pay: PAY_URL,
-    requireSlug: true,
-    checkSubscription: true
+  $("btnLogout").addEventListener("click", ()=>{
+    if(!confirm("Se déconnecter maintenant ?")) return;
+    window.DIGIY_GUARD?.logout("./pin.html");
   });
 
-  if(!guardRes?.ok){
-    // boot redirige généralement lui-même; on stop net
-    return;
-  }
-
-  try{
-    const sess = window.DIGIY_GUARD?.getSession?.() || null;
-
-    // ownerId = clé
-    State.user = await resolveUser();
-    State.ownerId = State.user?.id || sess?.owner_id || null;
-
-    if(!State.ownerId){
-      console.warn("owner_id introuvable, retour PIN.");
-      window.location.replace(window.DIGIY_GUARD.withSlug("./pin.html"));
-      return;
+  $("btnRefresh").addEventListener("click", async ()=>{
+    $("btnRefresh").innerHTML = '<span class="spinner"></span>Actualisation...';
+    $("btnRefresh").disabled = true;
+    try{
+      applySlugToLinks();
+      paintSession();
+      showNote("noteSmall", "✅ C’est à jour.", "ok");
+      setTimeout(()=>showNote("noteSmall",""), 1400);
+    }finally{
+      $("btnRefresh").innerHTML = '↻ Actualiser';
+      $("btnRefresh").disabled = false;
     }
+  });
 
-    State.phone = sess?.phone || (window.DIGIY_GUARD.getPhone && window.DIGIY_GUARD.getPhone()) || "";
-    State.business_code = sess?.business_code || sess?.businessCode || "TEST";
-
-    hydrateHeader();
-
-    State.rooms = await fetchRooms();
-    State.reservations = await fetchReservations();
-
-    renderRooms(State.rooms);
-    renderReservations(State.reservations);
-    buildCalendar(_calCursor, State.reservations, null);
-
-    await loadDashboard();
-  }catch(e){
-    console.warn("Init error:", e);
-  }
+  boot();
 })();
 </script>
-
 </body>
 </html>
