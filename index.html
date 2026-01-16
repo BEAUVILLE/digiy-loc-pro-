@@ -901,6 +901,7 @@ async function loadList(){
           <button class="btn gold small" data-open="${item.id}">✏️ Modifier</button>
           <button class="btn small" data-dup="${item.id}">📋 Copier</button>
           <button class="btn ghost small" data-view="${item.id}">👁️ Voir</button>
+          <button class="btn small navBtn" id="goProprio">📲 Pulse / Propriétaire</button>
         </div>
       `;
       listEl.appendChild(div);
@@ -1104,7 +1105,6 @@ async function saveRecord(mode){
   btnPublish.disabled = true;
   btnDraft.disabled = true;
   btnSave.innerHTML = '<span class="spinner"></span> Sauvegarde...';
-
   try{
     if(!current || !current.id){
       const { data, error } = await SB
@@ -1477,11 +1477,17 @@ SB.auth.onAuthStateChange((_event, session)=>{
   }
 });
 
-/* =============================
-   INIT
-============================= */
-refreshSession();
-paintEditor(null);
+<script>
+  /* =============================
+     INIT
+  ============================= */
+  refreshSession();
+  paintEditor(null);
+
+  // navigation vers la page PROPRIO (Pulse)
+  document.getElementById("goProprio")?.addEventListener("click", () => {
+    location.href = withSlug("./proprio-loc.html");
+  });
 </script>
 </body>
 </html>
