@@ -189,12 +189,37 @@ a{color:inherit}
         </div>
         <button class="btn" id="btnRefresh">↻ Recharger</button>
       </div>
+
       <div class="cardBody">
         <div class="kv">
           <div class="k">Lieu</div><div class="v" id="kvSlug">—</div>
           <div class="k">Téléphone</div><div class="v" id="kvPhone">—</div>
           <div class="k">Owner ID</div><div class="v" id="kvOwner">—</div>
           <div class="k">Session</div><div class="v" id="kvSess">—</div>
+        </div>
+
+        <!-- NDIMBAL (cockpit) -->
+        <div class="card" id="ndCard" style="margin-top:12px;display:none;border-radius:16px">
+          <div class="cardHead" style="border-radius:16px">
+            <div>
+              <h2 style="margin:0;font-size:1.02rem">🤍 NDIMBAL</h2>
+              <small id="ndSub" style="color:var(--muted);font-weight:800">
+                Hospitalité +1 nuit (volontaire).
+              </small>
+            </div>
+            <div class="pills">
+              <div class="pill" id="ndStatePill">—</div>
+              <button class="btn small" id="ndToggle">Activer / Désactiver</button>
+            </div>
+          </div>
+
+          <div class="cardBody" style="padding-top:10px">
+            <div class="kv" style="grid-template-columns:160px 1fr">
+              <div class="k">Règle</div><div class="v">1 nuit payée = 2 nuits • 2 = 3</div>
+              <div class="k">Statut</div><div class="v" id="ndStateText">—</div>
+            </div>
+            <div class="note" id="ndNote" style="display:none;margin-top:10px"></div>
+          </div>
         </div>
 
         <div class="note" id="noteMain"></div>
@@ -284,6 +309,145 @@ a{color:inherit}
   if(slug) pub.searchParams.set("slug", slug);
   $("btnPublic").href = pub.toString();
 
+  // =========================
+  // NDIMBAL — Cockpit toggle
+  // =========================
+  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const nd = {
+    card: $("ndCard"),
+    pill: $("ndStatePill"),
+    txt: $("ndStateText"),
+    btn: $("ndToggle"),
+    note: $("ndNote"),
+    sub: $("ndSub"),
+    pinId: null,
+    enabled: false
+  };
+
+  function ndNote(msg, type){
+    if(!nd.note) return;
+    nd.note.style.display = msg ? "block" : "none";
+    nd.note.classList.remove("ok","bad","warn");
+    if(type) nd.note.classList.add(type);
+    nd.note.textContent = msg || "";
+  }
+
+  function ndPaint(){
+    const on = !!nd.enabled;
+
+    if(nd.pill){
+      nd.pill.textContent = on ? "🤍 NDIMBAL ON" : "NDIMBAL OFF";
+      nd.pill.classList.remove("ok","warn");
+      nd.pill.classList.add(on ? "ok" : "warn");
+    }
+    if(nd.txt){
+      nd.txt.textContent = on ? "Actif (badge + priorité terrain)" : "Inactif";
+    }
+    if(nd.sub){
+      nd.sub.textContent = on
+        ? "✅ Mis en avant automatiquement sur le terrain."
+        : "Volontaire. Active pour apparaître en priorité.";
+    }
+    if(nd.btn){
+      nd.btn.textContent = on ? "Désactiver" : "Activer";
+    }
+  }
+
+  async function ndLoad(){
+    const sess = window.DIGIY_GUARD?.getSession?.();
+    if(!slug || !sess?.ok){
+      if(nd.card) nd.card.style.display = "none";
+      return;
+    }
+
+    const ownerId = sess?.owner_id || null;
+
+    if(nd.card) nd.card.style.display = "block";
+    nd.btn.disabled = true;
+    ndNote("⏳ Chargement NDIMBAL…", "warn");
+
+    try{
+      let q = sb
+        .from("go_pins")
+        .select("id, ndimbal_enabled")
+        .eq("category","loc")
+        .eq("slug", slug);
+
+      if(ownerId) q = q.eq("owner_user_id", ownerId);
+
+      const { data, error } = await q.single();
+
+      if(error || !data){
+        nd.enabled = false;
+        nd.pinId = null;
+        ndPaint();
+
+        if(!ownerId){
+          ndNote("⚠️ Ton owner_id n’est pas chargé.\n➡️ Déconnecte-toi puis reconnecte-toi via PIN.", "warn");
+        } else {
+          ndNote("❌ Lieu introuvable ou non autorisé pour cet owner.", "bad");
+        }
+        return;
+      }
+
+      nd.pinId = data.id;
+      nd.enabled = !!data.ndimbal_enabled;
+      ndPaint();
+
+      if(!ownerId){
+        nd.btn.disabled = true;
+        ndNote("⚠️ Session OK mais owner_id manquant.\n➡️ Reconnecte-toi via PIN pour activer NDIMBAL.", "warn");
+      } else {
+        nd.btn.disabled = false;
+        ndNote("", "");
+      }
+
+    }catch(e){
+      console.error(e);
+      ndNote("❌ Erreur chargement NDIMBAL.", "bad");
+      nd.btn.disabled = true;
+    }
+  }
+
+  async function ndToggle(){
+    const sess = window.DIGIY_GUARD?.getSession?.();
+    const ownerId = sess?.owner_id || null;
+
+    if(!nd.pinId || !ownerId){
+      ndNote("❌ Impossible : owner_id manquant. Reconnecte-toi via PIN.", "bad");
+      return;
+    }
+
+    nd.btn.disabled = true;
+    ndNote("⏳ Mise à jour…", "warn");
+
+    const next = !nd.enabled;
+
+    const { error } = await sb
+      .from("go_pins")
+      .update({ ndimbal_enabled: next, ndimbal_updated_at: new Date().toISOString() })
+      .eq("id", nd.pinId)
+      .eq("owner_user_id", ownerId);
+
+    nd.btn.disabled = false;
+
+    if(error){
+      console.error(error);
+      ndNote("❌ Impossible de modifier NDIMBAL (droits/connexion).", "bad");
+      return;
+    }
+
+    nd.enabled = next;
+    ndPaint();
+    ndNote(next ? "✅ NDIMBAL activé. Tu es mis en avant." : "✅ NDIMBAL désactivé.", "ok");
+  }
+
+  if(nd.btn) nd.btn.addEventListener("click", ndToggle);
+
   function refresh(){
     hideNote();
 
@@ -313,6 +477,9 @@ a{color:inherit}
       } else {
         showNote("✅ Tout est OK. Tu peux gérer tes logements.", "ok");
       }
+
+      // charge NDIMBAL
+      ndLoad();
       return;
     }
 
@@ -322,6 +489,9 @@ a{color:inherit}
     $("pillState").classList.remove("ok");
     $("pillState").classList.add("warn");
     $("btnLogout").style.display = "none";
+
+    // cache NDIMBAL
+    if(nd.card) nd.card.style.display = "none";
 
     if(!slug){
       showNote("⚠️ Lien incomplet.\n➡️ Ouvre le cockpit depuis le QR / GO PIN.", "bad");
