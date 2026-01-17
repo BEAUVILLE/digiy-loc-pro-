@@ -170,7 +170,7 @@
     show("⏳ Vérification…", "warn");
 
     try{
-      const res = await window.DIGIY_GUARD.loginWithPin(phone, pin, "LOC");
+      const res = await window.DIGIY_GUARD.loginWithPin(phone, pin, "lOC");
 
       if(!res || res.ok !== true){
         // messages humains (pas “accès refusé” brut)
