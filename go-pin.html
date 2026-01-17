@@ -2,163 +2,199 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>DIGIY — GO PIN</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DIGIY LOC — GO PIN</title>
 
 <style>
-/* =========================
-   DESIGN SIMPLE & PRO (terrain)
-========================= */
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:#020617;
-  color:#f9fafb;
-}
-.app{
-  max-width:900px;
-  margin:0 auto;
-  padding:14px;
-}
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-}
-.brand{
-  font-weight:900;
-  font-size:18px;
-}
-.brand span{color:#facc15}
-.tag{
-  font-size:12px;
-  color:#9ca3af;
-}
+  :root{
+    --bg:#020617;
+    --card:#0b1224;
+    --line:#1f2937;
+    --ink:#f9fafb;
+    --muted:#9ca3af;
+    --accent:#facc15;
+    --ok:#22c55e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at top, rgba(34,197,94,.10) 0, transparent 55%),
+      radial-gradient(circle at 15% 85%, rgba(250,204,21,.10) 0, transparent 55%),
+      linear-gradient(135deg,#020617,#0b1020);
+  }
+  .app{max-width:980px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .brand{font-weight:950;font-size:18px}
+  .brand span{color:var(--accent)}
+  .tag{font-size:12px;color:var(--muted);border:1px solid rgba(148,163,184,.35);padding:5px 10px;border-radius:999px;white-space:nowrap}
+  main{flex:1;padding:0 12px 16px}
 
-.hero{
-  background:#020617;
-  border:1px solid #1f2937;
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:14px;
-}
-.hero h1{
-  margin:0 0 6px;
-  font-size:22px;
-}
-.hero p{
-  margin:0 0 10px;
-  font-size:14px;
-  color:#cbd5f5;
-}
-.hero img{
-  width:100%;
-  max-height:240px;
-  object-fit:cover;
-  border-radius:14px;
-  border:1px solid #1f2937;
-  display:none;
-}
+  .hero{
+    background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+    border-radius:18px;
+    padding:16px;
+    border:1px solid rgba(250,204,21,.25);
+    box-shadow:0 20px 40px rgba(0,0,0,.55);
+    display:grid;
+    grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);
+    gap:16px;
+    align-items:flex-start;
+  }
+  @media(max-width:900px){.hero{grid-template-columns:1fr}}
+  .hero h1{font-size:22px;margin:0 0 6px}
+  .hero p{font-size:13px;color:#cbd5e1;line-height:1.35;margin:0 0 10px}
 
-.price-block{
-  margin-top:12px;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid #1f2937;
-}
-.price-block h2{
-  margin:0 0 6px;
-  font-size:16px;
-  color:#facc15;
-}
-.tarifs span{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-  margin-bottom:4px;
-}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{font-size:11px;color:#cbd5e1;border:1px solid rgba(148,163,184,.35);padding:4px 8px;border-radius:999px}
 
-.wave{
-  margin-top:12px;
-  padding:14px;
-  border-radius:16px;
-  border:2px solid #22c55e;
-  background:#022c22;
-}
-.wave .num{
-  font-size:24px;
-  font-weight:900;
-  color:#22c55e;
-}
+  .hero-media{margin-top:10px}
+  .hero-photo{
+    width:100%;
+    max-height:230px;
+    border-radius:14px;
+    object-fit:cover;
+    display:block;
+    border:1px solid var(--line);
+  }
+  .hero-caption{margin-top:6px;font-size:11px;color:var(--muted)}
 
-.cta{
-  display:flex;
-  gap:10px;
-  margin-top:14px;
-  flex-wrap:wrap;
-}
-.btn{
-  flex:1;
-  padding:12px;
-  border-radius:999px;
-  border:none;
-  font-size:15px;
-  font-weight:800;
-  cursor:pointer;
-}
-.btn-wa{background:#22c55e;color:#022c22}
-.btn-call{background:#111827;color:#e5e7eb;border:1px solid #1f2937}
+  .price-block{
+    background:rgba(0,0,0,.18);
+    border-radius:14px;
+    border:1px solid var(--line);
+    padding:10px 12px;
+    font-size:13px;
+  }
+  .price-block h2{margin:0 0 6px;font-size:14px;color:var(--accent)}
+  .tarifs{display:flex;flex-direction:column;gap:6px}
+  .tarifs span{display:flex;justify-content:space-between;gap:10px}
+  .tarifs strong{color:#e5e7eb}
 
-footer{
-  margin-top:18px;
-  text-align:center;
-  font-size:12px;
-  color:#9ca3af;
-}
+  .wave-card{
+    margin-top:12px;
+    padding:14px;
+    border-radius:16px;
+    background:rgba(34,197,94,.08);
+    border:2px solid rgba(34,197,94,.85);
+    box-shadow:0 0 18px rgba(34,197,94,.20);
+  }
+  .wave-title{font-size:16px;font-weight:950;margin-bottom:8px}
+  .wave-num{font-size:22px;font-weight:950;color:var(--ok);letter-spacing:.3px}
+  .wave-note{margin-top:6px;font-size:12px;color:#bbf7d0}
+  .owner-line{margin-top:8px;font-size:13px;color:#e5e7eb}
+  .owner-line strong{color:#fff}
+
+  .cta-col{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .btn{
+    border:none;border-radius:999px;padding:11px 12px;
+    font-size:14px;font-weight:900;cursor:pointer;
+    display:flex;justify-content:center;align-items:center;gap:8px;
+    text-decoration:none;
+  }
+  .btn-wa{background:var(--ok);color:#052e16}
+  .btn-call{background:#111827;color:#e5e7eb;border:1px solid var(--line)}
+  .btn-video{background:#0f172a;color:#e5e7eb;border:1px solid rgba(148,163,184,.35);display:none}
+
+  .layout{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+    gap:12px;
+  }
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+  .card{
+    background:rgba(255,255,255,.03);
+    border-radius:16px;
+    border:1px solid var(--line);
+    box-shadow:0 16px 32px rgba(0,0,0,.45);
+    padding:12px;
+  }
+  .card h2{margin:0 0 6px;font-size:16px}
+  .card small{color:var(--muted);font-size:12px}
+
+  footer{padding:10px 14px 14px;font-size:11px;color:var(--muted);text-align:center}
+  .inline-link{color:#f59e0b;text-decoration:none}
+  .inline-link:hover{text-decoration:underline}
 </style>
 </head>
 
 <body>
 <div class="app">
-
   <header>
-    <div class="brand" id="brandTitle">DIGIY LOC</div>
-    <div class="tag" id="tagLine">—</div>
+    <div class="brand" id="brandTop">DIGIY <span>LOC</span></div>
+    <div class="tag" id="tagTop">0% commission · Paiement direct</div>
   </header>
 
-  <section class="hero">
-    <h1 id="heroTitle">—</h1>
-    <p id="heroDesc">—</p>
+  <main>
+    <section class="hero">
+      <!-- gauche -->
+      <div>
+        <h1 id="title">—</h1>
+        <p id="desc">—</p>
 
-    <img id="heroPhoto" src="" alt="Photo du logement">
+        <div class="chips" id="chips"></div>
 
-    <div class="price-block">
-      <h2>Tarifs</h2>
-      <div class="tarifs">
-        <span><span>Nuit :</span><strong id="priceNight">Sur demande</strong></span>
-        <span><span>Semaine :</span><strong id="priceWeek">Sur demande</strong></span>
-        <span><span>Mois :</span><strong id="priceMonth">Sur demande</strong></span>
+        <div class="hero-media">
+          <img id="photo" class="hero-photo" src="" alt="Photo du logement">
+          <div class="hero-caption" id="caption">—</div>
+        </div>
       </div>
-    </div>
 
-    <div class="wave">
-      💳 Paiement direct propriétaire — Wave
-      <div class="num" id="wavePhone">—</div>
-      <div style="margin-top:6px">
-        Propriétaire : <strong id="ownerName">—</strong>
+      <!-- droite -->
+      <div>
+        <div class="price-block">
+          <h2>Tarifs</h2>
+          <div class="tarifs">
+            <span><span>Nuit :</span><strong id="pNight">Sur demande</strong></span>
+            <span><span>Semaine :</span><strong id="pWeek">Sur demande</strong></span>
+            <span><span>Mois :</span><strong id="pMonth">Sur demande</strong></span>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted)" id="notes">—</div>
+        </div>
+
+        <div class="wave-card">
+          <div class="wave-title">💳 Paiement direct propriétaire — Wave</div>
+          <div class="wave-num" id="wave">—</div>
+          <div class="wave-note">✔ À utiliser dans votre application Wave</div>
+          <div class="owner-line">Propriétaire : <strong id="ownerName">—</strong></div>
+          <div class="owner-line" style="color:var(--muted)" id="ownerPhone">—</div>
+        </div>
+
+        <div class="cta-col">
+          <button class="btn btn-wa" id="btnWa">💬 Réserver par WhatsApp</button>
+          <button class="btn btn-call" id="btnCall">📞 Appeler le propriétaire</button>
+          <button class="btn btn-video" id="btnVideo">🎥 Voir la vidéo</button>
+        </div>
       </div>
-      <div class="tag" id="ownerPhoneTxt" style="margin-top:6px">—</div>
-    </div>
+    </section>
 
-    <div class="cta">
-      <button class="btn btn-wa" id="btnWa">💬 Réserver par WhatsApp</button>
-      <button class="btn btn-call" id="btnCall">📞 Appeler le propriétaire</button>
-    </div>
-  </section>
+    <section class="layout">
+      <article class="card">
+        <h2>Contact direct</h2>
+        <small>Tu parles au propriétaire sans intermédiaire.</small>
+        <div style="margin-top:10px;font-size:13px;line-height:1.6">
+          WhatsApp : <a class="inline-link" id="linkWa" href="#" target="_blank" rel="noopener">—</a><br>
+          Téléphone : <a class="inline-link" id="linkTel" href="#">—</a><br>
+          Lien du lieu : <a class="inline-link" id="linkShare" href="#" target="_blank" rel="noopener">copier / partager</a>
+        </div>
+      </article>
 
-  <footer id="footerTxt">DIGIY LOC ♾️</footer>
+      <article class="card">
+        <h2>Accès propriétaire</h2>
+        <small>Réservé au propriétaire (téléphone + PIN).</small>
+        <div style="margin-top:10px;font-size:13px;line-height:1.6">
+          🔒 Clique sur “Accès propriétaire” dans ton cockpit privé.<br>
+          ✅ Si besoin, partage ce lien à l’équipe terrain / au proprio.
+        </div>
+      </article>
+    </section>
+  </main>
 
+  <footer id="foot">DIGIY LOC ♾️</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -168,19 +204,16 @@ footer{
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
-  // Helpers
+  const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAPTISTE.png";
+
   const pick = (o, keys, d=null) => {
-    for (const k of keys) {
-      if (o && o[k] !== null && o[k] !== undefined && o[k] !== "") return o[k];
-    }
+    for (const k of keys) if (o && o[k] !== null && o[k] !== undefined && o[k] !== "") return o[k];
     return d;
   };
   const digits = (v) => (v ?? "").toString().replace(/\D/g,"");
-
   const money = (v) => {
     const n = Number(v);
     if (Number.isFinite(n) && n > 0) return n.toLocaleString("fr-FR") + " F";
-    // si c’est déjà un texte genre "30 000" ou "sur demande"
     if (typeof v === "string" && v.trim()) {
       const d = v.replace(/[^\d]/g,"");
       if (d) return Number(d).toLocaleString("fr-FR") + " F";
@@ -189,126 +222,96 @@ footer{
     return "Sur demande";
   };
 
-  const slug = new URLSearchParams(window.location.search).get("slug");
-  if (!slug) {
-    alert("Slug manquant. Exemple : go-pin.html?slug=chez-astou-saly");
-    return;
-  }
+  const slug = new URLSearchParams(location.search).get("slug");
+  if (!slug) { alert("Slug manquant. Exemple: go-pin.html?slug=chez-astou-saly"); return; }
 
   window.addEventListener("DOMContentLoaded", async () => {
-    try {
-      if (!window.supabase || !window.supabase.createClient) {
-        alert("Supabase CDN non chargé. Vérifie la connexion / cache.");
-        return;
-      }
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      // ✅ pas de variable 'supabase' => pas de collision
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await sb.from("go_pins").select("*").eq("slug", slug).single();
+    if (error || !data) { alert("Lieu introuvable."); console.error(error); return; }
 
-      const { data, error } = await sb
-        .from("go_pins")
-        .select("*")
-        .eq("slug", slug)
-        .single();
+    const title = pick(data, ["title","name","label","nom","titre"], "DIGIY LOC");
+    const city  = pick(data, ["city","ville","location","localite"], "");
+    const desc  = pick(data, ["description","desc","about","resume"], "");
+    const notes = pick(data, ["notes","note","details","infos"], "Contact direct · Paiement Wave · 0% commission");
 
-      if (error || !data) {
-        alert("Lieu introuvable (slug ou droits).");
-        console.error(error);
-        return;
-      }
+    const maxGuests = pick(data, ["max_guests","guests","capacity","capacite"], "");
 
-      // ===== Mapping (tolérant + variantes FR)
-      const title = pick(data, ["title","name","label","nom","titre"], "DIGIY LOC");
-      const city  = pick(data, ["city","ville","location","localite"], "");
-      const desc  = pick(data, ["description","desc","about","resume"], "");
+    const photo = pick(data, ["photo_url","cover_url","image_url","photo","img","image"], null);
+    const video = pick(data, ["video_url","video","video_link","tour_video","youtube","drive_video"], null);
 
-      const maxGuests = pick(data, ["max_guests","guests","capacity","capacite"], "");
+    const pNight = pick(data, ["price_night","night_price","prix_nuit","tarif_nuit","nuit","price_per_night","prix"], null);
+    const pWeek  = pick(data, ["price_week","week_price","prix_semaine","tarif_semaine","semaine","price_per_week"], null);
+    const pMonth = pick(data, ["price_month","month_price","prix_mois","tarif_mois","mois","price_per_month"], null);
 
-      const photo = pick(data, ["photo_url","cover_url","image_url","photo","img","image"], null);
+    const ownerName = pick(data, ["owner_name","owner_full_name","proprietaire","proprietaire_nom","nom_proprio","contact_name","contact_nom","host_name"], "Propriétaire");
 
-      // PRIX: toutes variantes terrain
-      const pNight = pick(data, [
-        "price_night","night_price","prix_nuit","tarif_nuit","nuit",
-        "price_per_night","tarif_jour","prix_jour"
-      ], null);
+    const ownerPhoneRaw = pick(data, ["owner_phone","phone","telephone","tel","contact_phone","contact_tel","host_phone"], "");
+    const ownerWaRaw    = pick(data, ["owner_whatsapp","whatsapp","wa","contact_whatsapp","contact_wa","host_whatsapp"], ownerPhoneRaw);
+    const waveRaw       = pick(data, ["wave_phone","wave","payment_wave","paiement_wave","wave_tel"], ownerPhoneRaw);
 
-      const pWeek = pick(data, [
-        "price_week","week_price","prix_semaine","tarif_semaine","semaine",
-        "price_per_week"
-      ], null);
+    const phoneDigits = digits(ownerPhoneRaw);
+    const waDigits    = digits(ownerWaRaw);
 
-      const pMonth = pick(data, [
-        "price_month","month_price","prix_mois","tarif_mois","mois",
-        "price_per_month"
-      ], null);
+    // UI
+    document.title = `${title} — DIGIY LOC`;
+    document.getElementById("brandTop").innerHTML = `${title} — <span>LOC</span>`;
+    document.getElementById("title").textContent = `${title}${city ? " — " + city : ""}`;
+    document.getElementById("desc").textContent = desc || "";
+    document.getElementById("notes").textContent = notes || "";
 
-      // NOM proprio: variantes
-      const ownerName = pick(data, [
-        "owner_name","owner_full_name","proprietaire","proprietaire_nom","nom_proprio",
-        "contact_name","contact_nom","host_name"
-      ], "Propriétaire");
+    // Chips
+    const chips = [];
+    if (maxGuests) chips.push(`${maxGuests} pers max`);
+    chips.push("0% commission");
+    chips.push("Paiement Wave");
+    chips.push("WhatsApp direct");
+    document.getElementById("chips").innerHTML = chips.map(t => `<span class="chip">${t}</span>`).join("");
 
-      // Téléphone / WhatsApp / Wave: variantes
-      const ownerPhoneRaw = pick(data, [
-        "owner_phone","phone","telephone","tel","contact_phone","contact_tel","host_phone"
-      ], "");
+    // Photo + caption
+    const img = document.getElementById("photo");
+    img.src = (photo && photo !== "—") ? photo : FALLBACK_PHOTO;
+    document.getElementById("caption").textContent = `Lieu: ${slug}`;
+    
+    // Prix
+    document.getElementById("pNight").textContent = money(pNight);
+    document.getElementById("pWeek").textContent  = money(pWeek);
+    document.getElementById("pMonth").textContent = money(pMonth);
 
-      const ownerWaRaw = pick(data, [
-        "owner_whatsapp","whatsapp","wa","contact_whatsapp","contact_wa","host_whatsapp"
-      ], ownerPhoneRaw);
+    // Wave + owner
+    document.getElementById("wave").textContent = waveRaw || "—";
+    document.getElementById("ownerName").textContent = ownerName || "Propriétaire";
+    document.getElementById("ownerPhone").textContent = ownerPhoneRaw ? `📞 ${ownerPhoneRaw}` : "—";
 
-      const wavePhoneRaw = pick(data, [
-        "wave_phone","wave","payment_wave","paiement_wave","wave_tel"
-      ], ownerPhoneRaw);
+    // Links
+    const waLink = waDigits ? `https://wa.me/${waDigits}` : "#";
+    document.getElementById("linkWa").href = waLink;
+    document.getElementById("linkWa").textContent = ownerWaRaw || "—";
 
-      // ===== Injection UI
-      document.title = `${title} — DIGIY LOC`;
-      document.getElementById("brandTitle").textContent = title;
-      document.getElementById("heroTitle").textContent = `${title}${city ? " — " + city : ""}`;
-      document.getElementById("heroDesc").textContent = desc || "";
+    const telLink = phoneDigits ? `tel:${phoneDigits}` : "#";
+    document.getElementById("linkTel").href = telLink;
+    document.getElementById("linkTel").textContent = ownerPhoneRaw || "—";
 
-      const tagParts = [];
-      if (city) tagParts.push(city);
-      if (maxGuests) tagParts.push(`${maxGuests} pers max`);
-      document.getElementById("tagLine").textContent = tagParts.join(" · ") || "—";
+    const shareUrl = location.origin + location.pathname + `?slug=${encodeURIComponent(slug)}`;
+    document.getElementById("linkShare").href = shareUrl;
+    document.getElementById("foot").textContent = `${title} · DIGIY LOC ♾️`;
 
-      const img = document.getElementById("heroPhoto");
-      if (photo) {
-        img.src = photo;
-        img.style.display = "block";
-      } else {
-        img.style.display = "none";
-      }
+    // CTA actions
+    document.getElementById("btnCall").onclick = () => { if (phoneDigits) location.href = `tel:${phoneDigits}`; };
+    document.getElementById("btnWa").onclick = () => {
+      if (!waDigits) return;
+      const msg = `Bonjour, je souhaite réserver ${title}${city ? " à " + city : ""}.`;
+      window.open(`https://wa.me/${waDigits}?text=${encodeURIComponent(msg)}`, "_blank");
+    };
 
-      document.getElementById("priceNight").textContent = money(pNight);
-      document.getElementById("priceWeek").textContent  = money(pWeek);
-      document.getElementById("priceMonth").textContent = money(pMonth);
-
-      document.getElementById("wavePhone").textContent = wavePhoneRaw ? wavePhoneRaw : "—";
-      document.getElementById("ownerName").textContent = ownerName ? ownerName : "Propriétaire";
-      document.getElementById("ownerPhoneTxt").textContent =
-        ownerPhoneRaw ? `📞 ${ownerPhoneRaw}` : "—";
-
-      // CTA
-      const ownerPhoneDigits = digits(ownerPhoneRaw);
-      const ownerWaDigits = digits(ownerWaRaw);
-
-      document.getElementById("btnCall").onclick = () => {
-        if (ownerPhoneDigits) window.location.href = "tel:" + ownerPhoneDigits;
-      };
-
-      document.getElementById("btnWa").onclick = () => {
-        if (!ownerWaDigits) return;
-        const msg = `Bonjour, je souhaite réserver ${title}${city ? " à " + city : ""}.`;
-        window.open(`https://wa.me/${ownerWaDigits}?text=${encodeURIComponent(msg)}`, "_blank");
-      };
-
-      document.getElementById("footerTxt").textContent =
-        `${title} · DIGIY LOC · ${ownerPhoneRaw || ""}`;
-
-    } catch (e) {
-      console.error(e);
-      alert("Erreur JS : " + (e && e.message ? e.message : e));
+    // Video
+    const btnVideo = document.getElementById("btnVideo");
+    if (video) {
+      btnVideo.style.display = "flex";
+      btnVideo.onclick = () => window.open(video, "_blank");
+    } else {
+      btnVideo.style.display = "none";
     }
   });
 })();
