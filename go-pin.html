@@ -174,13 +174,26 @@ const supabase = window.supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-// slug
+// -------- helpers ----------
+const pick = (o, keys, d="—") => {
+  for (const k of keys) {
+    if (o && o[k] !== null && o[k] !== undefined && o[k] !== "") return o[k];
+  }
+  return d;
+};
+const money = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n.toLocaleString("fr-FR")+" F" : "—";
+};
+
+// -------- slug ----------
 const slug = new URLSearchParams(window.location.search).get("slug");
 if (!slug) {
   alert("Slug manquant");
   throw new Error("Slug manquant");
 }
 
+// -------- load ----------
 (async () => {
   const { data, error } = await supabase
     .from("go_pins")
@@ -188,50 +201,69 @@ if (!slug) {
     .eq("slug", slug)
     .single();
 
+  console.log("GO_PIN DATA =", data);
   if (error || !data) {
     alert("Lieu introuvable");
     console.error(error);
     return;
   }
 
-  // Injection
-  document.title = data.title + " — DIGIY LOC";
-  document.getElementById("brandTitle").textContent = data.title;
+  // -------- mapping TOLÉRANT ----------
+  const title        = pick(data, ["title","name","label"]);
+  const city         = pick(data, ["city","ville","location"]);
+  const desc         = pick(data, ["description","desc","about"], "");
+  const maxGuests    = pick(data, ["max_guests","guests","capacity"], "");
+  const photo        = pick(data, ["photo_url","cover_url","image_url","photo"]);
+  const priceNight   = pick(data, ["price_night","night_price","price"]);
+  const priceWeek    = pick(data, ["price_week","week_price"]);
+  const priceMonth   = pick(data, ["price_month","month_price"]);
+  const ownerName    = pick(data, ["owner_name","proprietaire","owner"]);
+  const ownerPhone   = pick(data, ["owner_phone","phone","telephone"]);
+  const ownerWa      = pick(data, ["owner_whatsapp","whatsapp","wa"]);
+  const wavePhone    = pick(data, ["wave_phone","wave","payment_wave", "owner_phone","phone"]);
+
+  // -------- injection ----------
+  document.title = title + " — DIGIY LOC";
+  document.getElementById("brandTitle").textContent = title || "DIGIY LOC";
   document.getElementById("heroTitle").textContent =
-    data.title + " — " + data.city;
-  document.getElementById("heroDesc").textContent = data.description;
+    title + (city !== "—" ? " — " + city : "");
+  document.getElementById("heroDesc").textContent = desc || "";
   document.getElementById("tagLine").textContent =
-    data.city + " · " + data.max_guests + " pers max";
+    [city, maxGuests ? maxGuests+" pers max" : ""].filter(Boolean).join(" · ");
 
-  document.getElementById("heroPhoto").src = data.photo_url;
+  const img = document.getElementById("heroPhoto");
+  if (photo && photo !== "—") {
+    img.src = photo;
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
 
-  document.getElementById("priceNight").textContent =
-    data.price_night.toLocaleString("fr-FR") + " F";
-  document.getElementById("priceWeek").textContent =
-    data.price_week.toLocaleString("fr-FR") + " F";
-  document.getElementById("priceMonth").textContent =
-    data.price_month.toLocaleString("fr-FR") + " F";
+  document.getElementById("priceNight").textContent = money(priceNight);
+  document.getElementById("priceWeek").textContent  = money(priceWeek);
+  document.getElementById("priceMonth").textContent = money(priceMonth);
 
-  document.getElementById("wavePhone").textContent = data.wave_phone;
-  document.getElementById("ownerName").textContent = data.owner_name;
+  document.getElementById("wavePhone").textContent = wavePhone;
+  document.getElementById("ownerName").textContent = ownerName;
 
   document.getElementById("btnCall").onclick = () => {
-    window.location.href = "tel:" + data.owner_phone;
+    if (ownerPhone && ownerPhone !== "—") {
+      window.location.href = "tel:" + ownerPhone;
+    }
   };
 
   document.getElementById("btnWa").onclick = () => {
-    const msg =
-      "Bonjour, je souhaite réserver " +
-      data.title + " à " + data.city + ".";
+    if (!ownerWa || ownerWa === "—") return;
+    const msg = `Bonjour, je souhaite réserver ${title}${city ? " à "+city : ""}.`;
     window.open(
-      "https://wa.me/" + data.owner_whatsapp +
+      "https://wa.me/" + ownerWa.replace(/\D/g,"") +
       "?text=" + encodeURIComponent(msg),
       "_blank"
     );
   };
 
   document.getElementById("footerTxt").textContent =
-    data.title + " · DIGIY LOC · WhatsApp " + data.owner_phone;
+    `${title} · DIGIY LOC · ${ownerPhone || ""}`;
 })();
 </script>
 </body>
