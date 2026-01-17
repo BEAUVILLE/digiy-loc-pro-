@@ -182,15 +182,12 @@ footer{
 
 </div>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 (() => {
   const dbgLine = document.getElementById("dbgLine");
-  const dbg = (html) => { dbgLine.innerHTML = html; };
+  const dbg = (html) => { if(dbgLine) dbgLine.innerHTML = html; };
 
-  /* 🔐 SUPABASE — DÉJÀ POSÉ */
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
@@ -209,49 +206,47 @@ footer{
   const digits = (v) => (v ?? "").toString().replace(/\D/g,"");
 
   const slug = new URLSearchParams(window.location.search).get("slug");
-  dbg(`Slug détecté : <code>${slug || "AUCUN"}</code>`);
+  if (!slug) {
+    alert("Slug manquant");
+    throw new Error("Slug manquant");
+  }
+  dbg(`Slug détecté : <code>${slug}</code>`);
 
   window.addEventListener("DOMContentLoaded", async () => {
     try {
-      if (!slug) {
-        dbg(`<span class="bad">ERREUR</span> : slug manquant. Exemple : <code>go-pin.html?slug=chez-astou-saly</code>`);
-        return;
-      }
-
       if (!window.supabase || !window.supabase.createClient) {
-        dbg(`<span class="bad">ERREUR</span> : Supabase CDN non chargé (jsdelivr bloqué / offline).`);
+        dbg(`<span class="bad">ERREUR</span> : Supabase CDN non chargé.`);
         return;
       }
 
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      dbg(`Supabase : <span class="ok">OK</span> · Lecture <code>go_pins</code> pour <code>${slug}</code>…`);
+      // ✅ IMPORTANT : on n’utilise PAS "supabase" comme variable
+      // pour éviter "already declared"
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const { data, error } = await supabase
+      dbg(`Supabase : <span class="ok">OK</span> · Lecture <code>go_pins</code>…`);
+
+      const { data, error } = await sb
         .from("go_pins")
         .select("*")
         .eq("slug", slug)
         .single();
 
       if (error || !data) {
-        dbg(`<span class="bad">ERREUR DB</span> : ${error ? (error.message || "unknown") : "no data"}<br><span style="color:#9ca3af">=> slug introuvable OU RLS bloque.</span>`);
-        console.error("DB ERROR:", error);
+        dbg(`<span class="bad">ERREUR DB</span> : ${error ? (error.message || "unknown") : "no data"}`);
+        console.error(error);
         return;
       }
 
-      // Preuve des champs reçus
-      const keys = Object.keys(data);
-      dbg(`DB : <span class="ok">DATA OK</span> · champs reçus (${keys.length}) : <code>${keys.slice(0,16).join(", ")}${keys.length>16?"…":""}</code>`);
-
-      // Mapping tolérant (pour coller à ta DB)
+      // Mapping tolérant
       const title      = pick(data, ["title","name","label"]);
       const city       = pick(data, ["city","ville","location"]);
       const desc       = pick(data, ["description","desc","about"], "");
       const maxGuests  = pick(data, ["max_guests","guests","capacity"], "");
 
       const photo      = pick(data, ["photo_url","cover_url","image_url","photo"]);
-      const priceNight = pick(data, ["price_night","night_price","price","prix"]);
-      const priceWeek  = pick(data, ["price_week","week_price"]);
-      const priceMonth = pick(data, ["price_month","month_price"]);
+      const pNight     = pick(data, ["price_night","night_price","price","prix"]);
+      const pWeek      = pick(data, ["price_week","week_price"]);
+      const pMonth     = pick(data, ["price_month","month_price"]);
 
       const ownerName  = pick(data, ["owner_name","proprietaire","owner"]);
       const ownerPhone = pick(data, ["owner_phone","phone","telephone"]);
@@ -274,15 +269,13 @@ footer{
         img.style.display = "none";
       }
 
-      document.getElementById("priceNight").textContent = money(priceNight);
-      document.getElementById("priceWeek").textContent  = money(priceWeek);
-      document.getElementById("priceMonth").textContent = money(priceMonth);
+      document.getElementById("priceNight").textContent = money(pNight);
+      document.getElementById("priceWeek").textContent  = money(pWeek);
+      document.getElementById("priceMonth").textContent = money(pMonth);
 
       document.getElementById("wavePhone").textContent = wavePhone;
       document.getElementById("ownerName").textContent = ownerName;
-      document.getElementById("ownerPhoneTxt").textContent = ownerPhone !== "—" ? `📞 ${ownerPhone}` : "—";
 
-      // CTA
       document.getElementById("btnCall").onclick = () => {
         if (ownerPhone && ownerPhone !== "—") window.location.href = "tel:" + ownerPhone;
       };
@@ -297,6 +290,7 @@ footer{
       document.getElementById("footerTxt").textContent =
         `${title} · DIGIY LOC · ${ownerPhone !== "—" ? ownerPhone : ""}`;
 
+      dbg(`DB : <span class="ok">DATA OK</span> · injection faite ✅`);
     } catch (e) {
       dbg(`<span class="bad">ERREUR JS</span> : ${String(e && e.message ? e.message : e)}`);
       console.error(e);
