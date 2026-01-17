@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NDIMBAL LOC — Activation logement</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:linear-gradient(135deg,#022c22,#065f46);
+  color:#e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+}
+.card{
+  width:420px;
+  max-width:95%;
+  background:rgba(0,0,0,.25);
+  border-radius:18px;
+  padding:22px;
+  backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+h1{margin:0 0 10px 0;font-size:20px}
+.desc{font-size:13px;opacity:.85;margin-bottom:18px;line-height:1.5em}
+.switch{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:14px;padding:12px 14px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+}
+.state{font-weight:800;font-size:15px}
+button{
+  margin-top:18px;width:100%;border:0;border-radius:12px;padding:12px;
+  font-weight:900;font-size:14px;background:#facc15;cursor:pointer;
+}
+button.secondary{
+  background:rgba(255,255,255,.08);
+  color:#e5e7eb;
+  border:1px solid rgba(255,255,255,.14);
+}
+.notice{margin-top:16px;font-size:12px;opacity:.75;line-height:1.4em}
+.alert{
+  margin-top:14px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(239,68,68,.35);
+  background:rgba(239,68,68,.10);
+  color:#fecaca;
+  font-weight:900;
+  display:none;
+}
+.ok{
+  border-color:rgba(34,197,94,.35);
+  background:rgba(34,197,94,.10);
+  color:#bbf7d0;
+}
+.small{opacity:.85;font-size:12px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🤍 NDIMBAL LOC</h1>
+
+  <div class="desc">
+    Active l’hospitalité NDIMBAL sur ton logement.<br>
+    1 nuit réservée = 2 nuits sur place<br>
+    2 nuits réservées = 3 nuits sur place.<br><br>
+    Tu restes totalement libre. DIGIY ne finance rien.
+  </div>
+
+  <div class="switch">
+    <div>Statut actuel</div>
+    <div class="state" id="state">—</div>
+  </div>
+
+  <div class="alert" id="alert"></div>
+
+  <button id="toggleBtn" disabled>Activer / Désactiver</button>
+  <button class="secondary" id="backBtn">⬅️ Retour cockpit</button>
+
+  <div class="notice">
+    NDIMBAL est un geste volontaire du propriétaire.<br>
+    DIGIY ne collecte ni dons ni argent solidaire.<br>
+    L’outil organise seulement la règle +1 nuit.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+const SUPABASE_ANON_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const slug = (new URLSearchParams(location.search).get("slug") || "").trim();
+const stateEl = document.getElementById("state");
+const btn = document.getElementById("toggleBtn");
+const alertEl = document.getElementById("alert");
+const backBtn = document.getElementById("backBtn");
+
+let pinId = null;
+let ndimbal = false;
+
+function showAlert(msg, ok=false){
+  alertEl.textContent = msg;
+  alertEl.className = "alert" + (ok ? " ok" : "");
+  alertEl.style.display = msg ? "block" : "none";
+}
+
+function paint(){
+  stateEl.textContent = ndimbal ? "NDIMBAL ON" : "NDIMBAL OFF";
+  stateEl.style.color = ndimbal ? "#22c55e" : "#9ca3af";
+  btn.disabled = false;
+}
+
+function goBack(){
+  // adapte si ton cockpit c'est une autre page
+  const u = new URL("./pin.html", location.href);
+  if (slug) u.searchParams.set("slug", slug);
+  location.href = u.toString();
+}
+backBtn.addEventListener("click", goBack);
+
+async function requireSession(){
+  const { data, error } = await sb.auth.getUser();
+  if (error) return null;
+  return data?.user || null;
+}
+
+async function load(){
+  if(!slug){
+    stateEl.textContent = "Slug manquant";
+    showAlert("Ajoute ?slug=chez-astou-saly dans l’URL.", false);
+    btn.disabled = true;
+    return;
+  }
+
+  // 1) session obligatoire
+  const user = await requireSession();
+  if(!user){
+    stateEl.textContent = "Accès privé";
+    btn.disabled = true;
+    showAlert("Tu dois être connecté (cockpit) pour gérer NDIMBAL.", false);
+
+    // on renvoie vers pin.html
+    btn.textContent = "Ouvrir le cockpit (PIN)";
+    btn.disabled = false;
+    btn.onclick = goBack;
+    return;
+  }
+
+  // 2) lecture réservée au proprio (RLS + filtre owner_user_id)
+  const { data, error } = await sb
+    .from("go_pins")
+    .select("id, ndimbal_enabled")
+    .eq("category","loc")
+    .eq("slug", slug)
+    .eq("owner_user_id", user.id)
+    .single();
+
+  if(error || !data){
+    stateEl.textContent = "Erreur accès";
+    btn.disabled = true;
+    showAlert("Impossible de charger ce logement.\nSoit tu n’es pas le propriétaire, soit la session a expiré.", false);
+    return;
+  }
+
+  pinId = data.id;
+  ndimbal = !!data.ndimbal_enabled;
+  paint();
+  showAlert("", false);
+}
+
+async function toggle(){
+  if(!pinId) return;
+
+  const newState = !ndimbal;
+  btn.disabled = true;
+
+  const { error } = await sb
+    .from("go_pins")
+    .update({ ndimbal_enabled: newState })
+    .eq("id", pinId);
+
+  btn.disabled = false;
+
+  if(error){
+    showAlert("Impossible de modifier NDIMBAL (droits / session).", false);
+    return;
+  }
+
+  ndimbal = newState;
+  paint();
+  showAlert(ndimbal ? "✅ NDIMBAL activé." : "✅ NDIMBAL désactivé.", true);
+}
+
+btn.addEventListener("click", toggle);
+load();
+</script>
+
+</body>
+</html>
