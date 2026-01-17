@@ -36,21 +36,6 @@ header{
   color:#9ca3af;
 }
 
-/* DEBUG BAR */
-.debug{
-  border:1px dashed rgba(148,163,184,.35);
-  background:rgba(2,44,34,.18);
-  border-radius:14px;
-  padding:10px 12px;
-  margin-bottom:12px;
-  font-size:12.5px;
-  color:#e5e7eb;
-  line-height:1.35;
-}
-.debug .ok{color:#22c55e;font-weight:900}
-.debug .bad{color:#fb7185;font-weight:900}
-.debug code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px}
-
 .hero{
   background:#020617;
   border:1px solid #1f2937;
@@ -137,12 +122,6 @@ footer{
 <body>
 <div class="app">
 
-  <!-- DEBUG VISIBLE -->
-  <div class="debug" id="dbg">
-    <div><b>DEBUG GO PIN</b> — si tu vois ce bloc, tu es sur la bonne version.</div>
-    <div id="dbgLine">Boot…</div>
-  </div>
-
   <header>
     <div class="brand" id="brandTitle">DIGIY LOC</div>
     <div class="tag" id="tagLine">—</div>
@@ -185,9 +164,6 @@ footer{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
-  const dbgLine = document.getElementById("dbgLine");
-  const dbg = (html) => { if(dbgLine) dbgLine.innerHTML = html; };
-
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
@@ -201,29 +177,25 @@ footer{
   };
   const money = (v) => {
     const n = Number(v);
-    return Number.isFinite(n) && n > 0 ? n.toLocaleString("fr-FR")+" F" : "—";
+    return Number.isFinite(n) && n > 0 ? n.toLocaleString("fr-FR") + " F" : "—";
   };
-  const digits = (v) => (v ?? "").toString().replace(/\D/g,"");
+  const digits = (v) => (v ?? "").toString().replace(/\D/g, "");
 
   const slug = new URLSearchParams(window.location.search).get("slug");
   if (!slug) {
-    alert("Slug manquant");
-    throw new Error("Slug manquant");
+    alert("Slug manquant. Exemple : go-pin.html?slug=chez-astou-saly");
+    return;
   }
-  dbg(`Slug détecté : <code>${slug}</code>`);
 
   window.addEventListener("DOMContentLoaded", async () => {
     try {
       if (!window.supabase || !window.supabase.createClient) {
-        dbg(`<span class="bad">ERREUR</span> : Supabase CDN non chargé.`);
+        alert("Supabase CDN non chargé. Vérifie ta connexion / cache.");
         return;
       }
 
-      // ✅ IMPORTANT : on n’utilise PAS "supabase" comme variable
-      // pour éviter "already declared"
+      // ✅ Pas de variable "supabase" => pas de collision
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      dbg(`Supabase : <span class="ok">OK</span> · Lecture <code>go_pins</code>…`);
 
       const { data, error } = await sb
         .from("go_pins")
@@ -232,7 +204,7 @@ footer{
         .single();
 
       if (error || !data) {
-        dbg(`<span class="bad">ERREUR DB</span> : ${error ? (error.message || "unknown") : "no data"}`);
+        alert("Lieu introuvable (slug ou droits).");
         console.error(error);
         return;
       }
@@ -259,7 +231,8 @@ footer{
       document.getElementById("heroTitle").textContent = `${title}${city !== "—" ? " — " + city : ""}`;
       document.getElementById("heroDesc").textContent = desc || "";
       document.getElementById("tagLine").textContent =
-        [city !== "—" ? city : "", (maxGuests && maxGuests !== "—") ? `${maxGuests} pers max` : ""].filter(Boolean).join(" · ") || "—";
+        [city !== "—" ? city : "", (maxGuests && maxGuests !== "—") ? `${maxGuests} pers max` : ""]
+          .filter(Boolean).join(" · ") || "—";
 
       const img = document.getElementById("heroPhoto");
       if (photo && photo !== "—") {
@@ -275,7 +248,10 @@ footer{
 
       document.getElementById("wavePhone").textContent = wavePhone;
       document.getElementById("ownerName").textContent = ownerName;
+      document.getElementById("ownerPhoneTxt").textContent =
+        ownerPhone !== "—" ? `📞 ${ownerPhone}` : "—";
 
+      // CTA
       document.getElementById("btnCall").onclick = () => {
         if (ownerPhone && ownerPhone !== "—") window.location.href = "tel:" + ownerPhone;
       };
@@ -290,14 +266,12 @@ footer{
       document.getElementById("footerTxt").textContent =
         `${title} · DIGIY LOC · ${ownerPhone !== "—" ? ownerPhone : ""}`;
 
-      dbg(`DB : <span class="ok">DATA OK</span> · injection faite ✅`);
     } catch (e) {
-      dbg(`<span class="bad">ERREUR JS</span> : ${String(e && e.message ? e.message : e)}`);
       console.error(e);
+      alert("Erreur JS : " + (e && e.message ? e.message : e));
     }
   });
 })();
 </script>
 </body>
 </html>
-
