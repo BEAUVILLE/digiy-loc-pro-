@@ -4,284 +4,338 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DIGIY LOC — GO PIN</title>
+<meta name="theme-color" content="#020617">
 
 <style>
   :root{
     --bg:#020617;
     --card:#0b1224;
-    --line:#1f2937;
+    --line:rgba(148,163,184,.22);
     --ink:#f9fafb;
     --muted:#9ca3af;
     --accent:#facc15;
     --ok:#22c55e;
+    --danger:#fb7185;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto}
   body{
     min-height:100vh;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto;
     color:var(--ink);
     background:
       radial-gradient(circle at top, rgba(34,197,94,.10) 0, transparent 55%),
       radial-gradient(circle at 15% 85%, rgba(250,204,21,.10) 0, transparent 55%),
       linear-gradient(135deg,#020617,#0b1020);
+    display:flex;
+    justify-content:center;
+    padding:14px;
   }
-  .app{max-width:980px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-  header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-  .brand{font-weight:950;font-size:18px}
-  .brand span{color:var(--accent)}
-  .tag{font-size:12px;color:var(--muted);border:1px solid rgba(148,163,184,.35);padding:5px 10px;border-radius:999px;white-space:nowrap}
-  main{flex:1;padding:0 12px 16px}
 
-  .hero{
+  .wrap{
+    width:100%;
+    max-width:980px;
+    min-height:calc(100vh - 28px);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:10px 6px;
+  }
+  .brand{font-weight:950;font-size:16px;letter-spacing:.06em}
+  .brand span{color:var(--accent)}
+  .tag{
+    font-size:12px;color:var(--muted);
+    border:1px solid rgba(148,163,184,.35);
+    padding:6px 10px;border-radius:999px;white-space:nowrap;
+    background:rgba(2,6,23,.55);
+  }
+
+  .card{
+    flex:1;
     background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
     border-radius:18px;
+    border:1px solid rgba(250,204,21,.22);
+    box-shadow:0 22px 55px rgba(0,0,0,.55);
     padding:16px;
-    border:1px solid rgba(250,204,21,.25);
-    box-shadow:0 20px 40px rgba(0,0,0,.55);
-    display:grid;
-    grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);
-    gap:16px;
-    align-items:flex-start;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
   }
-  @media(max-width:900px){.hero{grid-template-columns:1fr}}
-  .hero h1{font-size:22px;margin:0 0 6px}
-  .hero p{font-size:13px;color:#cbd5e1;line-height:1.35;margin:0 0 10px}
 
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-  .chip{font-size:11px;color:#cbd5e1;border:1px solid rgba(148,163,184,.35);padding:4px 8px;border-radius:999px}
-
-  .hero-media{margin-top:10px}
-  .hero-photo{
-    width:100%;
-    max-height:230px;
-    border-radius:14px;
-    object-fit:cover;
-    display:block;
-    border:1px solid var(--line);
+  .title{
+    font-size:20px;
+    font-weight:950;
+    line-height:1.2;
   }
-  .hero-caption{margin-top:6px;font-size:11px;color:var(--muted)}
-
-  .price-block{
-    background:rgba(0,0,0,.18);
-    border-radius:14px;
-    border:1px solid var(--line);
-    padding:10px 12px;
+  .sub{
     font-size:13px;
+    color:#cbd5e1;
+    line-height:1.5;
   }
-  .price-block h2{margin:0 0 6px;font-size:14px;color:var(--accent)}
-  .tarifs{display:flex;flex-direction:column;gap:6px}
-  .tarifs span{display:flex;justify-content:space-between;gap:10px}
-  .tarifs strong{color:#e5e7eb}
 
-  .wave-card{
-    margin-top:12px;
-    padding:14px;
-    border-radius:16px;
-    background:rgba(34,197,94,.08);
-    border:2px solid rgba(34,197,94,.85);
-    box-shadow:0 0 18px rgba(34,197,94,.20);
+  .status{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    border:1px solid var(--line);
+    background:rgba(2,6,23,.55);
+    padding:12px;
+    border-radius:14px;
   }
-  .wave-title{font-size:16px;font-weight:950;margin-bottom:8px}
-  .wave-num{font-size:22px;font-weight:950;color:var(--ok);letter-spacing:.3px}
-  .wave-note{margin-top:6px;font-size:12px;color:#bbf7d0}
-  .owner-line{margin-top:8px;font-size:13px;color:#e5e7eb}
-  .owner-line strong{color:#fff}
+  .dot{
+    width:12px;height:12px;border-radius:999px;
+    background:var(--accent);
+    box-shadow:0 0 16px rgba(250,204,21,.35);
+    flex:0 0 auto;
+  }
+  .statusTxt{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .statusBig{font-weight:950}
+  .statusSmall{font-size:12px;color:var(--muted)}
 
-  .cta-col{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .actions{
+    margin-top:auto;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
   .btn{
-    border:none;border-radius:999px;padding:11px 12px;
-    font-size:14px;font-weight:900;cursor:pointer;
+    border:none;border-radius:999px;padding:11px 14px;
+    font-size:14px;font-weight:950;cursor:pointer;
     display:flex;justify-content:center;align-items:center;gap:8px;
     text-decoration:none;
+    flex:1;
+    min-height:44px;
+    white-space:nowrap;
+    touch-action:manipulation;
   }
-  .btn-wa{background:var(--ok);color:#052e16}
-  .btn-call{background:#111827;color:#e5e7eb;border:1px solid var(--line)}
-  .btn-partner{background:#0f172a;color:#e5e7eb;border:1px solid rgba(148,163,184,.35)}
-  .btn-video{background:#0f172a;color:#e5e7eb;border:1px solid rgba(148,163,184,.35);display:none}
+  .btn.primary{
+    background:linear-gradient(135deg,#facc15,#f97316);
+    color:#111;
+  }
+  .btn.ghost{
+    background:rgba(15,23,42,.6);
+    color:#e5e7eb;
+    border:1px solid var(--line);
+  }
+  .btn.ok{
+    background:rgba(34,197,94,.12);
+    color:#bbf7d0;
+    border:1px solid rgba(34,197,94,.55);
+  }
 
-  footer{padding:10px 14px 14px;font-size:11px;color:var(--muted);text-align:center}
-  .inline-link{color:#f59e0b;text-decoration:none}
-  .inline-link:hover{text-decoration:underline}
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    padding:6px 0 2px;
+  }
+
+  @media(max-width:520px){
+    body{padding:0}
+    .wrap{min-height:100vh}
+    .card{border-radius:0}
+    header{padding:12px}
+  }
 </style>
 </head>
 
 <body>
-<div class="app">
+<div class="wrap">
   <header>
-    <div class="brand" id="brandTop">DIGIY <span>LOC</span></div>
-    <div class="tag" id="tagTop">0% commission · Paiement direct</div>
+    <div class="brand">DIGIY <span>LOC</span></div>
+    <div class="tag">0% commission · Paiement direct</div>
   </header>
 
-  <main>
-    <section class="hero">
-      <!-- gauche -->
-      <div>
-        <h1 id="title">—</h1>
-        <p id="desc">—</p>
+  <div class="card">
+    <div class="title" id="ttl">Ouverture du PIN…</div>
+    <div class="sub" id="sub">
+      On vérifie le logement et on te redirige automatiquement.
+    </div>
 
-        <div class="chips" id="chips"></div>
-
-        <div class="hero-media">
-          <img id="photo" class="hero-photo" src="" alt="Photo du logement">
-          <div class="hero-caption" id="caption">—</div>
-        </div>
+    <div class="status" id="statusBox">
+      <div class="dot" id="dot"></div>
+      <div class="statusTxt">
+        <div class="statusBig" id="stBig">Chargement</div>
+        <div class="statusSmall" id="stSmall">Merci de patienter 2 secondes…</div>
       </div>
+    </div>
 
-      <!-- droite -->
-      <div>
-        <div class="price-block">
-          <h2>Tarifs</h2>
-          <div class="tarifs">
-            <span><span>Nuit :</span><strong id="pNight">Sur demande</strong></span>
-            <span><span>Semaine :</span><strong id="pWeek">Sur demande</strong></span>
-            <span><span>Mois :</span><strong id="pMonth">Sur demande</strong></span>
-          </div>
-          <div style="margin-top:8px;font-size:11px;color:var(--muted)" id="notes">Contact direct · Paiement Wave · 0% commission</div>
-        </div>
+    <div class="actions">
+      <a class="btn ghost" id="btnBack" href="#" rel="noopener">⬅️ Retour galerie</a>
+      <button class="btn ok" id="btnWa" type="button">📲 Parler à DIGIY</button>
+    </div>
+  </div>
 
-        <div class="wave-card">
-          <div class="wave-title">💳 Paiement direct propriétaire — Wave</div>
-          <div class="wave-num" id="wave">—</div>
-          <div class="wave-note">✔ À utiliser dans votre application Wave</div>
-          <div class="owner-line">Propriétaire : <strong id="ownerName">—</strong></div>
-          <div class="owner-line" style="color:var(--muted)" id="ownerPhone">—</div>
-        </div>
-
-        <div class="cta-col">
-          <button class="btn btn-wa" id="btnWa">💬 Réserver par WhatsApp</button>
-          <button class="btn btn-call" id="btnCall">📞 Appeler le propriétaire</button>
-          <button class="btn btn-partner" id="btnPartner">📄 Fiche partenaire (détails + vidéo)</button>
-          <button class="btn btn-video" id="btnVideo">🎥 Voir la vidéo</button>
-        </div>
-
-        <div class="tag" style="margin-top:10px">
-          ✅ Contact direct · 📄 Fiche complète · 🔒 Accès propriétaire (PIN)
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer id="foot">DIGIY LOC ♾️</footer>
+  <footer>GO PIN · DIGIY LOC ♾️</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
+  /* =========================
+     CONFIG
+  ========================= */
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
-  const FALLBACK_PHOTO = "https://digiylyfe.com/wp-content/uploads/2025/06/042-BAPTISTE.png";
+  // Où renvoyer si pas public / slug KO
+  const GALLERY_URL = "https://beauville.github.io/digiy-loc/";      // ← ta galerie publique (celle que tu as collée)
+  const LOC_PRO_URL = "https://beauville.github.io/digiy-loc-pro/";  // ← espace pro (fallback)
 
-  const pick = (o, keys, d=null) => {
-    for (const k of keys) if (o && o[k] !== null && o[k] !== undefined && o[k] !== "") return o[k];
-    return d;
-  };
-  const digits = (v) => (v ?? "").toString().replace(/\D/g,"");
-  const money = (v) => {
-    const n = Number(v);
-    if (Number.isFinite(n) && n > 0) return n.toLocaleString("fr-FR") + " F";
-    if (typeof v === "string" && v.trim()) {
-      const d = v.replace(/[^\d]/g,"");
-      if (d) return Number(d).toLocaleString("fr-FR") + " F";
-      return v;
+  // Page PIN publique (dans digiy-loc-pro)
+  const PIN_PAGE = "https://beauville.github.io/digiy-loc-pro/pin.html";
+
+  // WhatsApp équipe DIGIY
+  const TEAM_WA = "+221771342889";
+
+  /* =========================
+     UI refs
+  ========================= */
+  const ttl = document.getElementById("ttl");
+  const sub = document.getElementById("sub");
+  const dot = document.getElementById("dot");
+  const stBig = document.getElementById("stBig");
+  const stSmall = document.getElementById("stSmall");
+  const btnBack = document.getElementById("btnBack");
+  const btnWa = document.getElementById("btnWa");
+
+  btnBack.href = GALLERY_URL || LOC_PRO_URL;
+
+  /* =========================
+     Helpers
+  ========================= */
+  function digits(v){ return String(v || "").replace(/\D/g,""); }
+  function openWa(phone, msg){
+    const d = digits(phone);
+    if (!d) return;
+    const url = "https://wa.me/" + d + (msg ? "?text=" + encodeURIComponent(msg) : "");
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function setStatus(mode, big, small){
+    stBig.textContent = big || "";
+    stSmall.textContent = small || "";
+    if (mode === "ok"){
+      dot.style.background = "var(--ok)";
+      dot.style.boxShadow = "0 0 16px rgba(34,197,94,.35)";
+    } else if (mode === "warn"){
+      dot.style.background = "var(--accent)";
+      dot.style.boxShadow = "0 0 16px rgba(250,204,21,.35)";
+    } else if (mode === "err"){
+      dot.style.background = "var(--danger)";
+      dot.style.boxShadow = "0 0 16px rgba(251,113,133,.35)";
+    } else {
+      dot.style.background = "var(--accent)";
+      dot.style.boxShadow = "0 0 16px rgba(250,204,21,.35)";
     }
-    return "Sur demande";
-  };
+  }
 
-  const slug = new URLSearchParams(location.search).get("slug");
-  if (!slug) { alert("Slug manquant. Exemple: go-pin.html?slug=chez-astou-saly"); return; }
+  function cleanSlug(s){
+    // normalise et sécurise un minimum
+    const x = String(s || "").trim();
+    if (!x) return "";
+    // garde lettres/chiffres/-/_ seulement
+    const safe = x.toLowerCase().replace(/[^a-z0-9\-_]/g,"");
+    return safe;
+  }
+
+  function redirectToPin(slug){
+    const url = PIN_PAGE + "?slug=" + encodeURIComponent(slug);
+    location.replace(url);
+  }
+
+  /* =========================
+     Main
+  ========================= */
+  const rawSlug = new URLSearchParams(location.search).get("slug");
+  const slug = cleanSlug(rawSlug);
+
+  btnWa.addEventListener("click", ()=>{
+    const msg = slug
+      ? `Bonjour DIGIY 👋\nJ’ai un souci pour ouvrir le PIN (${slug}).`
+      : `Bonjour DIGIY 👋\nJe n’arrive pas à ouvrir un PIN (slug manquant).`;
+    openWa(TEAM_WA, msg);
+  });
 
   window.addEventListener("DOMContentLoaded", async () => {
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const { data, error } = await sb.from("go_pins").select("*").eq("slug", slug).single();
-    if (error || !data) { alert("Lieu introuvable."); console.error(error); return; }
-
-    const title = pick(data, ["title","name","label","nom","titre"], "DIGIY LOC");
-    const city  = pick(data, ["city","ville","location","localite"], "");
-    const desc  = pick(data, ["description","desc","about","resume"], "");
-    const notes = pick(data, ["notes","note","details","infos"], "Contact direct · Paiement Wave · 0% commission");
-
-    const maxGuests = pick(data, ["max_guests","guests","capacity","capacite"], "");
-
-    const photo = pick(data, ["photo_url","cover_url","image_url","photo","img","image"], null);
-    const video = pick(data, ["video_url","video","video_link","tour_video","youtube","drive_video"], null);
-
-    const pNight = pick(data, ["price_night","night_price","prix_nuit","tarif_nuit","nuit","price_per_night","prix"], null);
-    const pWeek  = pick(data, ["price_week","week_price","prix_semaine","tarif_semaine","semaine","price_per_week"], null);
-    const pMonth = pick(data, ["price_month","month_price","prix_mois","tarif_mois","mois","price_per_month"], null);
-
-    const ownerName = pick(data, ["owner_name","owner_full_name","proprietaire","proprietaire_nom","nom_proprio","contact_name","contact_nom","host_name"], "Propriétaire");
-
-    // ✅ VRAIS TELS (priorité WhatsApp dédié)
-    const ownerPhoneRaw = pick(data, ["owner_phone","phone","telephone","tel","call_phone","phone_call","contact_phone","contact_tel","host_phone"], "");
-    const ownerWaRaw    = pick(data, ["owner_whatsapp","whatsapp","wa","whatsapp_phone","wa_phone","contact_whatsapp","contact_wa","host_whatsapp"], ownerPhoneRaw);
-    const waveRaw       = pick(data, ["wave_phone","wave","payment_wave","paiement_wave","wave_tel"], ownerPhoneRaw);
-
-    // ✅ lien fiche partenaire (WordPress)
-    const partnerUrl = pick(data, ["partner_url","partner_link","partner_page_url","public_url","fiche_url"], null);
-
-    const phoneDigits = digits(ownerPhoneRaw);
-    const waDigits = digits(ownerWaRaw);
-
-    // UI
-    document.title = `${title} — DIGIY LOC`;
-    document.getElementById("brandTop").innerHTML = `${title} — <span>LOC</span>`;
-    document.getElementById("title").textContent = `${title}${city ? " — " + city : ""}`;
-    document.getElementById("desc").textContent = desc || "";
-    document.getElementById("notes").textContent = notes || "";
-
-    // Chips
-    const chips = [];
-    if (maxGuests) chips.push(`${maxGuests} pers max`);
-    chips.push("0% commission");
-    chips.push("Paiement Wave");
-    chips.push("WhatsApp direct");
-    document.getElementById("chips").innerHTML = chips.map(t => `<span class="chip">${t}</span>`).join("");
-
-    // Photo
-    const img = document.getElementById("photo");
-    img.src = (photo && photo !== "—") ? photo : FALLBACK_PHOTO;
-    document.getElementById("caption").textContent = `Lieu: ${slug}`;
-
-    // Prix
-    document.getElementById("pNight").textContent = money(pNight);
-    document.getElementById("pWeek").textContent  = money(pWeek);
-    document.getElementById("pMonth").textContent = money(pMonth);
-
-    // Wave + owner
-    document.getElementById("wave").textContent = waveRaw || "—";
-    document.getElementById("ownerName").textContent = ownerName || "Propriétaire";
-    document.getElementById("ownerPhone").textContent = ownerPhoneRaw ? `📞 ${ownerPhoneRaw}` : "—";
-
-    // CTA
-    document.getElementById("btnCall").onclick = () => { if (phoneDigits) location.href = `tel:${phoneDigits}`; };
-    document.getElementById("btnWa").onclick = () => {
-      if (!waDigits) return;
-      const msg = `Bonjour, je souhaite réserver ${title}${city ? " à " + city : ""}.`;
-      window.open(`https://wa.me/${waDigits}?text=${encodeURIComponent(msg)}`, "_blank");
-    };
-
-    // Partner
-    const btnPartner = document.getElementById("btnPartner");
-    if (partnerUrl) {
-      btnPartner.onclick = () => window.open(partnerUrl, "_blank");
-    } else {
-      // pas de fiche -> on laisse le bouton mais on explique
-      btnPartner.onclick = () => alert("Fiche partenaire non renseignée (partner_url).");
+    if (!slug){
+      ttl.textContent = "Slug manquant";
+      sub.textContent = "Le lien est incomplet. Reviens à la galerie et clique sur “Voir le PIN”.";
+      setStatus("err","Lien incomplet","Exemple attendu : go-pin.html?slug=chez-astou-saly");
+      return;
     }
 
-    // Video (si tu la mets en DB, bouton auto)
-    const btnVideo = document.getElementById("btnVideo");
-    if (video) {
-      btnVideo.style.display = "flex";
-      btnVideo.onclick = () => window.open(video, "_blank");
-    } else {
-      btnVideo.style.display = "none";
+    ttl.textContent = "Ouverture du PIN…";
+    sub.textContent = "On vérifie l’accès public puis on te redirige.";
+    setStatus("warn","Vérification en cours","On regarde si le logement est public & actif…");
+
+    let sb;
+    try{
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }catch(e){
+      setStatus("err","Erreur de configuration","Supabase non chargé. Vérifie le script CDN.");
+      return;
     }
 
-    document.getElementById("foot").textContent = `${title} · DIGIY LOC ♾️`;
+    // On récupère le pin
+    const { data, error } = await sb
+      .from("go_pins")
+      .select("slug,title,is_public,is_active,category")
+      .eq("slug", slug)
+      .single();
+
+    if (error || !data){
+      ttl.textContent = "PIN introuvable";
+      sub.textContent = "Ce logement n’existe pas (ou n’est plus publié).";
+      setStatus("err","Introuvable","Retour galerie ou contacte DIGIY.");
+      return;
+    }
+
+    // Optionnel : verrouille sur loc
+    if (data.category && String(data.category).toLowerCase() !== "loc"){
+      ttl.textContent = "PIN non compatible";
+      sub.textContent = "Ce PIN n’est pas un logement (catégorie différente).";
+      setStatus("err","Catégorie différente","Retour galerie.");
+      return;
+    }
+
+    const title = data.title || data.slug;
+
+    // Check public + active
+    const isPublic = !!data.is_public;
+    const isActive = !!data.is_active;
+
+    if (!isActive){
+      ttl.textContent = title;
+      sub.textContent = "Ce logement est en pause pour le moment.";
+      setStatus("err","Logement inactif","Retour galerie ou contacte DIGIY.");
+      return;
+    }
+
+    if (!isPublic){
+      ttl.textContent = title;
+      sub.textContent = "Ce PIN est réservé (accès propriétaire).";
+      setStatus("warn","Accès propriétaire","Tu peux passer par l’espace PRO si tu es le propriétaire.");
+      // fallback vers pro après 1.2s (fluide)
+      setTimeout(()=> location.replace(LOC_PRO_URL), 1200);
+      return;
+    }
+
+    // OK → redirect vers PIN public
+    ttl.textContent = title;
+    sub.textContent = "Accès public OK. Redirection…";
+    setStatus("ok","Accès validé","On t’ouvre la fiche PIN maintenant.");
+    setTimeout(()=> redirectToPin(slug), 450);
   });
 })();
 </script>
