@@ -519,7 +519,7 @@ input[type="date"]{color-scheme:dark}
    BOOT GUARD (slug obligatoire)
 ============================= */
 window.DIGIY_GUARD?.boot({
-  module: "loc",
+  module: "LOC",
   login: "./pin.html",
   dashboard: "./index.html",
   requireSlug: true
@@ -530,7 +530,7 @@ window.DIGIY_GUARD?.boot({
 ============================= */
 const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
 const SUPABASE_ANON_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =============================
@@ -538,12 +538,15 @@ const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 ============================= */
 const url = new URL(location.href);
 const SLUG = (url.searchParams.get("slug") || "").trim();
+
 function withSlug(path){
+  if (window.DIGIY_GUARD?.withSlug) return window.DIGIY_GUARD.withSlug(path);
   if(!SLUG) return path;
   const u = new URL(path, location.href);
   if(!u.searchParams.get("slug")) u.searchParams.set("slug", SLUG);
   return u.toString();
 }
+
 function setNavPlace(){
   const el = document.getElementById("navPlace");
   if(el) el.textContent = "Lieu : " + (SLUG || "—");
@@ -596,6 +599,7 @@ const pvWave = document.getElementById("pvWave");
 const pvStatus = document.getElementById("pvStatus");
 const pvVideoWrap = document.getElementById("pvVideoWrap");
 const pvVideo = document.getElementById("pvVideo");
+
 const editNote = document.getElementById("editNote");
 const saveNote = document.getElementById("saveNote");
 
@@ -705,6 +709,7 @@ function markClean(){ hasUnsavedChanges = false; }
   f_prix_nuit,f_prix_semaine,f_prix_mois,f_frais,f_wave_phone,f_wave_name,
   f_deposit,f_status
 ].forEach(input=>{
+  if(!input) return;
   input.addEventListener('input', markDirty);
   input.addEventListener('change', markDirty);
 });
@@ -719,10 +724,12 @@ window.addEventListener('beforeunload', (e)=>{
 /* =============================
    LOGOUT
 ============================= */
-btnLogout.addEventListener("click", ()=>{
-  if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")) return;
-  window.DIGIY_GUARD?.logout("./pin.html");
-});
+if (btnLogout){
+  btnLogout.addEventListener("click", ()=>{
+    if(hasUnsavedChanges && !confirm("⚠️ Tu as des modifications non sauvegardées. Déconnexion quand même ?")) return;
+    window.DIGIY_GUARD?.logout(withSlug("./pin.html"));
+  });
+}
 
 /* =============================
    UTILS
@@ -793,9 +800,7 @@ async function loadList(){
     const uid = sessionUser?.owner_id;
     if(!uid){
       showNote(listNote,
-        "⚠️ Accès OK, mais ton identifiant propriétaire n’est pas chargé.\n" +
-        "➡️ Déconnecte-toi puis reconnecte-toi avec ton PIN.\n" +
-        "✅ Sinon tu peux continuer.",
+        "⚠️ Accès OK, mais ton identifiant propriétaire n’est pas chargé.\n➡️ Déconnecte-toi puis reconnecte-toi avec ton PIN.",
         "warn"
       );
       return;
@@ -875,13 +880,6 @@ btnRefresh.addEventListener("click", loadList);
 /* =============================
    EDITOR
 ============================= */
-const btnSave = document.getElementById("btnSave");
-const btnPublish = document.getElementById("btnPublish");
-const btnDraft = document.getElementById("btnDraft");
-const btnDelete = document.getElementById("btnDelete");
-const btnOpenPublic = document.getElementById("btnOpenPublic");
-const btnTestMedia = document.getElementById("btnTestMedia");
-
 function paintEditor(x){
   hideNote(editNote); hideNote(saveNote);
 
@@ -1165,7 +1163,7 @@ btnOpenPublic.addEventListener("click", ()=>{
   window.open(withSlug("loc.html?id=" + encodeURIComponent(current.id)), "_blank");
 });
 
-/* ===== Calendrier + paiements : on garde ta logique (identique) ===== */
+/* ===== Calendrier + paiements : logique identique ===== */
 btnAddBlock.addEventListener("click", async ()=>{
   hideNote(calNote);
   if(!sessionUser) return showNote(calNote, "🔒 Ouvre ton accès (PIN).", "warn");
@@ -1213,8 +1211,7 @@ async function loadBlocksForCurrent(){
   hideNote(calNote);
   calList.innerHTML = "";
   if(!current || !current.id) return;
-
-  try{
+try{
     const { data, error } = await SB
       .from("loc_availability_blocks")
       .select("id,start_date,end_date,reason,created_at")
@@ -1269,7 +1266,9 @@ async function loadBlocksForCurrent(){
     showNote(calNote, "❌ Erreur calendrier:\n" + (e?.message || e), "bad");
   }
 }
-
+/* =============================
+   AVANCES / PREUVES WAVE
+============================= */
 btnReloadPays.addEventListener("click", loadPaymentsForCurrent);
 
 async function loadPaymentsForCurrent(){
@@ -1294,6 +1293,7 @@ async function loadPaymentsForCurrent(){
     data.forEach(p=>{
       const div = document.createElement("div");
       div.className = "rowItem";
+
       const who = (p.client_name || "Client") + (p.client_phone ? " • " + p.client_phone : "");
       const when = (p.date_in && p.date_out) ? `${p.date_in} → ${p.date_out} (${p.nights||0} nuit(s))` : "—";
       const amt = `${Number(p.amount_expected||0).toLocaleString("fr-FR")} ${p.currency||"XOF"}`;
@@ -1333,7 +1333,6 @@ async function loadPaymentsForCurrent(){
 
 async function updatePayStatus(id, status){
   hideNote(payAdminNote);
-
   try{
     const { error } = await SB
       .from("loc_payment_intents")
@@ -1351,7 +1350,7 @@ async function updatePayStatus(id, status){
 }
 
 /* =============================
-   INIT
+   INIT FINAL
 ============================= */
 (function init(){
   setPinConnectedUI();
@@ -1363,10 +1362,9 @@ async function updatePayStatus(id, status){
     loadList();
   }else{
     showNote(listNote, "🔒 Accès non ouvert.\n➡️ Retour vers l’écran PIN…", "warn");
-    setTimeout(()=> window.DIGIY_GUARD?.logout("./pin.html"), 250);
+    setTimeout(()=> window.DIGIY_GUARD?.logout(window.DIGIY_GUARD.withSlug("./pin.html")), 250);
   }
 })();
 </script>
-
 </body>
 </html>
