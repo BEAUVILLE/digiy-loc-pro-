@@ -614,7 +614,19 @@ function openAddLogement() {
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('active');
 }
-
+function logout() {
+  if (!confirm("Se déconnecter ?")) return;
+  window.DIGIY_GUARD?.logout?.("./pin.html");
+}
+/* --- NDIMBAL --- */
+function goNdimbal(){
+  if(!window.DIGIY_GUARD){
+    alert("Guard DIGIY absent.");
+    return;
+  }
+  const url = window.DIGIY_GUARD.withSlug("./ndimbal.html");
+  window.location.href = url;
+}
 /* =============================
    ✅ AUTH / CONTEXT (PIN GUARD)
    LOC PRO = pas Supabase Auth
