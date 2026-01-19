@@ -1,1084 +1,593 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>DIGIY LOC — PRO (Multi-logements)</title>
-  <meta name="theme-color" content="#16a34a"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>DIGIY LOC PRO ♾️ — Cockpit Propriétaire</title>
+<meta name="theme-color" content="#0b1020" />
 
-  document.body.insertAdjacentHTML("afterbegin", "<div style='position:fixed;bottom:10px;right:10px;z-index:99999;background:#000;color:#fff;padding:6px 10px;border-radius:10px;font-weight:900'>PULSE BUILD OK</div>");
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./guard.js?v=locpro-wave-ultra"></script>
 
-  <style>
-    :root{
-      --green:#16a34a; --bg:#061b14; --card:#0b2a1f;
-      --line:rgba(255,255,255,.14); --text:#eafff1; --muted:rgba(234,255,241,.78);
-      --danger:#ef4444; --warn:#f59e0b;
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:
-        radial-gradient(900px 500px at 10% -10%, rgba(34,197,94,.20), transparent 60%),
-        radial-gradient(900px 500px at 90% 0%, rgba(250,204,21,.10), transparent 55%),
-        var(--bg);
-      color:var(--text);
-      display:flex; justify-content:center;
-      padding:18px 12px;
-    }
-    .wrap{width:min(1180px,100%);}
-    .top{
-      padding:16px; border:1px solid var(--line); border-radius:22px;
-      background:linear-gradient(180deg, rgba(22,163,74,.14), rgba(11,42,31,.92));
-      box-shadow:0 10px 40px rgba(0,0,0,.35);
-      display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-    }
-    .title{margin:0; font-size:20px; font-weight:950}
-    .sub{margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    input, select, textarea{
-      padding:12px 12px; border-radius:14px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.22);
-      color:var(--text); outline:none;
-      font-size:14px;
-    }
-    textarea{min-height:80px; resize:vertical}
-    button{
-      border:0; border-radius:14px; padding:12px 14px;
-      font-weight:950; cursor:pointer;
-      background:var(--green); color:#062016;
-      box-shadow:0 10px 20px rgba(22,163,74,.18);
-    }
-    button.secondary{
-      background:transparent; color:var(--text);
-      border:1px solid rgba(255,255,255,.18);
-      box-shadow:none;
-    }
-    button.danger{background:var(--danger); color:#fff}
-    button:disabled{opacity:.55; cursor:not-allowed}
+<style>
+:root{
+  --bg:#020617;
+  --bg2:#0b1020;
+  --card:rgba(255,255,255,.03);
+  --line:#1f2937;
+  --ink:#f9fafb;
+  --muted:#cbd5f5;
+  --gold:#facc15;
+  --green:#22c55e;
+  --danger:#ef4444;
+  --shadow:0 22px 50px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
+    radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg2), var(--bg));
+}
+a{color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:14px}
+.top{
+  display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:var(--card);
+  box-shadow:var(--shadow);
+}
+.brand{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.logo{
+  width:40px;height:40px;border-radius:14px;
+  background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
+  border:1px solid rgba(250,204,21,.35);
+  box-shadow:0 0 22px rgba(250,204,21,.12);
+}
+.brand h1{margin:0;font-size:1.05rem;letter-spacing:.2px}
+.brand .infinity{font-size:1.5rem;font-weight:900;margin-left:4px}
+.brand .sub{color:var(--muted);font-weight:800;font-size:.92rem;margin-top:2px}
 
-    .grid{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:14px;
-    }
-    @media(min-width:1040px){
-      .grid{grid-template-columns: 1.2fr .8fr;}
-    }
-    .card{
-      padding:16px; border:1px solid var(--line); border-radius:22px;
-      background:rgba(11,42,31,.86);
-      box-shadow:0 10px 40px rgba(0,0,0,.28);
-    }
-    .h2{margin:0 0 10px; font-size:16px; font-weight:950}
-    .muted{color:var(--muted); font-size:12px; line-height:1.35}
-    .sep{height:1px; background:rgba(255,255,255,.10); margin:12px 0}
+.pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{
+  border:1px solid rgba(148,163,184,.35);
+  padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
+  color:var(--muted);font-weight:900;font-size:.86rem;
+}
+.pill strong{color:#fff}
+.pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+.pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
 
-    .dbg{
-      margin-top:10px; padding:10px 12px; border-radius:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(0,0,0,.16);
-      color:var(--muted);
-      white-space:pre-wrap;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:12px;
-      display:none;
-    }
+.btn{
+  border:0; cursor:pointer;
+  border-radius:14px;
+  padding:11px 12px;
+  font-weight:1000;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line);
+  color:var(--muted);
+  transition:all 0.2s ease;
+  text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn.primary{background:var(--green);border-color:rgba(34,197,94,.25);color:#022c22}
+.btn.gold{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.35);color:#fde68a}
+.btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fecaca}
+.btn.ghost{background:rgba(255,255,255,.02)}
+.btn.small{padding:9px 10px;border-radius:12px;min-height:44px}
 
-    .calTop{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
-    .calNav{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .pill{
-      display:inline-block; padding:6px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.18);
-      font-size:12px; font-weight:950;
-    }
-    .legend{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
-    .cal{
-      margin-top:12px;
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap:8px;
-    }
-    .dow{
-      text-align:center;
-      font-size:11px; color:var(--muted); font-weight:900;
-      padding:6px 0;
-    }
-    .day{
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.14);
-      border-radius:16px;
-      padding:10px 10px 8px;
-      min-height:78px;
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-    }
-    .day.disabled{opacity:.35; cursor:default}
-    .dnum{font-weight:950; font-size:13px}
-    .dmeta{margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center}
-    .tag{
-      font-size:11px; font-weight:950;
-      padding:4px 8px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.16);
-    }
-    .tag.open{border-color: rgba(34,197,94,.35)}
-    .tag.closed{border-color: rgba(245,158,11,.45)}
-    .tag.occupied{border-color: rgba(239,68,68,.45)}
-    .price{font-size:11px; color:var(--muted); font-weight:900}
+.navRow{
+  width:100%;
+  display:flex;gap:10px;flex-wrap:wrap;
+  align-items:center;justify-content:space-between;
+  margin-top:10px;
+}
+.navLeft,.navRight{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.navLabel{
+  color:var(--muted);
+  font-weight:900;
+  font-size:.86rem;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.02);
+}
 
-    .list{display:flex; flex-direction:column; gap:10px}
-    .item{
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.14);
-      border-radius:16px;
-      padding:12px;
-    }
-    .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .itemTitle{font-weight:950}
-    .itemMeta{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.35}
-    .itemBtns{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width: 980px){ .grid{grid-template-columns:1fr} }
 
-    /* modal */
-    .modalBack{
-      position:fixed; inset:0; background:rgba(0,0,0,.55);
-      display:none; align-items:center; justify-content:center;
-      padding:16px;
-      z-index:9999;
-    }
-    .modal{
-      width:min(560px, 100%);
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(11,42,31,.96);
-      border-radius:22px;
-      padding:14px;
-      box-shadow:0 20px 60px rgba(0,0,0,.5);
-    }
-    .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
-    .modalTitle{margin:0; font-size:15px; font-weight:950}
-    .modalGrid{display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px}
-    .modalNote{font-size:12px; color:var(--muted); line-height:1.4}
+.card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.cardHead{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+}
+.cardHead h2{margin:0;font-size:1.02rem}
+.cardHead small{color:var(--muted);font-weight:800}
+.cardBody{padding:14px}
 
-    .two{display:grid; grid-template-columns:1fr; gap:10px}
-    @media(min-width:720px){ .two{grid-template-columns:1fr 1fr;} }
+.note{
+  margin-top:10px;
+  padding:10px 12px;border-radius:14px;
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.03);
+  color:var(--muted);
+  white-space:pre-wrap;
+  display:none;
+}
+.note.ok{border-color:rgba(34,197,94,.35);color:#bbf7d0;background:rgba(34,197,94,.09)}
+.note.bad{border-color:rgba(239,68,68,.35);color:#fecaca;background:rgba(239,68,68,.09)}
+.note.warn{border-color:rgba(250,204,21,.35);color:#fde68a;background:rgba(250,204,21,.09)}
 
-    .okline{color:rgba(234,255,241,.92); font-weight:900}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:8px;margin-top:10px}
+.kv div{padding:8px 10px;border:1px solid rgba(148,163,184,.18);border-radius:12px;background:rgba(255,255,255,.02)}
+.kv .k{color:var(--muted);font-weight:900}
+.kv .v{font-weight:1000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-    /* PULSE */
-    .pulseGrid{display:grid; grid-template-columns:1fr; gap:10px}
-    .pulseBox{
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.14);
-      border-radius:16px;
-      padding:12px;
-    }
-    .pulseHead{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center}
-    .badge{
-      display:inline-block; padding:4px 10px; border-radius:999px;
-      font-size:11px; font-weight:950;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.18);
-    }
-    .badge.ok{border-color: rgba(34,197,94,.35)}
-    .badge.warn{border-color: rgba(245,158,11,.45)}
-    .badge.bad{border-color: rgba(239,68,68,.45)}
-  </style>
+@media (max-width: 720px){
+  .wrap{padding:12px}
+  .btn{width:100%}
+  .navRight .btn{width:100%}
+  .kv{grid-template-columns:1fr}
+}
+
+.table{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.row{
+  border:1px solid rgba(148,163,184,.18);
+  background:rgba(255,255,255,.02);
+  border-radius:16px;
+  padding:10px 12px;
+}
+.rowTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.row b{font-weight:1100}
+.mini{font-size:12px;color:var(--muted);font-weight:850;line-height:1.35}
+.badge{
+  padding:6px 10px;border-radius:999px;
+  border:1px solid rgba(148,163,184,.25);
+  background:rgba(255,255,255,.02);
+  font-weight:950;font-size:12px;color:var(--muted);
+}
+.badge.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+.badge.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+.badge.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
+
+input{
+  width:100%;
+  border:1px solid rgba(148,163,184,.22);
+  background:rgba(0,0,0,.18);
+  color:var(--ink);
+  border-radius:14px;
+  padding:11px 12px;
+  font-weight:900;
+  outline:none;
+}
+</style>
 </head>
 
 <body>
 <div class="wrap">
+
   <div class="top">
-    <div>
-      <h1 class="title">DIGIY LOC — PRO</h1>
-      <div class="sub">
-        Multi-logements (hôtel / chambres). Calendrier toujours visible + open/closed + prix par jour + édition en masse + réservations en attente.
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>DIGIY LOC PRO <span class="infinity">∞</span></h1>
+        <div class="sub">Cockpit propriétaire • sécurisé • 0% commission • paiement direct</div>
       </div>
     </div>
 
-    <div class="row" id="authBox">
-      <input id="email" placeholder="Email (OTP)" autocomplete="email">
-      <button id="btnOtp">Recevoir le lien</button>
-      <button id="btnLogout" class="secondary" style="display:none">Logout</button>
+    <div class="pills">
+      <div class="pill" id="pillUser">👤 <strong>—</strong></div>
+      <div class="pill warn" id="pillState">🔒 Déconnecté</div>
+      <button class="btn danger small" id="btnLogout" style="display:none">🚪 Déconnexion</button>
+    </div>
+
+    <div class="navRow">
+      <div class="navLeft">
+        <a class="btn ghost small" id="btnBack" href="#">⬅️ Retour</a>
+        <div class="navLabel" id="navPlace">Lieu : —</div>
+      </div>
+      <div class="navRight">
+        <a class="btn small" id="goToday" href="#">📅 Vue du jour</a>
+        <button class="btn small navBtn" id="goApp" type="button">🏠 APP</button>
+        <a class="btn small" id="goPulse" href="#">📲 Pulse</a>
+        <a class="btn small" id="goPlanning" href="#">🗓️ Planning</a>
+        <a class="btn small" id="goListing" href="#">📋 Liste du jour</a>
+        <a class="btn small" id="goLinks" href="#">🔗 Liens / QR</a>
+        <a class="btn small" id="goHealth" href="#">🧪 Vérifier mon accès</a>
+      </div>
     </div>
   </div>
-
-  <div id="dbg" class="dbg"></div>
 
   <div class="grid">
-    <!-- LEFT: CALENDAR -->
-    <div class="card">
-      <div class="calTop">
-        <div class="row">
-          <div>
-            <div class="muted">Logement</div>
-            <select id="selLogement"></select>
-          </div>
-
-          <div class="legend">
-            <span class="pill">open</span>
-            <span class="pill">closed</span>
-            <span class="pill">occupied (auto)</span>
-            <span class="pill">prix override</span>
-          </div>
-        </div>
-
-        <div class="calNav">
-          <button class="secondary" id="prevMonth">◀</button>
-          <span class="pill" id="monthLabel">—</span>
-          <button class="secondary" id="nextMonth">▶</button>
-
-          <button class="secondary" id="btnBulk">📅 Appliquer sur une période</button>
-        </div>
-      </div>
-
-      <div class="cal" id="cal"></div>
-
-      <div class="sep"></div>
-      <div class="muted">
-        Astuce : <span class="okline">occupied</span> est automatique (réservations <b>confirmées</b>). Tu gères seulement <b>open/closed</b> + prix.
-      </div>
-    </div>
-
-    <!-- RIGHT: ADD LOGEMENT + RESAS + PULSE -->
-    <div class="card">
-      <div class="h2">Ajouter un logement / chambre</div>
-      <div class="muted">Tu peux créer autant d’unités que tu veux (ex: Chambre 101, 102, Suite…).</div>
-      <div class="sep"></div>
-
-      <div class="two">
+    <section class="card">
+      <div class="cardHead">
         <div>
-          <div class="muted">Nom</div>
-          <input id="new_nom" placeholder="Chambre 101" />
+          <h2>⚡ Vue rapide</h2>
+          <small>Ton accès + tes infos en 10 secondes.</small>
         </div>
+        <button class="btn" id="btnRefresh" type="button">↻ Recharger</button>
+      </div>
+      <div class="cardBody">
+        <div class="kv">
+          <div class="k">Lieu</div><div class="v" id="kvSlug">—</div>
+          <div class="k">Téléphone</div><div class="v" id="kvPhone">—</div>
+          <div class="k">Session</div><div class="v" id="kvSess">—</div>
+        </div>
+
+        <div class="note" id="noteMain"></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <a class="btn gold" id="btnPublic" href="#" target="_blank" rel="noopener">👁️ GO PIN public</a>
+          <a class="btn" id="btnOpenPin" href="#">🔑 Ouvrir l’accès (PIN)</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="cardHead">
         <div>
-          <div class="muted">Ville</div>
-          <input id="new_ville" placeholder="Saly" value="Saly"/>
+          <h2>💳 Cockpit Wave</h2>
+          <small>Déclarations → vérification → preuves (bientôt).</small>
         </div>
+        <button class="btn gold" id="btnDeclareOwner" type="button">➕ Ajouter un paiement</button>
       </div>
-
-      <div style="height:10px"></div>
-
-      <div class="two">
-        <div>
-          <div class="muted">Adresse</div>
-          <input id="new_adresse" placeholder="Quartier / Rue" />
+      <div class="cardBody">
+        <div class="kv">
+          <div class="k">Total déclarés</div><div class="v" id="stTotal">—</div>
+          <div class="k">Total vérifiés</div><div class="v" id="stVerified">—</div>
+          <div class="k">Somme déclarée</div><div class="v" id="stSumTotal">—</div>
+          <div class="k">Somme vérifiée</div><div class="v" id="stSumVerified">—</div>
         </div>
-        <div>
-          <div class="muted">Prix nuit (FCFA)</div>
-          <input id="new_prix" placeholder="30000" inputmode="numeric"/>
-        </div>
+
+        <div class="note" id="noteWave"></div>
+
+        <div class="table" id="waveList"></div>
       </div>
-
-      <div style="height:10px"></div>
-      <div>
-        <div class="muted">Description</div>
-        <textarea id="new_desc" placeholder="Optionnel"></textarea>
-      </div>
-
-      <div style="height:10px"></div>
-      <div class="row">
-        <button id="btnAddLogement">+ Ajouter</button>
-        <button class="secondary" id="btnResetForm" type="button">Effacer</button>
-      </div>
-
-      <div class="sep"></div>
-
-      <div class="h2">Réservations en attente</div>
-      <div class="muted">Tu confirmes → ça bloque les dates (anti double-booking) + met occupied auto.</div>
-      <div style="height:10px"></div>
-      <div class="list" id="resaList"></div>
-
-      <div class="sep"></div>
-
-      <!-- ✅ PULSE -->
-      <div class="pulseHead">
-        <div>
-          <div class="h2" style="margin:0">📲 Pulse (messages auto)</div>
-          <div class="muted">À venir / envoyés / échecs — lecture depuis <b>digiy_loc_outbox</b>.</div>
-        </div>
-        <div class="row">
-          <button class="secondary" id="btnPulseRefresh" type="button">Rafraîchir</button>
-        </div>
-      </div>
-
-      <div style="height:10px"></div>
-      <div class="row" style="gap:8px">
-        <span class="badge warn">À venir: <span id="pulseQueuedCount">0</span></span>
-        <span class="badge ok">Envoyés: <span id="pulseSentCount">0</span></span>
-        <span class="badge bad">Échecs: <span id="pulseFailedCount">0</span></span>
-      </div>
-
-      <div style="height:10px"></div>
-      <div class="pulseGrid">
-        <div class="pulseBox">
-          <div class="muted" style="font-weight:950;margin-bottom:8px">⏳ À venir</div>
-          <div id="pulseUpcoming" class="muted">—</div>
-        </div>
-        <div class="pulseBox">
-          <div class="muted" style="font-weight:950;margin-bottom:8px">✅ Derniers envoyés</div>
-          <div id="pulseSent" class="muted">—</div>
-        </div>
-        <div class="pulseBox">
-          <div class="muted" style="font-weight:950;margin-bottom:8px">⚠️ Échecs</div>
-          <div id="pulseFailed" class="muted">—</div>
-        </div>
-      </div>
-      <!-- /PULSE -->
-    </div>
+    </section>
   </div>
-</div>
 
-<!-- Modal jour -->
-<div class="modalBack" id="modalBack">
-  <div class="modal">
-    <div class="modalTop">
-      <h3 class="modalTitle" id="mTitle">—</h3>
-      <button class="secondary" id="mClose">Fermer</button>
-    </div>
-
-    <div class="modalGrid">
-      <div>
-        <div class="muted">État du jour</div>
-        <select id="mState">
-          <option value="open">open (disponible)</option>
-          <option value="closed">closed (fermé)</option>
-          <option value="occupied" disabled>occupied (auto)</option>
-        </select>
-      </div>
-
-      <div>
-        <div class="muted">Prix nuit (override)</div>
-        <input id="mPrice" placeholder="ex: 30000" inputmode="numeric">
-        <div class="modalNote">Vide = prix standard du logement. “occupied” est géré automatiquement par les réservations confirmées.</div>
-      </div>
-
-      <div class="row">
-        <button id="mSave">Enregistrer</button>
-        <button class="secondary" id="mClear">Effacer override</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal BULK -->
-<div class="modalBack" id="bulkBack">
-  <div class="modal">
-    <div class="modalTop">
-      <h3 class="modalTitle">Appliquer sur une période</h3>
-      <button class="secondary" onclick="closeBulk()">Fermer</button>
-    </div>
-
-    <div class="modalGrid">
-      <div class="two">
-        <div>
-          <div class="muted">Du</div>
-          <input id="bStart" type="date">
-        </div>
-        <div>
-          <div class="muted">Au</div>
-          <input id="bEnd" type="date">
-        </div>
-      </div>
-
-      <div>
-        <div class="muted">État</div>
-        <select id="bState">
-          <option value="open">open (disponible)</option>
-          <option value="closed">closed (fermé)</option>
-        </select>
-      </div>
-
-      <div>
-        <div class="muted">Prix nuit (optionnel)</div>
-        <input id="bPrice" placeholder="ex: 25000" inputmode="numeric">
-      </div>
-
-      <button onclick="applyBulk()">✅ Appliquer</button>
-
-      <div class="modalNote">
-        Les jours <b>occupied</b> (réservations confirmées) ne sont jamais modifiés.
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
-/* =========================
-   CONFIG SUPABASE (public)
-========================= */
-const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+(function(){
+  "use strict";
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Boot guard
+  window.DIGIY_GUARD?.boot({
+    module: "loc",
+    login: "./pin.html",
+    dashboard: "./index.html",
+    requireSlug: true
+  });
 
-/* =========================
-   Helpers
-========================= */
-const $ = (id)=>document.getElementById(id);
-const dbg = (msg)=>{
-  const el = $("dbg");
-  if(!el) return;
-  el.style.display = "block";
-  el.textContent += msg + "\n";
-};
-const dbgClear = ()=>{ const el=$("dbg"); if(el){ el.textContent=""; el.style.display="none"; } };
+  const $ = (id)=>document.getElementById(id);
+  const sb = window.DIGIY_GUARD?.getSupabase?.() || window.DIGIY_GUARD?.sb;
 
-function isoDate(d){
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const da = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${da}`;
-}
-function monthLabel(d){
-  return d.toLocaleDateString("fr-FR", { month:"long", year:"numeric" });
-}
-function clampInt(v){
-  const n = Number(String(v||"").trim());
-  return Number.isFinite(n) ? Math.floor(n) : null;
-}
-function escapeHtml(s){
-  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-}
-function setBusy(btn, busy){
-  if(!btn) return;
-  btn.disabled = !!busy;
-}
-
-function fmtDT(ts){
-  try{
-    if(!ts) return "—";
-    const d = new Date(ts);
-    return d.toLocaleString("fr-FR");
-  }catch(_){
-    return String(ts || "—");
+  function money(v){
+    const n = Number(v);
+    if(Number.isFinite(n)) return n.toLocaleString("fr-FR") + " FCFA";
+    return "—";
   }
-}
-function badgeStatus(status){
-  if(status === "sent") return "✅ envoyé";
-  if(status === "failed") return "❌ échec";
-  if(status === "sending") return "🚚 envoi";
-  return "⏳ à venir";
-}
 
-/* =========================
-   State
-========================= */
-let user = null;
-let logements = [];
-let selectedLogementId = null;
-
-let monthCursor = new Date();
-monthCursor.setDate(1);
-
-let dispoMap = new Map(); // key=YYYY-MM-DD -> row
-let logementPrix = null;  // prix_nuit standard
-
-/* =========================
-   PULSE (Outbox UI)
-   - essaie de lire digiy_loc_outbox
-   - filtre par user.id via join logique (si policy existe)
-   - sinon: affiche message clair
-========================= */
-async function loadPulse(){
-  const upEl = $("pulseUpcoming");
-  const sentEl = $("pulseSent");
-  const failEl = $("pulseFailed");
-
-  const qCountEl = $("pulseQueuedCount");
-  const sCountEl = $("pulseSentCount");
-  const fCountEl = $("pulseFailedCount");
-
-  if(qCountEl) qCountEl.textContent = "0";
-  if(sCountEl) sCountEl.textContent = "0";
-  if(fCountEl) fCountEl.textContent = "0";
-
-  if(upEl) upEl.textContent = user ? "Chargement..." : "Connecte-toi pour voir Pulse.";
-  if(sentEl) sentEl.textContent = user ? "Chargement..." : "—";
-  if(failEl) failEl.textContent = user ? "Chargement..." : "—";
-
-  if(!user) return;
-
-  try{
-    // ⚠️ Lecture simple.
-    // Si ta RLS n’autorise pas, ça va throw => message d’aide.
-    const { data, error } = await sb
-      .from("digiy_loc_outbox")
-      .select("id, created_at, due_at, due_date, pulse_kind, status, sent_at, attempts, last_error, reservation_id, room_id, phone, business_code")
-      .order("due_at", { ascending: true })
-      .limit(200);
-
-    if(error) throw error;
-
-    const rows = data || [];
-    const queued = rows.filter(r => r.status === "queued" || r.status === "sending");
-    const sent = rows.filter(r => r.status === "sent");
-    const failed = rows.filter(r => r.status === "failed");
-
-    if(qCountEl) qCountEl.textContent = String(queued.length);
-    if(sCountEl) sCountEl.textContent = String(sent.length);
-    if(fCountEl) fCountEl.textContent = String(failed.length);
-
-    const upcoming = queued.slice(0, 10);
-    const lastSent = sent.slice().sort((a,b)=> String(b.sent_at||b.due_at||"").localeCompare(String(a.sent_at||a.due_at||""))).slice(0, 10);
-    const lastFail = failed.slice().sort((a,b)=> String(b.updated_at||b.due_at||"").localeCompare(String(a.updated_at||a.due_at||""))).slice(0, 10);
-
-    const render = (list, emptyText) => {
-      if(!list.length) return `<div class="muted">${emptyText}</div>`;
-      return list.map(r=>{
-        const line1 = `<b>${escapeHtml(r.pulse_kind || "—")}</b> — ${fmtDT(r.due_at)} — ${badgeStatus(r.status)}`;
-        const line2 = r.last_error ? `<div style="margin-top:6px;color:rgba(239,68,68,.95)">${escapeHtml(r.last_error)}</div>` : "";
-        return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.10)">${line1}${line2}</div>`;
-      }).join("");
-    };
-
-    if(upEl) upEl.innerHTML = render(upcoming, "Aucun pulse à venir ✅");
-    if(sentEl) sentEl.innerHTML = render(lastSent, "Aucun pulse envoyé pour l’instant.");
-    if(failEl) failEl.innerHTML = render(lastFail, "Aucun échec. Tout roule ✅");
-
-  }catch(e){
-    console.error(e);
-    const msg = (e?.message || String(e) || "").toLowerCase();
-    const hint = (
-      msg.includes("permission") || msg.includes("rls") || msg.includes("not allowed")
-    )
-      ? "Pulse est bien actif, mais Supabase bloque la lecture depuis le front (policy RLS manquante). Dis à Frérot de coller la policy SELECT propriétaire pour digiy_loc_outbox."
-      : "Erreur Pulse: " + (e?.message || e);
-
-    if(upEl) upEl.innerHTML = `<div style="color:rgba(245,158,11,.95);font-weight:950">${escapeHtml(hint)}</div>`;
-    if(sentEl) sentEl.innerHTML = `<div class="muted">—</div>`;
-    if(failEl) failEl.innerHTML = `<div class="muted">—</div>`;
+  function showNote(elId, msg, type){
+    const el = $(elId);
+    if(!el) return;
+    el.style.display = msg ? "block" : "none";
+    el.classList.remove("ok","bad","warn");
+    if(type) el.classList.add(type);
+    el.textContent = msg || "";
   }
-}
-const btnPulseRefresh = document.getElementById("btnPulseRefresh");
-if(btnPulseRefresh) btnPulseRefresh.addEventListener("click", loadPulse);
 
-/* =========================
-   BULK (édition en masse)
-========================= */
-function openBulk(){
-  const b = $("bulkBack");
-  if (b) b.style.display = "flex";
-}
-function closeBulk(){
-  const b = $("bulkBack");
-  if (b) b.style.display = "none";
-}
-document.addEventListener("click", (e)=>{
-  if (e.target && e.target.id === "bulkBack") closeBulk();
-});
-const bulkBtn = document.getElementById("btnBulk");
-if (bulkBtn) bulkBtn.addEventListener("click", openBulk);
+  const slug = (window.DIGIY_GUARD?.getSlug?.() || "").trim();
+  if($("navPlace")) $("navPlace").textContent = "Lieu : " + (slug || "—");
+  if($("kvSlug")) $("kvSlug").textContent = slug || "—";
 
-async function applyBulk(){
-  dbgClear();
-  try{
-    if(!user) throw new Error("Non connecté.");
-    if(!selectedLogementId) throw new Error("Choisir un logement.");
+  function withSlug(path){
+    return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
+  }
 
-    const start = document.getElementById("bStart")?.value;
-    const end   = document.getElementById("bEnd")?.value;
-    const state = document.getElementById("bState")?.value || "open";
-    const price = clampInt(document.getElementById("bPrice")?.value);
+  // HREF sur <a>
+  const links = [
+    ["btnBack","./index.html"],
+    ["goToday","./today.html"],
+    ["goPulse","./proprio-loc.html"],
+    ["goPlanning","./planning.html"],
+    ["goListing","./listing.html"],
+    ["goLinks","./manage-links.html"],
+    ["goHealth","./health-loc.html"],
+    ["btnOpenPin","./pin.html"],
+  ];
+  links.forEach(([id, path])=>{
+    const el = $(id);
+    if(el && el.tagName === "A") el.href = withSlug(path);
+  });
 
-    if(!start || !end) throw new Error("Dates requises.");
-    if(start > end) throw new Error("Plage invalide.");
+  // GO PIN public
+  const pub = new URL("./go-pin.html", location.href);
+  if(slug) pub.searchParams.set("slug", slug);
+  if($("btnPublic")) $("btnPublic").href = pub.toString();
 
-    const rows = [];
-    let d = new Date(start);
-    const dEnd = new Date(end);
+  // APP bouton
+  $("goApp")?.addEventListener("click", (e)=>{
+    e.preventDefault();
+    location.href = withSlug("./app.html");
+  });
 
-    while(d <= dEnd){
-      const key = isoDate(d);
-      const existing = dispoMap.get(key);
+  // Session pills
+  function refreshSessionUI(){
+    const sess = window.DIGIY_GUARD?.getSession?.();
+    const phone = sess?.phone || "—";
+    const exp = sess?.exp ? new Date(Number(sess.exp)).toISOString().slice(0,16).replace("T"," ") : "";
 
-      // Ne jamais modifier occupied (auto)
-      if(existing?.state === "occupied"){
-        d.setDate(d.getDate()+1);
-        continue;
+    if($("kvPhone")) $("kvPhone").textContent = phone;
+    if($("kvSess")) $("kvSess").textContent = sess?.ok ? ("OK" + (exp ? " (expire : " + exp + ")" : "")) : "—";
+
+    if(sess?.ok && sess?.phone){
+      if($("pillUser")) $("pillUser").innerHTML = `👤 <strong>${phone}</strong>`;
+      if($("pillState")){
+        $("pillState").textContent = "✅ Connecté";
+        $("pillState").classList.remove("warn");
+        $("pillState").classList.add("ok");
       }
+      if($("btnLogout")) $("btnLogout").style.display = "inline-flex";
+      return true;
+    }
 
-      rows.push({
-        logement_id: selectedLogementId,
-        owner_id: user.id,
-        date: key,
-        state: state,
-        disponible: (state === "open"),
-        prix_nuit: price,
-        notes: null
+    if($("pillUser")) $("pillUser").innerHTML = `👤 <strong>—</strong>`;
+    if($("pillState")){
+      $("pillState").textContent = "🔒 Déconnecté";
+      $("pillState").classList.remove("ok");
+      $("pillState").classList.add("warn");
+    }
+    if($("btnLogout")) $("btnLogout").style.display = "none";
+    return false;
+  }
+
+  $("btnRefresh")?.addEventListener("click", ()=>{
+    refreshSessionUI();
+    loadWave();
+  });
+
+  $("btnLogout")?.addEventListener("click", ()=>{
+    window.DIGIY_GUARD?.logout?.(withSlug("./pin.html"));
+  });
+
+  // ========== WAVE ==========
+  async function loadStats(ownerPhone){
+    const { data, error } = await sb.rpc("loc_wave_payments_stats_owner", {
+      p_slug: slug,
+      p_owner_phone: ownerPhone
+    });
+    if(error) throw error;
+    if(!data || data.ok !== true) throw new Error(data?.reason || "stats_failed");
+    return data;
+  }
+
+  async function loadList(ownerPhone){
+    const { data, error } = await sb.rpc("loc_wave_payments_list_owner", {
+      p_slug: slug,
+      p_owner_phone: ownerPhone
+    });
+    if(error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
+    function rowBadge(status){
+    status = String(status || "declared").toLowerCase();
+    if(status === "verified") return `<span class="badge ok">✅ Vérifié</span>`;
+    if(status === "rejected") return `<span class="badge bad">⛔ Refusé</span>`;
+    return `<span class="badge warn">⏳ Déclaré</span>`;
+  }
+
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  function escapeAttr(str){
+    return escapeHtml(str).replaceAll("`","&#096;");
+  }
+
+  function renderList(rows){
+    const box = $("waveList");
+    if(!box) return;
+
+    if(!rows || !rows.length){
+      box.innerHTML = `<div class="row"><div class="mini">Aucun paiement déclaré pour ce logement.</div></div>`;
+      return;
+    }
+
+    box.innerHTML = rows.map(r=>{
+      const dt = r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "";
+      const who = (r.client_name || "Client") + (r.client_phone ? " · " + r.client_phone : "");
+
+      const note = r.note
+        ? `<div style="margin-top:6px;font-size:13px;color:#cbd5f5;font-weight:750">📝 ${escapeHtml(r.note)}</div>`
+        : "";
+
+      const proof = r.proof_url
+        ? `<div style="margin-top:6px"><a href="${escapeAttr(r.proof_url)}" target="_blank" rel="noopener" style="font-size:12px;color:#facc15;font-weight:900">📎 Voir preuve</a></div>`
+        : "";
+
+      const status = String(r.status || "declared").toLowerCase();
+
+      const amt = Number(r.amount_fcfa || 0);
+      const amtTxt = (Number.isFinite(amt) && amt > 0)
+        ? amt.toLocaleString("fr-FR") + " F"
+        : (r.amount_fcfa || "—");
+
+      const verifyBtn = (status === "verified")
+        ? `<button class="btn small" disabled>✅ Déjà vérifié</button>`
+        : `<button class="btn small primary jsVerify" data-id="${r.id}">✅ Vérifier</button>`;
+
+      return `
+        <div class="row">
+          <div class="rowTop">
+            <div>
+              <b>${amtTxt}</b>
+              <div class="mini">${dt}</div>
+            </div>
+            ${rowBadge(status)}
+          </div>
+
+          <div style="margin-top:8px;font-weight:950">${escapeHtml(who)}</div>
+          ${note}
+          ${proof}
+
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            ${verifyBtn}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Bind verify (dans le bon conteneur)
+    box.querySelectorAll(".jsVerify").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const id = Number(btn.getAttribute("data-id"));
+        if(!id) return;
+
+        const sess = window.DIGIY_GUARD?.getSession?.() || {};
+        const ownerPhone = sess.phone || "";
+        const placeSlug = (window.DIGIY_GUARD?.getSlug?.() || "").trim();
+
+        if(!ownerPhone || !placeSlug){
+          showNote("noteWave", "❌ Session / slug manquants. Reconnecte-toi via PIN.", "bad");
+          return;
+        }
+
+        const old = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "⏳ Vérification…";
+
+        try{
+          const { data, error } = await sb.rpc("loc_wave_payment_verify", {
+            p_id: id,
+            p_slug: placeSlug,
+            p_owner_phone: ownerPhone
+          });
+
+          if(error) throw error;
+          if(!data?.ok) throw new Error(data?.reason || "verify_failed");
+
+          showNote("noteWave", "✅ Paiement vérifié.", "ok");
+          await loadWave(); // refresh complet
+
+        }catch(e){
+          console.error(e);
+          showNote("noteWave", "❌ Erreur vérification : " + (e?.message || e), "bad");
+          btn.disabled = false;
+          btn.textContent = old;
+        }
+      });
+    });
+  }
+
+  async function loadWave(){
+    const sessOk = refreshSessionUI();
+    if(!sessOk){
+      showNote("noteWave", "🔒 Connecte-toi (PIN) pour voir le cockpit Wave.", "warn");
+      if($("waveList")) $("waveList").innerHTML = "";
+      return;
+    }
+
+    const sess = window.DIGIY_GUARD?.getSession?.() || {};
+    const ownerPhone = sess.phone || "";
+    if(!ownerPhone || !slug){
+      showNote("noteWave", "⚠️ Téléphone ou slug manquant.", "bad");
+      return;
+    }
+
+    try{
+      showNote("noteWave", "⏳ Chargement des paiements…", "warn");
+
+      // stats
+      const st = await loadStats(ownerPhone);
+      $("stTotal").textContent = String(st.total_declared ?? 0);
+      $("stVerified").textContent = String(st.total_verified ?? 0);
+      $("stSumTotal").textContent = money(st.sum_declared_fcfa ?? 0);
+      $("stSumVerified").textContent = money(st.sum_verified_fcfa ?? 0);
+
+      // list
+      const rows = await loadList(ownerPhone);
+      renderList(rows);
+
+      showNote("noteWave", "", "");
+    }catch(e){
+      console.error(e);
+      showNote("noteWave", "❌ Erreur Wave : " + (e?.message || e), "bad");
+    }
+  }
+
+  // Déclarer paiement (proprio)
+  $("btnDeclareOwner")?.addEventListener("click", async ()=>{
+    const sessOk = refreshSessionUI();
+    if(!sessOk) return;
+
+    const sess = window.DIGIY_GUARD?.getSession?.() || {};
+    const ownerPhone = sess.phone || "";
+    if(!ownerPhone || !slug){
+      showNote("noteWave", "⚠️ Téléphone ou slug manquant.", "bad");
+      return;
+    }
+
+    const amount = prompt("Montant reçu (FCFA) ?");
+    if(!amount) return;
+
+    const amt = Number(String(amount).replace(/[^\d]/g,""));
+    if(!Number.isFinite(amt) || amt <= 0){
+      showNote("noteWave", "❌ Montant invalide.", "bad");
+      return;
+    }
+
+    const clientName = prompt("Nom du client (optionnel) ?") || "";
+    const clientPhone = prompt("Téléphone client (optionnel) ?") || "";
+    const note = prompt("Note (dates, info) (optionnel) ?") || "";
+
+    try{
+      showNote("noteWave", "⏳ Déclaration en cours…", "warn");
+
+      const { data, error } = await sb.rpc("loc_wave_payment_declare_owner", {
+        p_slug: slug,
+        p_owner_phone: ownerPhone,
+        p_amount_fcfa: amt,
+        p_client_name: clientName,
+        p_client_phone: clientPhone,
+        p_note: note
       });
 
-      d.setDate(d.getDate()+1);
+      if(error) throw error;
+      if(!data?.ok) throw new Error(data?.reason || "declare_failed");
+
+      showNote("noteWave", "✅ Paiement déclaré. Tu peux le vérifier ensuite.", "ok");
+      await loadWave();
+
+    }catch(e){
+      console.error(e);
+      showNote("noteWave", "❌ Erreur déclaration : " + (e?.message || e), "bad");
     }
-
-    if(!rows.length) throw new Error("Aucun jour modifiable (tous occupied ?).");
-
-    const { error } = await sb
-      .from("digiy_disponibilites")
-      .upsert(rows, { onConflict:"logement_id,date" });
-
-    if(error) throw error;
-
-    dbg(`OK: ${rows.length} jours mis à jour`);
-    closeBulk();
-    await loadDispo();
-    renderCalendar();
-  }catch(e){
-    dbg("ERROR: " + (e.message || e));
-  }
-}
-
-/* =========================
-   Auth
-========================= */
-async function refreshAuth(){
-  const { data } = await sb.auth.getSession();
-  user = data?.session?.user || null;
-  $("btnLogout").style.display = user ? "inline-block" : "none";
-}
-
-$("btnOtp").addEventListener("click", async ()=>{
-  dbgClear();
-  try{
-    const email = String($("email").value||"").trim();
-    if(!email) throw new Error("Email requis.");
-    const { error } = await sb.auth.signInWithOtp({ email });
-    if(error) throw error;
-    dbg("OTP envoyé. Clique le lien dans l'email puis reviens sur cette page.");
-  }catch(e){
-    dbg("ERROR: " + (e.message || e));
-  }
-});
-
-$("btnLogout").addEventListener("click", async ()=>{
-  await sb.auth.signOut();
-  await refreshAuth();
-  dbg("Logout OK.");
-  resetUI();
-  loadPulse();
-});
-
-/* =========================
-   Logements (multi)
-========================= */
-async function loadLogements(){
-  if(!user){
-    logements = [];
-    selectedLogementId = null;
-    logementPrix = null;
-    const sel = $("selLogement");
-    sel.innerHTML = `<option value="">(connecte-toi)</option>`;
-    return;
-  }
-
-  const { data, error } = await sb
-    .from("digiy_logements")
-    .select("id, nom, prix_nuit, status, ville, adresse")
-    .eq("owner_id", user.id)
-    .neq("status", "archive")
-    .order("created_at", { ascending:false });
-
-  if(error) throw error;
-  logements = data || [];
-
-  const sel = $("selLogement");
-  sel.innerHTML = "";
-
-  if(!logements.length){
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "Aucun logement (ajoute-en un)";
-    sel.appendChild(opt);
-    selectedLogementId = null;
-    logementPrix = null;
-    return;
-  }
-
-  for(const l of logements){
-    const opt = document.createElement("option");
-    opt.value = l.id;
-    opt.textContent = l.nom;
-    sel.appendChild(opt);
-  }
-
-  selectedLogementId = sel.value || logements[0].id;
-  sel.value = selectedLogementId;
-
-  logementPrix = logements.find(x=>x.id===selectedLogementId)?.prix_nuit ?? null;
-}
-
-$("selLogement").addEventListener("change", async ()=>{
-  selectedLogementId = $("selLogement").value || null;
-  logementPrix = logements.find(x=>x.id===selectedLogementId)?.prix_nuit ?? null;
-  await reloadAll();
-  loadPulse();
-});
-
-/* =========================
-   Add logement (NEW)
-========================= */
-$("btnResetForm").addEventListener("click", ()=>{
-  $("new_nom").value = "";
-  $("new_ville").value = "Saly";
-  $("new_adresse").value = "";
-  $("new_prix").value = "";
-  $("new_desc").value = "";
-});
-
-$("btnAddLogement").addEventListener("click", async ()=>{
-  dbgClear();
-  const btn = $("btnAddLogement");
-  try{
-    if(!user) throw new Error("Connecte-toi d'abord (OTP).");
-
-    const nom = String($("new_nom").value||"").trim();
-    const ville = String($("new_ville").value||"").trim() || "Saly";
-    const adresse = String($("new_adresse").value||"").trim();
-    const prix = clampInt($("new_prix").value);
-    const description = String($("new_desc").value||"").trim() || null;
-
-    if(!nom) throw new Error("Nom requis.");
-    if(!adresse) throw new Error("Adresse requise.");
-    if(!prix || prix <= 0) throw new Error("Prix nuit requis.");
-
-    setBusy(btn, true);
-
-    const payload = {
-      owner_id: user.id,
-      proprietaire_phone: user.phone || "+221000000000",
-      nom,
-      ville,
-      adresse,
-      description,
-      prix_nuit: prix,
-      status: "actif"
-    };
-
-    const { data, error } = await sb
-      .from("digiy_logements")
-      .insert(payload)
-      .select("id")
-      .single();
-
-    if(error) throw error;
-
-    dbg("OK: logement ajouté.");
-    await loadLogements();
-
-    if(data?.id){
-      selectedLogementId = data.id;
-      $("selLogement").value = selectedLogementId;
-      logementPrix = logements.find(x=>x.id===selectedLogementId)?.prix_nuit ?? prix;
-    }
-
-    await reloadAll();
-    $("btnResetForm").click();
-    loadPulse();
-  }catch(e){
-    dbg("ERROR: " + (e.message || e));
-  }finally{
-    setBusy(btn, false);
-  }
-});
-
-/* =========================
-   Dispo (month range)
-========================= */
-function monthRange(d){
-  const start = new Date(d.getFullYear(), d.getMonth(), 1);
-  const end = new Date(d.getFullYear(), d.getMonth()+1, 1);
-  return { start, end };
-}
-
-async function loadDispo(){
-  dispoMap.clear();
-  if(!selectedLogementId) return;
-
-  const { start, end } = monthRange(monthCursor);
-  const startISO = isoDate(start);
-  const endISO = isoDate(new Date(end.getTime()-86400000));
-
-  const { data, error } = await sb
-    .from("digiy_disponibilites")
-    .select("id, date, state, disponible, prix_nuit, notes, owner_id")
-    .eq("logement_id", selectedLogementId)
-    .gte("date", startISO)
-    .lte("date", endISO);
-
-  if(error) throw error;
-  (data||[]).forEach(r=> dispoMap.set(r.date, r));
-}
-
-/* =========================
-   Reservations (en_attente)
-========================= */
-async function loadResaEnAttente(){
-  const box = $("resaList");
-  box.innerHTML = "";
-
-  if(!user){
-    box.innerHTML = `<div class="muted">Connecte-toi pour voir les réservations.</div>`;
-    return;
-  }
-  if(!selectedLogementId){
-    box.innerHTML = `<div class="muted">Ajoute un logement puis sélectionne-le.</div>`;
-    return;
-  }
-
-  const { data, error } = await sb
-    .from("digiy_reservations")
-    .select("id, client_nom, client_phone, date_arrivee, date_depart, nb_nuits, montant_total, status, tracking_code, mode_paiement, created_at")
-    .eq("logement_id", selectedLogementId)
-    .eq("status", "en_attente")
-    .order("created_at", { ascending:false });
-
-  if(error) throw error;
-
-  if(!data || !data.length){
-    box.innerHTML = `<div class="muted">Aucune réservation en attente.</div>`;
-    return;
-  }
-
-  for(const r of data){
-    const el = document.createElement("div");
-    el.className = "item";
-    el.innerHTML = `
-      <div class="itemTop">
-        <div class="itemTitle">${escapeHtml(r.client_nom || "Client")} — <span class="pill">${r.tracking_code || "—"}</span></div>
-        <div class="pill">${r.montant_total ? (Number(r.montant_total).toLocaleString("fr-FR")+" F") : "—"}</div>
-      </div>
-      <div class="itemMeta">
-        📅 ${r.date_arrivee} → ${r.date_depart} (${r.nb_nuits} nuits) • 📞 ${r.client_phone || "—"} • 💳 ${r.mode_paiement || "—"}
-      </div>
-      <div class="itemBtns">
-        <button data-id="${r.id}" class="btnConfirm">Confirmer</button>
-      </div>
-    `;
-    box.appendChild(el);
-  }
-
-  box.querySelectorAll(".btnConfirm").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      const id = btn.getAttribute("data-id");
-      if(!confirm("Confirmer cette réservation ? (ça bloque les dates)")) return;
-      await confirmReservation(id);
-    });
   });
-}
 
-async function confirmReservation(resaId){
-  dbgClear();
-  try{
-    const { error } = await sb
-      .from("digiy_reservations")
-      .update({ status: "confirmee" })
-      .eq("id", resaId);
+  // Boot final
+  refreshSessionUI();
+  loadWave();
 
-    if(error) throw error;
-    dbg("OK: réservation confirmée.");
-    await reloadAll();
-    loadPulse();
-  }catch(e){
-    dbg("ERROR: " + (e.message || e));
-  }
-}
-
-/* =========================
-   Calendar render (ALWAYS)
-========================= */
-function renderCalendar(){
-  const cal = $("cal");
-  if(!cal) return;
-
-  cal.innerHTML = "";
-
-  const dows = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
-  for(const w of dows){
-    const el = document.createElement("div");
-    el.className = "dow";
-    el.textContent = w;
-    cal.appendChild(el);
-  }
-
-  $("monthLabel").textContent = monthLabel(monthCursor);
-
-  const { start } = monthRange(monthCursor);
-  const firstDay = new Date(start);
-
-  const jsDow = firstDay.getDay();
-  const offset = (jsDow + 6) % 7;
-
-  for(let i=0;i<offset;i++){
-    const b = document.createElement("div");
-    b.className = "day disabled";
-    b.style.visibility = "hidden";
-    cal.appendChild(b);
-  }
-
-  const daysInMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 0).getDate();
-
-  for(let day=1; day<=daysInMonth; day++){
-    const d = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), day);
-    const key = isoDate(d);
-
-    const row = dispoMap.get(key);
-
-    let state = row?.state || "open";
-    const overridePrice = (row?.prix_nuit ?? null);
-
-    const el = document.createElement("div");
-    el.className = "day";
-    el.dataset.date = key;
-    el.dataset.state = state;
-
-    const dispoText = state === "open" ? "open" : state === "closed" ? "closed" : "occupied";
-
-    const priceText = overridePrice != null
-      ? `override: ${Number(overridePrice).toLocaleString("fr-FR")} F`
-      : (logementPrix != null ? `prix: ${Number(logementPrix).toLocaleString("fr-FR")} F` : "prix: —");
-
-    el.innerHTML = `
-      <div class="dnum">${day}</div>
-      <div class="dmeta">
-        <span class="tag ${state}">${dispoText}</span>
-        ${overridePrice != null ? `<span class="tag">prix*</span>` : ``}
-      </div>
-      <div class="price">${priceText}</div>
-    `;
-
-    if(state === "occupied"){
-      el.style.cursor = "not-allowed";
-      el.title = "occupied (auto via réservations confirmées)";
-    } else {
-      el.addEventListener("click", ()=> openModal(key, row));
-    }
-
-    cal.appendChild(el);
-  }
-}
-
-/* =========================
-   Modal day edit
-========================= */
-let modalDate = null;
-let modalRow = null;
-
-function openModal(dateISO, row){
-  modalDate = dateISO;
-  modalRow = row || null;
-
-  $("mTitle").textContent = `Jour: ${dateISO}`;
-  $("mState").value = (row?.state && row.state !== "occupied") ? row.state : "open";
-  $("mPrice").value = (row?.prix_nuit ?? "") === null ? "" : String(row?.prix_nuit ?? "");
-
-  $("modalBack").style.display = "flex";
-}
-function closeModal(){
-  $("modalBack").style.display = "none";
-  modalDate = null;
-  modalRow = null;
-}
-$("mClose").addEventListener("click", closeModal);
-$("modalBack").addEventListener("click", (e)=>{
-  if(e.target && e.target.id === "modalBack") closeModal();
-});
-$("mClear").addEventListener("click", ()=>{ $("mPrice").value = ""; });
-
-$("mSave").addEventListener("click", async ()=>{
-  dbgClear();
-  try{
-    if(!user) throw new Error("Non connecté.");
-    if(!selectedLogementId) throw new Error("Choisir un logement.");
-    if(!modalDate) throw new Error("Date manquante.");
-
-    const state = $("mState").value;
-    const price = clampInt($("mPrice").value);
-    const disponible = (state === "open");
-
-    const payload = {
-      logement_id: selectedLogementId,
-      owner_id: user.id,
-      date: modalDate,
-      state,
-      disponible,
-      prix_nuit: price,
-      notes: null
-    };
-
-    const { error } = await sb
-      .from("digiy_disponibilites")
-      .upsert(payload, { onConflict: "logement_id,date" });
-
-    if(error) throw error;
-
-    dbg("OK: jour mis à jour.");
-    closeModal();
-    await loadDispo();
-    renderCalendar();
-  }catch(e){
-    dbg("ERROR: " + (e.message || e));
-  }
-});
-
-/* =========================
-   Month nav + reload
-========================= */
-$("prevMonth").addEventListener("click", async ()=>{
-  monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth()-1, 1);
-  await reloadAll();
-});
-$("nextMonth").addEventListener("click", async ()=>{
-  monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 1);
-  await reloadAll();
-});
-
-async function reloadAll(){
-  if(!user){
-    resetUI();
-    renderCalendar();
-    return;
-  }
-
-  await loadLogements();
-
-  if(!selectedLogementId){
-    dispoMap.clear();
-    renderCalendar();
-    $("resaList").innerHTML = `<div class="muted">Ajoute un logement puis sélectionne-le.</div>`;
-    return;
-  }
-
-  await loadDispo();
-  renderCalendar();
-  await loadResaEnAttente();
-}
-
-function resetUI(){
-  const sel = $("selLogement");
-  sel.innerHTML = `<option value="">(connecte-toi)</option>`;
-  $("resaList").innerHTML = `<div class="muted">Connecte-toi pour voir les réservations.</div>`;
-  dispoMap.clear();
-}
-
-/* =========================
-   Boot
-========================= */
-sb.auth.onAuthStateChange(async ()=>{
-  await refreshAuth();
-  await reloadAll();
-  loadPulse();
-});
-
-// BOOT INITIAL (même avant login, on affiche le calendrier)
-(async function(){
-  renderCalendar();
-  await refreshAuth();
-  await reloadAll();
-  loadPulse();
 })();
 </script>
 </body>
