@@ -2,467 +2,94 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DIGIY LOC PRO ♾️ — Cockpit Wave</title>
-<meta name="theme-color" content="#0b1020" />
 
-<!-- ✅ supabase-js (fallback RPC-only) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- ✅ guard -->
-<script src="./guard.js?v=locpro-wave-v2"></script>
-
-<style>
-:root{
-  --bg:#020617; --bg2:#0b1020; --card:rgba(255,255,255,.03);
-  --line:#1f2937; --ink:#f9fafb; --muted:#cbd5f5;
-  --gold:#facc15; --green:#22c55e; --danger:#ef4444; --shadow:0 22px 50px rgba(0,0,0,.55);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  min-height:100vh;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  color:var(--ink);
-  background:
-    radial-gradient(900px 520px at 12% -10%, rgba(250,204,21,.16), transparent 60%),
-    radial-gradient(900px 520px at 90% 0%, rgba(34,197,94,.12), transparent 60%),
-    linear-gradient(180deg, var(--bg2), var(--bg));
-}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1100px;margin:0 auto;padding:14px}
-.top{
-  display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-  padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:var(--shadow);
-}
-.brand{display:flex;gap:10px;align-items:center}
-.logo{
-  width:40px;height:40px;border-radius:14px;
-  background:linear-gradient(135deg, rgba(250,204,21,.35), rgba(34,197,94,.2));
-  border:1px solid rgba(250,204,21,.35);
-  box-shadow:0 0 22px rgba(250,204,21,.12);
-}
-.brand h1{margin:0;font-size:1.05rem}
-.sub{color:var(--muted);font-weight:800;font-size:.92rem;margin-top:2px}
-.pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pill{
-  border:1px solid rgba(148,163,184,.35);
-  padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.02);
-  color:var(--muted);font-weight:900;font-size:.86rem;
-}
-.pill strong{color:#fff}
-.pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
-.pill.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
-
-.btn{
-  border:0; cursor:pointer;
-  border-radius:14px; padding:11px 12px; font-weight:1000;
-  background:rgba(255,255,255,.03); border:1px solid var(--line); color:var(--muted);
-  transition:.2s ease; display:inline-flex; align-items:center; justify-content:center; gap:8px;
-}
-.btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
-.btn:disabled{opacity:.55;cursor:not-allowed}
-.btn.primary{background:var(--green);border-color:rgba(34,197,94,.25);color:#022c22}
-.btn.gold{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.35);color:#fde68a}
-.btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fecaca}
-.btn.small{padding:9px 10px;border-radius:12px;min-height:44px}
-
-.grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
-.card{
-  border:1px solid var(--line); background:rgba(255,255,255,.03);
-  border-radius:20px; box-shadow:var(--shadow); overflow:hidden;
-}
-.cardHead{
-  padding:12px 14px; border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
-}
-.cardHead h2{margin:0;font-size:1.02rem}
-.cardBody{padding:14px}
-
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media(max-width:980px){.stats{grid-template-columns:repeat(2,1fr)}}
-.box{
-  border:1px solid rgba(148,163,184,.18);
-  background:rgba(255,255,255,.02);
-  border-radius:16px;
-  padding:12px;
-}
-.k{color:var(--muted);font-weight:900;font-size:.86rem}
-.v{margin-top:6px;font-weight:1100;font-size:1.05rem}
-.v.gold{color:#fde68a}
-.v.green{color:#bbf7d0}
-
-.badge{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:6px 9px;border-radius:999px;
-  border:1px solid rgba(148,163,184,.25);
-  color:var(--muted);font-weight:950;font-size:.82rem;
-  background:rgba(255,255,255,.02);
-}
-.badge.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
-.badge.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
-.badge.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
-
-.note{
-  margin-top:10px;
-  padding:10px 12px;border-radius:14px;
-  border:1px solid rgba(148,163,184,.25);
-  background:rgba(255,255,255,.03);
-  color:var(--muted);
-  white-space:pre-wrap;
-  display:none;
-}
-.note.ok{display:block;border-color:rgba(34,197,94,.35);color:#bbf7d0;background:rgba(34,197,94,.09)}
-.note.bad{display:block;border-color:rgba(239,68,68,.35);color:#fecaca;background:rgba(239,68,68,.09)}
-.note.warn{display:block;border-color:rgba(250,204,21,.35);color:#fde68a;background:rgba(250,204,21,.09)}
-
-.row{
-  border:1px solid rgba(148,163,184,.18);
-  background:rgba(255,255,255,.02);
-  border-radius:16px;
-  padding:12px;
-  margin-top:10px;
-}
-.rowTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
-.mini{font-size:12px;color:var(--muted);font-weight:850;line-height:1.35}
-@media (max-width:720px){ .wrap{padding:12px} .btn{width:100%} }
-</style>
+<script src="./guard.js?v=wave-stable"></script>
 </head>
 
 <body>
-<div class="wrap">
-
-  <div class="top">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <h1>DIGIY LOC PRO ♾️ — Cockpit Wave</h1>
-        <div class="sub">Déclarations → vérification propriétaire • 0% commission</div>
-      </div>
-    </div>
-
-    <div class="pills">
-      <div class="pill" id="pillPlace">📍 <strong>—</strong></div>
-      <div class="pill warn" id="pillState">🔒 Session</div>
-      <a class="btn small" id="btnBack" href="./index.html">⬅️ Retour</a>
-      <button class="btn danger small" id="btnLogout" style="display:none">🚪 Déconnexion</button>
-    </div>
-  </div>
-
-  <div class="grid">
-
-    <section class="card">
-      <div class="cardHead">
-        <h2>📊 Statistiques</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn" id="btnReload" type="button">↻ Recharger</button>
-          <button class="btn gold" id="btnDeclare" type="button">➕ Ajouter un paiement</button>
-        </div>
-      </div>
-      <div class="cardBody">
-        <div class="stats">
-          <div class="box"><div class="k">Déclarations</div><div class="v gold" id="stCount">—</div></div>
-          <div class="box"><div class="k">Vérifiées</div><div class="v green" id="stVerified">—</div></div>
-          <div class="box"><div class="k">Total déclaré</div><div class="v gold" id="stSum">—</div></div>
-          <div class="box"><div class="k">Total vérifié</div><div class="v green" id="stSumVerified">—</div></div>
-        </div>
-        <div class="note" id="note"></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="cardHead">
-        <h2>🧾 Paiements</h2>
-        <small>Vérifie en 1 clic. (preuve photo plus tard)</small>
-      </div>
-      <div class="cardBody">
-        <div id="list">Chargement…</div>
-      </div>
-    </section>
-
-  </div>
+<div style="padding:20px;color:white;font-family:sans-serif;background:#020617;min-height:100vh">
+<h2>💳 Cockpit Wave — DIGIY LOC PRO</h2>
+<button id="btnDeclare">➕ Ajouter un paiement</button>
+<button id="btnReload">↻ Reload</button>
+<hr/>
+<div id="stats"></div>
+<div id="list"></div>
+<div id="note"></div>
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
 (async function(){
-  "use strict";
+"use strict";
 
-  // ---- SUPABASE fallback
-  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+/* CONFIG */
+const SUPABASE_URL="https://wesqmwjjtsefyjnluosj.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
-  // RPC V2 (SQL ci-dessus)
-  const RPC_STATS   = "loc_wave_payments_stats_owner_v2";
-  const RPC_LIST    = "loc_wave_payments_list_owner_v2";
-  const RPC_VERIFY  = "loc_wave_payment_verify_v2";
-  const RPC_DECLARE = "loc_wave_payment_declare_owner_v2";
+const RPC_STATS="loc_wave_payments_stats_owner_v2";
+const RPC_LIST="loc_wave_payments_list_owner_v2";
+const RPC_VERIFY="loc_wave_payment_verify_v2";
+const RPC_DECLARE="loc_wave_payment_declare_owner_v2";
 
-  const $ = (id)=>document.getElementById(id);
+/* SB fallback */
+let SB=null;
+function getSB(){
+if(window.DIGIY_GUARD?.sb) return window.DIGIY_GUARD.sb;
+if(!SB) SB=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+return SB;
+}
 
-  // Boot guard (protection)
-  window.DIGIY_GUARD?.boot({
-    module: "loc",
-    login: "./pin.html",
-    dashboard: "./index.html",
-    requireSlug: true
-  });
+function slug(){return DIGIY_GUARD?.getSlug?.()||"";}
+function owner(){return DIGIY_GUARD?.getSession?.()?.owner_id||"";}
 
-  // ---- sb stable
-  async function getSBStable(){
-    for(let i=0;i<40;i++){
-      const s = window.DIGIY_GUARD?.getSupabase?.() || window.DIGIY_GUARD?.sb || window.sb;
-      if(s?.rpc) return s;
-      await new Promise(r=>setTimeout(r, 50));
-    }
-    if(!window.DIGIY_RPC_SB){
-      if(!window.supabase?.createClient) return null;
-      window.DIGIY_RPC_SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-    return window.DIGIY_RPC_SB;
-  }
-  async function needSB(){
-    const s = await getSBStable();
-    if(!s?.rpc) throw new Error("Supabase pas prêt (sb null). Recharge la page ou reconnecte-toi via PIN.");
-    return s;
-  }
+function note(t,c="white"){
+const n=document.getElementById("note");
+n.style.color=c;n.innerText=t||"";
+}
 
-  // ---- session/slug
-  const getSlug = ()=> (window.DIGIY_GUARD?.getSlug?.() || "").trim();
-  const getSess = ()=> window.DIGIY_GUARD?.getSession?.() || null;
-  const getOwnerId = ()=> (getSess()?.owner_id || ""); // ✅ UUID métier
+function money(n){
+return Number(n||0).toLocaleString("fr-FR")+" FCFA";
+}
 
-  function showNote(msg, type){
-    const el = $("note");
-    el.className = "note " + (type || "warn");
-    el.textContent = msg || "";
-    el.style.display = msg ? "block" : "none";
-  }
+/* LOAD */
+async function load(){
+const sb=getSB();
+const s=slug(),o=owner();
+if(!s||!o){note("Session manquante","red");return;}
 
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
+const {data:st}=await sb.rpc(RPC_STATS,{p_slug:s,p_owner_id:o});
+document.getElementById("stats").innerText=JSON.stringify(st,null,2);
 
-  function money(n){
-    const x = Number(n||0);
-    return x.toLocaleString("fr-FR") + " FCFA";
-  }
+const {data:ls}=await sb.rpc(RPC_LIST,{p_slug:s,p_owner_id:o,p_limit:50});
+document.getElementById("list").innerText=JSON.stringify(ls,null,2);
+}
 
-  // ✅ ton helper (béton)
-  function getAmountFcfa(r){
-    const v = (r?.amount_fcfa ?? r?.amount ?? 0);
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
-  }
+/* DECLARE */
+document.getElementById("btnDeclare").addEventListener("click", async()=>{
+try{
+const sb=getSB();
+const s=slug(),o=owner();
+const a=prompt("Montant reçu ?");
+if(!a) return;
+const amt=Number(a.replace(/[^\d]/g,""));
+const {data,error}=await sb.rpc(RPC_DECLARE,{
+p_slug:s,p_owner_id:o,p_amount_fcfa:amt,p_client_name:"Test",p_client_phone:null,p_proof_url:null,p_logement_title:null
+});
+if(error) throw error;
+note("✅ déclaré","lime");
+await load();
+}catch(e){note("❌ "+e.message,"red");}
+});
 
-  function setSessionPills(){
-    const slug = getSlug();
-    const sess = getSess();
-    $("pillPlace").innerHTML = `📍 <strong>${slug || "—"}</strong>`;
+document.getElementById("btnReload").onclick=()=>load();
 
-    if(sess?.ok && sess?.phone){
-      $("pillState").textContent = "✅ Connecté";
-      $("pillState").classList.remove("warn");
-      $("pillState").classList.add("ok");
-      $("btnLogout").style.display = "inline-flex";
-    } else {
-      $("pillState").textContent = "🔒 Session";
-      $("pillState").classList.remove("ok");
-      $("pillState").classList.add("warn");
-      $("btnLogout").style.display = "none";
-    }
-  }
-
-  function statusBadge(s){
-    const st = String(s||"declared").toLowerCase();
-    if(st === "verified") return `<span class="badge ok">✅ Vérifié</span>`;
-    if(st === "rejected") return `<span class="badge bad">⛔ Rejeté</span>`;
-    return `<span class="badge warn">⏳ Déclaré</span>`;
-  }
-
-  async function loadStats(){
-    const slug = getSlug();
-    const ownerId = getOwnerId();
-    const sess = getSess();
-
-    if(!sess?.ok || !sess?.phone || !slug || !ownerId){
-      showNote("🔒 Session/slug/owner_id manquant.\n➡️ Reviens via PIN.", "bad");
-      return null;
-    }
-
-    const sb = await needSB();
-    const { data, error } = await sb.rpc(RPC_STATS, { p_slug: slug, p_owner_id: ownerId });
-    if(error) throw error;
-    if(!data?.ok) throw new Error(data?.reason || "stats_denied");
-
-    $("stCount").textContent = String(data.total_declared ?? 0);
-    $("stVerified").textContent = String(data.total_verified ?? 0);
-    $("stSum").textContent = money(data.sum_declared_fcfa ?? 0);
-    $("stSumVerified").textContent = money(data.sum_verified_fcfa ?? 0);
-
-    return data;
-  }
-
-  async function loadList(){
-    const slug = getSlug();
-    const ownerId = getOwnerId();
-    const sess = getSess();
-
-    if(!sess?.ok || !sess?.phone || !slug || !ownerId){
-      $("list").innerHTML = "🔒 Session/slug/owner_id manquant. Reviens via PIN.";
-      return;
-    }
-
-    const sb = await needSB();
-    const { data, error } = await sb.rpc(RPC_LIST, { p_slug: slug, p_owner_id: ownerId, p_limit: 100 });
-    if(error) throw error;
-
-    const rows = Array.isArray(data) ? data : [];
-    if(!rows.length){
-      $("list").innerHTML = "Aucun paiement déclaré pour l’instant.";
-      return;
-    }
-
-    $("list").innerHTML = rows.map(r=>{
-      const when = r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "";
-      const amt = getAmountFcfa(r);
-      const amtTxt = (amt > 0) ? (amt.toLocaleString("fr-FR") + " F") : "—";
-
-      const client = [r.client_name, r.client_phone].filter(Boolean).join(" · ") || "Client: —";
-
-      const btn = (String(r.status||"").toLowerCase() === "verified")
-        ? `<button class="btn small" disabled>✅ Déjà vérifié</button>`
-        : `<button class="btn small primary jsVerify" data-id="${r.id}">✅ Vérifier</button>`;
-
-      const proof = r.proof_url
-        ? `<div class="mini" style="margin-top:6px"><a href="${escapeHtml(r.proof_url)}" target="_blank" rel="noopener" style="color:#facc15;font-weight:900">📎 Voir preuve</a></div>`
-        : "";
-
-      return `
-        <div class="row">
-          <div class="rowTop">
-            <div>
-              <div style="font-weight:1100">${amtTxt}</div>
-              <div class="mini">${escapeHtml(when)}</div>
-            </div>
-            ${statusBadge(r.status)}
-          </div>
-
-          <div style="margin-top:8px;font-weight:950">${escapeHtml(client)}</div>
-          ${proof}
-
-          <div style="display:flex;justify-content:flex-end;margin-top:10px">
-            ${btn}
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    $("list").querySelectorAll(".jsVerify").forEach(b=>{
-      b.addEventListener("click", async ()=>{
-        const id = b.getAttribute("data-id");
-        if(!id) return;
-
-        const slug = getSlug();
-        const ownerId = getOwnerId();
-
-        const old = b.textContent;
-        b.disabled = true;
-        b.textContent = "⏳ …";
-
-        try{
-          const sb = await needSB();
-          const { data, error } = await sb.rpc(RPC_VERIFY, { p_id: id, p_slug: slug, p_owner_id: ownerId });
-          if(error) throw error;
-          if(!data?.ok) throw new Error(data?.reason || "verify_denied");
-
-          showNote("✅ Paiement vérifié. Merci !", "ok");
-          await reloadAll();
-        }catch(e){
-          console.error(e);
-          showNote("❌ Vérification impossible : " + (e?.message || e), "bad");
-          b.disabled = false;
-          b.textContent = old;
-        }
-      });
-    });
-  }
-
-  async function reloadAll(){
-    showNote("⏳ Chargement…", "warn");
-    setSessionPills();
-    await loadStats();
-    await loadList();
-    showNote("", "");
-  }
-
-  $("btnReload").addEventListener("click", ()=> reloadAll().catch(e=>{
-    console.error(e);
-    showNote("❌ Erreur : " + (e?.message || e), "bad");
-  }));
-
-  $("btnLogout").addEventListener("click", ()=>{
-    const url = window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug("./pin.html") : "./pin.html";
-    window.DIGIY_GUARD?.logout?.(url);
-  });
-
-  $("btnDeclare").addEventListener("click", async ()=>{
-    const slug = getSlug();
-    const ownerId = getOwnerId();
-    const sess = getSess();
-    if(!sess?.ok || !slug || !ownerId){
-      showNote("🔒 Reconnecte-toi via PIN.", "bad");
-      return;
-    }
-
-    const amount = prompt("Montant reçu (FCFA) ?");
-    if(!amount) return;
-
-    const amt = Number(String(amount).replace(/[^\d]/g,""));
-    if(!Number.isFinite(amt) || amt <= 0){
-      showNote("❌ Montant invalide.", "bad");
-      return;
-    }
-
-    const clientName = prompt("Nom du client (optionnel) ?") || "";
-    const clientPhone = prompt("Téléphone client (optionnel) ?") || "";
-    const proofUrl = prompt("Lien preuve (optionnel) ?") || "";
-
-    try{
-      showNote("⏳ Déclaration…", "warn");
-      const sb = await needSB();
-      const { data, error } = await sb.rpc(RPC_DECLARE, {
-        p_slug: slug,
-        p_owner_id: ownerId,
-        p_amount_fcfa: amt,
-        p_client_name: clientName,
-        p_client_phone: clientPhone,
-        p_proof_url: proofUrl,
-        p_logement_title: null
-      });
-      if(error) throw error;
-      if(!data?.ok) throw new Error(data?.reason || "declare_failed");
-
-      showNote("✅ Paiement déclaré.", "ok");
-      await reloadAll();
-    }catch(e){
-      console.error(e);
-      showNote("❌ Impossible d’enregistrer : " + (e?.message || e), "bad");
-    }
-  });
-
-  // Boot
-  setSessionPills();
-  reloadAll().catch(e=>{
-    console.error(e);
-    showNote("❌ Erreur cockpit Wave : " + (e?.message || e), "bad");
-  });
+await load();
 
 })();
+});
 </script>
 </body>
 </html>
