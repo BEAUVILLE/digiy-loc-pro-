@@ -192,10 +192,10 @@ a{color:inherit;text-decoration:none}
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
   // RPC V2
-  const RPC_STATS  = "loc_wave_payments_stats_owner_v2";
-  const RPC_LIST   = "loc_wave_payments_list_owner_v2";
-  const RPC_VERIFY = "loc_wave_payment_verify_v2";
-  const RPC_DECLARE= "loc_wave_payment_declare_owner_v2";
+  const RPC_STATS   = "loc_wave_payments_stats_owner_v2";
+  const RPC_LIST    = "loc_wave_payments_list_owner_v2";
+  const RPC_VERIFY  = "loc_wave_payment_verify_v2";
+  const RPC_DECLARE = "loc_wave_payment_declare_owner_v2";
 
   const $ = (id)=>document.getElementById(id);
 
@@ -233,6 +233,20 @@ a{color:inherit;text-decoration:none}
     return s;
   }
 
+  // ---- SAFE AMOUNT (✅ ton patch)
+  function getAmountFcfa(r){
+    const v = (r?.amount_fcfa ?? r?.amount ?? 0);
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+  function moneyFromRow(r){
+    return getAmountFcfa(r).toLocaleString("fr-FR") + " FCFA";
+  }
+  function money(n){
+    const x = Number(n||0);
+    return (Number.isFinite(x) ? x : 0).toLocaleString("fr-FR") + " FCFA";
+  }
+
   // ---- session / slug
   function getSlug(){ return (window.DIGIY_GUARD?.getSlug?.() || "").trim(); }
   function getSess(){ return window.DIGIY_GUARD?.getSession?.() || null; }
@@ -242,11 +256,6 @@ a{color:inherit;text-decoration:none}
     el.className = "note " + (type || "warn");
     el.textContent = msg || "";
     el.style.display = msg ? "block" : "none";
-  }
-
-  function money(n){
-    const x = Number(n||0);
-    return x.toLocaleString("fr-FR") + " FCFA";
   }
 
   function setSessionPills(){
@@ -305,8 +314,10 @@ a{color:inherit;text-decoration:none}
 
     $("stCount").textContent = String(data.total_declared ?? 0);
     $("stVerified").textContent = String(data.total_verified ?? 0);
-    $("stSum").textContent = money(data.sum_declared_fcfa ?? 0);
-    $("stSumVerified").textContent = money(data.sum_verified_fcfa ?? 0);
+
+    // tolérant: si un jour le SQL renvoie sum_declared aussi
+    $("stSum").textContent = money(data.sum_declared_fcfa ?? data.sum_declared ?? 0);
+    $("stSumVerified").textContent = money(data.sum_verified_fcfa ?? data.sum_verified ?? 0);
 
     return data;
   }
@@ -333,8 +344,9 @@ a{color:inherit;text-decoration:none}
 
     $("list").innerHTML = rows.map(r=>{
       const when = r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "";
-      const amt = Number(r.amount_fcfa ?? r.amount ?? 0);
-      const amtTxt = (Number.isFinite(amt) && amt > 0) ? (amt.toLocaleString("fr-FR") + " F") : "—";
+
+      const amt = getAmountFcfa(r);
+      const amtTxt = (amt > 0) ? (amt.toLocaleString("fr-FR") + " F") : "—";
 
       const client = [r.client_name, r.client_phone].filter(Boolean).join(" · ") || "Client: —";
 
@@ -350,7 +362,7 @@ a{color:inherit;text-decoration:none}
         <div class="row">
           <div class="rowTop">
             <div>
-              <div style="font-weight:1100">${amtTxt}</div>
+              <div style="font-weight:1100">${escapeHtml(amtTxt)}</div>
               <div class="mini">${escapeHtml(when)}</div>
             </div>
             ${statusBadge(r.status)}
