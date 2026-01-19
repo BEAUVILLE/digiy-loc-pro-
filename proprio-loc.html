@@ -385,7 +385,7 @@ input{
     return Array.isArray(data) ? data : [];
   }
 
-    function rowBadge(status){
+      function rowBadge(status){
     status = String(status || "declared").toLowerCase();
     if(status === "verified") return `<span class="badge ok">✅ Vérifié</span>`;
     if(status === "rejected") return `<span class="badge bad">⛔ Refusé</span>`;
@@ -457,7 +457,7 @@ input{
       `;
     }).join("");
 
-    // Bind verify (dans le bon conteneur)
+    // Bind verify
     box.querySelectorAll(".jsVerify").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
         const id = Number(btn.getAttribute("data-id"));
@@ -487,7 +487,7 @@ input{
           if(!data?.ok) throw new Error(data?.reason || "verify_failed");
 
           showNote("noteWave", "✅ Paiement vérifié.", "ok");
-          await loadWave(); // refresh complet
+          await loadWave();
 
         }catch(e){
           console.error(e);
@@ -517,14 +517,12 @@ input{
     try{
       showNote("noteWave", "⏳ Chargement des paiements…", "warn");
 
-      // stats
       const st = await loadStats(ownerPhone);
       $("stTotal").textContent = String(st.total_declared ?? 0);
       $("stVerified").textContent = String(st.total_verified ?? 0);
       $("stSumTotal").textContent = money(st.sum_declared_fcfa ?? 0);
       $("stSumVerified").textContent = money(st.sum_verified_fcfa ?? 0);
 
-      // list
       const rows = await loadList(ownerPhone);
       renderList(rows);
 
@@ -535,7 +533,6 @@ input{
     }
   }
 
-  // Déclarer paiement (proprio)
   $("btnDeclareOwner")?.addEventListener("click", async ()=>{
     const sessOk = refreshSessionUI();
     if(!sessOk) return;
@@ -587,7 +584,6 @@ input{
   // Boot final
   refreshSessionUI();
   loadWave();
-
 })();
 </script>
 </body>
