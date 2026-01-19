@@ -6,9 +6,9 @@
 <title>DIGIY LOC PRO ♾️ — Cockpit Propriétaire</title>
 <meta name="theme-color" content="#0b1020" />
 
+<!-- Supabase + Guard -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./guard.js?v=locpro-wave-ultra"></script>
-
 
 <style>
 :root{
@@ -386,7 +386,7 @@ input{
     return Array.isArray(data) ? data : [];
   }
 
-      function rowBadge(status){
+  function rowBadge(status){
     status = String(status || "declared").toLowerCase();
     if(status === "verified") return `<span class="badge ok">✅ Vérifié</span>`;
     if(status === "rejected") return `<span class="badge bad">⛔ Refusé</span>`;
@@ -419,9 +419,9 @@ input{
       const who = (r.client_name || "Client") + (r.client_phone ? " · " + r.client_phone : "");
 
       const noteTxt = (r.note ?? r.comment ?? r.message ?? "");
-const note = noteTxt
-  ? `<div style="margin-top:6px;font-size:13px;color:#cbd5f5;font-weight:750">📝 ${escapeHtml(noteTxt)}</div>`
-  : "";
+      const note = noteTxt
+        ? `<div style="margin-top:6px;font-size:13px;color:#cbd5f5;font-weight:750">📝 ${escapeHtml(noteTxt)}</div>`
+        : "";
 
       const proof = r.proof_url
         ? `<div style="margin-top:6px"><a href="${escapeAttr(r.proof_url)}" target="_blank" rel="noopener" style="font-size:12px;color:#facc15;font-weight:900">📎 Voir preuve</a></div>`
@@ -429,10 +429,11 @@ const note = noteTxt
 
       const status = String(r.status || "declared").toLowerCase();
 
-      const amt = Number(r.amount_fcfa || 0);
+      const rawAmt = (r.amount_fcfa ?? r.amount ?? r.amount_xof ?? 0);
+      const amt = Number(rawAmt || 0);
       const amtTxt = (Number.isFinite(amt) && amt > 0)
         ? amt.toLocaleString("fr-FR") + " F"
-        : (r.amount_fcfa || "—");
+        : (rawAmt || "—");
 
       const verifyBtn = (status === "verified")
         ? `<button class="btn small" disabled>✅ Déjà vérifié</button>`
