@@ -90,11 +90,6 @@ a{color:inherit;text-decoration:none}
 .v.green{color:#bbf7d0}
 .v.red{color:#fecaca}
 
-.table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0 10px;
-}
 .tr{
   background:rgba(255,255,255,.02);
   border:1px solid rgba(148,163,184,.18);
@@ -197,7 +192,7 @@ a{color:inherit;text-decoration:none}
 (function(){
   "use strict";
 
-  // Guard
+  // Boot Guard (inchangé)
   window.DIGIY_GUARD?.boot({
     module: "loc",
     login: "./pin.html",
@@ -205,22 +200,68 @@ a{color:inherit;text-decoration:none}
     requireSlug: true
   });
 
+  /* 🔐 SUPABASE — DÉJÀ POSÉ */
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const RPC_STATS = "loc_wave_payments_stats_owner";
-  const RPC_LIST  = "loc_wave_payments_list_owner";
-  const RPC_VERIFY= "loc_wave_payment_verify";
+  // RPC (on garde tes versions actuelles)
+  const RPC_STATS  = "loc_wave_payments_stats_owner";
+  const RPC_LIST   = "loc_wave_payments_list_owner";
+  const RPC_VERIFY = "loc_wave_payment_verify";
 
   const $ = (id)=>document.getElementById(id);
 
-  const slug = (window.DIGIY_GUARD?.getSlug?.() || "").trim();
-  const sess = window.DIGIY_GUARD?.getSession?.() || null;
+  // ---- SB SAFE (anti-null) ----
+  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+  let __sbPromise = null;
+
+  function getGuardSbNow(){
+    return window.sb || window.__sb || window.__DIGIY__?.sb || window.DIGIY?.sb || null;
+  }
+
+  function createFallbackSb(){
+    if(!window.supabase?.createClient) throw new Error("Supabase JS introuvable (CDN non chargé).");
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true },
+      global:{ headers:{ "X-Client-Info":"digiy-loc-wave-cockpit" } }
+    });
+  }
+
+  async function getSb(){
+    if(__sbPromise) return __sbPromise;
+    __sbPromise = (async ()=>{
+      // 1) guard a peut-être déjà exposé un client
+      let sb = getGuardSbNow();
+      if(sb) return sb;
+
+      // 2) attend un peu que guard.js finisse (GH Pages)
+      for(let t=0; t<=2000; t+=60){
+        await sleep(60);
+        sb = getGuardSbNow();
+        if(sb) return sb;
+      }
+
+      // 3) fallback local
+      return createFallbackSb();
+    })();
+    return __sbPromise;
+  }
+
+  async function rpcSafe(fnName, params){
+    const sb = await getSb();
+    const { data, error } = await sb.rpc(fnName, params);
+    if(error) throw error;
+    return data;
+  }
+
+  // session/slug (on lit depuis guard à la volée pour éviter stale)
+  function getSlug(){ return (window.DIGIY_GUARD?.getSlug?.() || "").trim(); }
+  function getSess(){ return (window.DIGIY_GUARD?.getSession?.() || null); }
 
   function showNote(msg, type){
     const el = $("note");
+    if(!el) return;
     el.style.display = msg ? "block" : "none";
     el.className = "note " + (type || "warn");
     el.textContent = msg || "";
@@ -232,6 +273,9 @@ a{color:inherit;text-decoration:none}
   }
 
   function setSessionPills(){
+    const slug = getSlug();
+    const sess = getSess();
+
     $("pillPlace").innerHTML = `📍 <strong>${slug || "—"}</strong>`;
 
     if(sess?.ok && sess?.phone){
@@ -248,15 +292,19 @@ a{color:inherit;text-decoration:none}
   }
 
   async function loadStats(){
+    const slug = getSlug();
+    const sess = getSess();
+
     if(!sess?.ok || !sess?.phone || !slug){
       showNote("🔒 Session manquante.\n➡️ Reviens via PIN.", "bad");
       return null;
     }
-    const { data, error } = await sb.rpc(RPC_STATS, {
+
+    const data = await rpcSafe(RPC_STATS, {
       p_slug: slug,
       p_owner_phone: sess.phone
     });
-    if(error) throw error;
+
     if(!data || data.ok !== true) throw new Error(data?.reason || "stats_denied");
 
     $("stCount").textContent = String(data.count_total ?? 0);
@@ -274,17 +322,42 @@ a{color:inherit;text-decoration:none}
     return `<span class="badge warn">⏳ Déclaré</span>`;
   }
 
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  async function doVerify(id){
+    const slug = getSlug();
+    const sess = getSess();
+
+    const data = await rpcSafe(RPC_VERIFY, {
+      p_id: Number(id),
+      p_slug: slug,
+      p_owner_phone: sess.phone
+    });
+
+    if(!data || data.ok !== true) throw new Error(data?.reason || "verify_denied");
+    return data;
+  }
+
   async function loadList(){
+    const slug = getSlug();
+    const sess = getSess();
+
     if(!sess?.ok || !sess?.phone || !slug){
       $("list").innerHTML = "🔒 Session manquante. Reviens via PIN.";
       return;
     }
 
-    const { data, error } = await sb.rpc(RPC_LIST, {
+    const data = await rpcSafe(RPC_LIST, {
       p_slug: slug,
       p_owner_phone: sess.phone
     });
-    if(error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
     if(!rows.length){
@@ -325,7 +398,7 @@ a{color:inherit;text-decoration:none}
     // bind verify
     document.querySelectorAll("[data-verify]").forEach(b=>{
       b.addEventListener("click", async ()=>{
-        const id = Number(b.getAttribute("data-verify"));
+        const id = b.getAttribute("data-verify");
         if(!id) return;
 
         b.disabled = true;
@@ -333,14 +406,7 @@ a{color:inherit;text-decoration:none}
         b.textContent = "⏳ …";
 
         try{
-          const { data, error } = await sb.rpc(RPC_VERIFY, {
-            p_id: id,
-            p_slug: slug,
-            p_owner_phone: sess.phone
-          });
-          if(error) throw error;
-          if(!data || data.ok !== true) throw new Error(data?.reason || "verify_denied");
-
+          await doVerify(id);
           showNote("✅ Paiement vérifié. Merci !", "ok");
           await reloadAll();
         }catch(e){
@@ -353,34 +419,36 @@ a{color:inherit;text-decoration:none}
     });
   }
 
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
   async function reloadAll(){
     showNote("⏳ Chargement…", "warn");
+    setSessionPills();
     await loadStats();
     await loadList();
     showNote("", "");
   }
 
-  $("btnReload").addEventListener("click", reloadAll);
+  $("btnReload").addEventListener("click", ()=>reloadAll().catch(e=>{
+    console.error(e);
+    showNote("❌ Erreur reload : " + (e?.message || e), "bad");
+  }));
 
   $("btnLogout").addEventListener("click", ()=>{
     const url = window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug("./pin.html") : "./pin.html";
     window.DIGIY_GUARD?.logout?.(url);
   });
 
-  setSessionPills();
-  reloadAll().catch(e=>{
-    console.error(e);
-    showNote("❌ Erreur cockpit Wave : " + (e?.message || e), "bad");
-  });
+  // Kickstart: on attend SB (guard ou fallback) puis on charge
+  (async ()=>{
+    try{
+      await getSb();          // <-- garantit sb prêt
+      setSessionPills();
+      await reloadAll();
+    }catch(e){
+      console.error(e);
+      setSessionPills();
+      showNote("❌ Erreur cockpit Wave : " + (e?.message || e), "bad");
+    }
+  })();
 
 })();
 </script>
