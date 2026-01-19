@@ -6,7 +6,6 @@
 <title>DIGIY LOC PRO ♾️ — Cockpit Propriétaire</title>
 <meta name="theme-color" content="#0b1020" />
 
-<!-- Supabase + Guard -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./guard.js?v=locpro-wave-ultra"></script>
 
@@ -163,17 +162,6 @@ a{color:inherit}
 .badge.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
 .badge.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
 .badge.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
-
-input{
-  width:100%;
-  border:1px solid rgba(148,163,184,.22);
-  background:rgba(0,0,0,.18);
-  color:var(--ink);
-  border-radius:14px;
-  padding:11px 12px;
-  font-weight:900;
-  outline:none;
-}
 </style>
 </head>
 
@@ -225,6 +213,7 @@ input{
         <div class="kv">
           <div class="k">Lieu</div><div class="v" id="kvSlug">—</div>
           <div class="k">Téléphone</div><div class="v" id="kvPhone">—</div>
+          <div class="k">Owner ID</div><div class="v" id="kvOwner">—</div>
           <div class="k">Session</div><div class="v" id="kvSess">—</div>
         </div>
 
@@ -245,6 +234,7 @@ input{
         </div>
         <button class="btn gold" id="btnDeclareOwner" type="button">➕ Ajouter un paiement</button>
       </div>
+
       <div class="cardBody">
         <div class="kv">
           <div class="k">Total déclarés</div><div class="v" id="stTotal">—</div>
@@ -254,7 +244,6 @@ input{
         </div>
 
         <div class="note" id="noteWave"></div>
-
         <div class="table" id="waveList"></div>
       </div>
     </section>
@@ -266,7 +255,6 @@ input{
 (function(){
   "use strict";
 
-  // Boot guard
   window.DIGIY_GUARD?.boot({
     module: "loc",
     login: "./pin.html",
@@ -300,7 +288,6 @@ input{
     return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
   }
 
-  // HREF sur <a>
   const links = [
     ["btnBack","./index.html"],
     ["goToday","./today.html"],
@@ -316,27 +303,26 @@ input{
     if(el && el.tagName === "A") el.href = withSlug(path);
   });
 
-  // GO PIN public
   const pub = new URL("./go-pin.html", location.href);
   if(slug) pub.searchParams.set("slug", slug);
   if($("btnPublic")) $("btnPublic").href = pub.toString();
 
-  // APP bouton
   $("goApp")?.addEventListener("click", (e)=>{
     e.preventDefault();
     location.href = withSlug("./app.html");
   });
 
-  // Session pills
   function refreshSessionUI(){
-    const sess = window.DIGIY_GUARD?.getSession?.();
-    const phone = sess?.phone || "—";
-    const exp = sess?.exp ? new Date(Number(sess.exp)).toISOString().slice(0,16).replace("T"," ") : "";
+    const sess = window.DIGIY_GUARD?.getSession?.() || {};
+    const phone = sess.phone || "—";
+    const owner = sess.owner_id || "—";
+    const exp = sess.exp ? new Date(Number(sess.exp)).toISOString().slice(0,16).replace("T"," ") : "";
 
     if($("kvPhone")) $("kvPhone").textContent = phone;
-    if($("kvSess")) $("kvSess").textContent = sess?.ok ? ("OK" + (exp ? " (expire : " + exp + ")" : "")) : "—";
+    if($("kvOwner")) $("kvOwner").textContent = owner;
+    if($("kvSess")) $("kvSess").textContent = sess.ok ? ("OK" + (exp ? " (expire : " + exp + ")" : "")) : "—";
 
-    if(sess?.ok && sess?.phone){
+    if(sess.ok && sess.phone){
       if($("pillUser")) $("pillUser").innerHTML = `👤 <strong>${phone}</strong>`;
       if($("pillState")){
         $("pillState").textContent = "✅ Connecté";
@@ -344,6 +330,7 @@ input{
         $("pillState").classList.add("ok");
       }
       if($("btnLogout")) $("btnLogout").style.display = "inline-flex";
+      showNote("noteMain", "✅ Tout est OK. Tu peux gérer tes logements.\n\nAstuce terrain : envoie ton GO PIN public au client. Il voit la fiche + WhatsApp direct.", "ok");
       return true;
     }
 
@@ -354,6 +341,7 @@ input{
       $("pillState").classList.add("warn");
     }
     if($("btnLogout")) $("btnLogout").style.display = "none";
+    showNote("noteMain", "🔒 Accès non ouvert.\n➡️ Mets ton téléphone + PIN pour entrer.", "warn");
     return false;
   }
 
@@ -366,7 +354,6 @@ input{
     window.DIGIY_GUARD?.logout?.(withSlug("./pin.html"));
   });
 
-  // ========== WAVE ==========
   async function loadStats(ownerPhone){
     const { data, error } = await sb.rpc("loc_wave_payments_stats_owner", {
       p_slug: slug,
@@ -460,7 +447,6 @@ input{
       `;
     }).join("");
 
-    // Bind verify
     box.querySelectorAll(".jsVerify").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
         const id = Number(btn.getAttribute("data-id"));
@@ -512,6 +498,7 @@ input{
 
     const sess = window.DIGIY_GUARD?.getSession?.() || {};
     const ownerPhone = sess.phone || "";
+
     if(!ownerPhone || !slug){
       showNote("noteWave", "⚠️ Téléphone ou slug manquant.", "bad");
       return;
@@ -542,6 +529,7 @@ input{
 
     const sess = window.DIGIY_GUARD?.getSession?.() || {};
     const ownerPhone = sess.phone || "";
+
     if(!ownerPhone || !slug){
       showNote("noteWave", "⚠️ Téléphone ou slug manquant.", "bad");
       return;
@@ -584,7 +572,6 @@ input{
     }
   });
 
-  // Boot final
   refreshSessionUI();
   loadWave();
 })();
