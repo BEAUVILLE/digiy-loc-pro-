@@ -6,10 +6,10 @@
 <title>DIGIY LOC PRO ♾️ — Cockpit Wave</title>
 <meta name="theme-color" content="#0b1020" />
 
-<!-- ✅ supabase-js (fallback RPC-only si guard pas prêt) -->
+<!-- ✅ supabase-js pour le fallback RPC-only -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- ✅ guard -->
-<script src="./guard.js?v=locpro-wave-v2-clean"></script>
+<script src="./guard.js?v=locpro-wave-v3"></script>
 
 <style>
 :root{
@@ -162,8 +162,8 @@ a{color:inherit;text-decoration:none}
         <div class="stats">
           <div class="box"><div class="k">Déclarations</div><div class="v gold" id="stCount">—</div></div>
           <div class="box"><div class="k">Vérifiées</div><div class="v green" id="stVerified">—</div></div>
-          <div class="box"><div class="k">Total déclaré</div><div class="v gold" id="stSum">—</div></div>
-          <div class="box"><div class="k">Total vérifié</div><div class="v green" id="stSumVerified">—</div></div>
+          <div class="box"><div class="k">Somme déclarée</div><div class="v gold" id="stSum">—</div></div>
+          <div class="box"><div class="k">Somme vérifiée</div><div class="v green" id="stSumVerified">—</div></div>
         </div>
         <div class="note" id="note"></div>
       </div>
@@ -186,18 +186,12 @@ a{color:inherit;text-decoration:none}
 (async function(){
   "use strict";
 
-  /* =========================
-     CONFIG SUPABASE (fallback)
-  ========================= */
+  // ---- CONFIG (fallback RPC-only)
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
-  /* =========================
-     RPC V2 (owner_id UUID)
-     - STATS OK chez toi ✅
-     - LIST peut encore péter si SQL pas aligné
-  ========================= */
+  // RPC V2 (tes fonctions SQL V2)
   const RPC_STATS   = "loc_wave_payments_stats_owner_v2";
   const RPC_LIST    = "loc_wave_payments_list_owner_v2";
   const RPC_VERIFY  = "loc_wave_payment_verify_v2";
@@ -205,9 +199,7 @@ a{color:inherit;text-decoration:none}
 
   const $ = (id)=>document.getElementById(id);
 
-  /* =========================
-     GUARD
-  ========================= */
+  // Boot guard
   window.DIGIY_GUARD?.boot({
     module: "loc",
     login: "./pin.html",
@@ -215,10 +207,9 @@ a{color:inherit;text-decoration:none}
     requireSlug: true
   });
 
-  /* =========================
-     sb getter: guard OR fallback
-  ========================= */
+  // ---- sb getter: guard OR fallback
   async function getSBStable(){
+    // 1) attend guard (sb exposé)
     for(let i=0;i<40;i++){
       const s =
         window.DIGIY_GUARD?.getSupabase?.() ||
@@ -227,26 +218,28 @@ a{color:inherit;text-decoration:none}
       if(s?.rpc) return s;
       await new Promise(r=>setTimeout(r, 50));
     }
-
+    // 2) fallback RPC-only
     if(!window.DIGIY_RPC_SB){
       if(!window.supabase?.createClient) return null;
       window.DIGIY_RPC_SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
     return window.DIGIY_RPC_SB;
   }
-
   async function needSB(){
     const s = await getSBStable();
     if(!s?.rpc) throw new Error("Supabase pas prêt (sb null). Recharge la page ou reconnecte-toi via PIN.");
     return s;
   }
 
-  /* =========================
-     SESSION / SLUG
-  ========================= */
+  // ---- session / slug
   function getSlug(){ return (window.DIGIY_GUARD?.getSlug?.() || "").trim(); }
   function getSess(){ return window.DIGIY_GUARD?.getSession?.() || null; }
-  function getOwnerId(){ return (getSess()?.owner_id || "").trim(); } // ✅ UUID métier
+
+  // ✅ FIX CRITIQUE : owner_id métier (GO PIN), PAS owner_user_id
+  function getOwnerId(){
+    const sess = getSess();
+    return (sess?.owner_id || "").trim(); // ✅ owner métier
+  }
 
   function showNote(msg, type){
     const el = $("note");
@@ -260,32 +253,10 @@ a{color:inherit;text-decoration:none}
     return x.toLocaleString("fr-FR") + " FCFA";
   }
 
-  /* ✅ helper montant (ton patch) */
-  function getAmountFcfa(r){
-    const v = (r?.amount_fcfa ?? r?.amount ?? 0);
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  function statusBadge(s){
-    const st = String(s||"declared").toLowerCase();
-    if(st === "verified") return `<span class="badge ok">✅ Vérifié</span>`;
-    if(st === "rejected") return `<span class="badge bad">⛔ Rejeté</span>`;
-    return `<span class="badge warn">⏳ Déclaré</span>`;
-  }
-
   function setSessionPills(){
     const slug = getSlug();
     const sess = getSess();
+
     $("pillPlace").innerHTML = `📍 <strong>${slug || "—"}</strong>`;
 
     if(sess?.ok && sess?.phone){
@@ -301,31 +272,41 @@ a{color:inherit;text-decoration:none}
     }
   }
 
-  function ensureContextOrExplain(){
+  function statusBadge(s){
+    const st = String(s||"declared").toLowerCase();
+    if(st === "verified") return `<span class="badge ok">✅ Vérifié</span>`;
+    if(st === "rejected") return `<span class="badge bad">⛔ Rejeté</span>`;
+    return `<span class="badge warn">⏳ Déclaré</span>`;
+  }
+
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ✅ ton helper demandé
+  function getAmountFcfa(r){
+    const v = (r?.amount_fcfa ?? r?.amount ?? 0);
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  async function loadStats(){
     const slug = getSlug();
-    const sess = getSess();
     const ownerId = getOwnerId();
+    const sess = getSess();
 
     if(!sess?.ok || !sess?.phone || !slug || !ownerId){
       showNote("🔒 Session/slug/owner_id manquant.\n➡️ Reviens via PIN.", "bad");
       return null;
     }
-    return { slug, ownerId, phone: sess.phone };
-  }
-
-  /* =========================
-     LOAD STATS (OK chez toi)
-  ========================= */
-  async function loadStats(){
-    const ctx = ensureContextOrExplain();
-    if(!ctx) return null;
 
     const sb = await needSB();
-    const { data, error } = await sb.rpc(RPC_STATS, {
-      p_slug: ctx.slug,
-      p_owner_id: ctx.ownerId
-    });
-
+    const { data, error } = await sb.rpc(RPC_STATS, { p_slug: slug, p_owner_id: ownerId });
     if(error) throw error;
     if(!data?.ok) throw new Error(data?.reason || "stats_denied");
 
@@ -337,24 +318,18 @@ a{color:inherit;text-decoration:none}
     return data;
   }
 
-  /* =========================
-     LOAD LIST (RPC v2)
-  ========================= */
   async function loadList(){
-    const ctx = ensureContextOrExplain();
-    if(!ctx){
+    const slug = getSlug();
+    const ownerId = getOwnerId();
+    const sess = getSess();
+
+    if(!sess?.ok || !sess?.phone || !slug || !ownerId){
       $("list").innerHTML = "🔒 Session/slug/owner_id manquant. Reviens via PIN.";
       return;
     }
 
     const sb = await needSB();
-
-    const { data, error } = await sb.rpc(RPC_LIST, {
-      p_slug: ctx.slug,
-      p_owner_id: ctx.ownerId,
-      p_limit: 100
-    });
-
+    const { data, error } = await sb.rpc(RPC_LIST, { p_slug: slug, p_owner_id: ownerId, p_limit: 100 });
     if(error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
@@ -400,11 +375,11 @@ a{color:inherit;text-decoration:none}
 
     $("list").querySelectorAll(".jsVerify").forEach(b=>{
       b.addEventListener("click", async ()=>{
-        const ctx = ensureContextOrExplain();
-        if(!ctx) return;
-
-        const id = b.getAttribute("data-id"); // ✅ UUID string
+        const id = b.getAttribute("data-id");
         if(!id) return;
+
+        const slug = getSlug();
+        const ownerId = getOwnerId();
 
         const old = b.textContent;
         b.disabled = true;
@@ -412,12 +387,7 @@ a{color:inherit;text-decoration:none}
 
         try{
           const sb = await needSB();
-          const { data, error } = await sb.rpc(RPC_VERIFY, {
-            p_id: id,
-            p_slug: ctx.slug,
-            p_owner_id: ctx.ownerId
-          });
-
+          const { data, error } = await sb.rpc(RPC_VERIFY, { p_id: id, p_slug: slug, p_owner_id: ownerId });
           if(error) throw error;
           if(!data?.ok) throw new Error(data?.reason || "verify_denied");
 
@@ -433,12 +403,32 @@ a{color:inherit;text-decoration:none}
     });
   }
 
-  /* =========================
-     DECLARE (V2)
-  ========================= */
-  async function declarePayment(){
-    const ctx = ensureContextOrExplain();
-    if(!ctx) return;
+  async function reloadAll(){
+    showNote("⏳ Chargement…", "warn");
+    setSessionPills();
+    await loadStats();
+    await loadList();
+    showNote("", "");
+  }
+
+  $("btnReload").addEventListener("click", ()=> reloadAll().catch(e=>{
+    console.error(e);
+    showNote("❌ Erreur : " + (e?.message || e), "bad");
+  }));
+
+  $("btnLogout").addEventListener("click", ()=>{
+    const url = window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug("./pin.html") : "./pin.html";
+    window.DIGIY_GUARD?.logout?.(url);
+  });
+
+  $("btnDeclare").addEventListener("click", async ()=>{
+    const slug = getSlug();
+    const ownerId = getOwnerId();
+    const sess = getSess();
+    if(!sess?.ok || !slug || !ownerId){
+      showNote("🔒 Reconnecte-toi via PIN.", "bad");
+      return;
+    }
 
     const amount = prompt("Montant reçu (FCFA) ?");
     if(!amount) return;
@@ -455,18 +445,16 @@ a{color:inherit;text-decoration:none}
 
     try{
       showNote("⏳ Déclaration…", "warn");
-
       const sb = await needSB();
       const { data, error } = await sb.rpc(RPC_DECLARE, {
-        p_slug: ctx.slug,
-        p_owner_id: ctx.ownerId,
+        p_slug: slug,
+        p_owner_id: ownerId,
         p_amount_fcfa: amt,
         p_client_name: clientName,
         p_client_phone: clientPhone,
         p_proof_url: proofUrl,
         p_logement_title: null
       });
-
       if(error) throw error;
       if(!data?.ok) throw new Error(data?.reason || "declare_failed");
 
@@ -476,45 +464,9 @@ a{color:inherit;text-decoration:none}
       console.error(e);
       showNote("❌ Impossible d’enregistrer : " + (e?.message || e), "bad");
     }
-  }
-
-  /* =========================
-     RELOAD
-  ========================= */
-  async function reloadAll(){
-    showNote("⏳ Chargement…", "warn");
-    setSessionPills();
-
-    // stats d’abord (chez toi OK)
-    await loadStats();
-
-    // list ensuite (si ton RPC_LIST est encore cassé côté SQL, tu verras l’erreur clairement)
-    await loadList();
-
-    showNote("", "");
-  }
-
-  /* =========================
-     EVENTS
-  ========================= */
-  $("btnReload").addEventListener("click", ()=> reloadAll().catch(e=>{
-    console.error(e);
-    showNote("❌ Erreur : " + (e?.message || e), "bad");
-  }));
-
-  $("btnDeclare").addEventListener("click", ()=> declarePayment().catch(e=>{
-    console.error(e);
-    showNote("❌ Erreur déclaration : " + (e?.message || e), "bad");
-  }));
-
-  $("btnLogout").addEventListener("click", ()=>{
-    const url = window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug("./pin.html") : "./pin.html";
-    window.DIGIY_GUARD?.logout?.(url);
   });
 
-  /* =========================
-     BOOT
-  ========================= */
+  // Boot
   setSessionPills();
   reloadAll().catch(e=>{
     console.error(e);
