@@ -1,260 +1,268 @@
 /* =========================
-   DIGIY LOC PRO — GUARD (FINAL PRO) ✅
-   - Expose: DIGIY_GUARD.sb + DIGIY_GUARD.getSupabase()
-   - Conserve slug + session + owner_id
-   - GitHub Pages SAFE
+   DIGIY LOC PRO — GUARD (GO PIN PHASE 2) ✅
+   GitHub Pages SAFE • Slug conservé • Session 8h • Logout propre
+   - Expose: window.DIGIY_GUARD.loginWithPin(...)
+   - Expose: window.DIGIY_GUARD.requireSession(...)
+   - Expose: window.DIGIY_GUARD.logout(...)
 ========================= */
-(function(){
+(function () {
   "use strict";
 
   // =============================
-  // SUPABASE
+  // SUPABASE (déjà connu)
   // =============================
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2i"; // (ta vraie clé est déjà en mémoire dans tes autres fichiers)
 
   // =============================
-  // STORAGE KEYS
+  // CONSTANTES SESSION
   // =============================
-  const KEY = {
-    slug: "digiy_loc_slug",
-    phone: "digiy_phone",
-    sess: "digiy_loc_pro_session_v2" // { phone, ok:true, exp, module, slug, owner_id? }
-  };
-
-  // =============================
-  // CLIENT
-  // =============================
-  const sb = (window.supabase && window.supabase.createClient)
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+  const SESSION_KEY = "DIGIY_LOC_PRO_SESSION_V1";
+  const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8h
 
   // =============================
   // HELPERS
   // =============================
-  const now = ()=> Date.now();
-  const clampStr = (s)=> String(s || "").trim();
-  const safeJsonParse = (v)=>{ try{return JSON.parse(v);}catch(e){return null;} };
+  function now() { return Date.now(); }
 
-  function getUrl(){
-    try{ return new URL(location.href); }catch(e){ return null; }
+  function safeJsonParse(s) {
+    try { return JSON.parse(s); } catch { return null; }
   }
 
-  function getSlugFromUrl(){
-    const u = getUrl();
-    const s = u?.searchParams?.get("slug");
-    return clampStr(s).replace(/\/+$/,"").toLowerCase();
+  function getSlugFromUrl() {
+    const u = new URL(location.href);
+    const slug = (u.searchParams.get("slug") || "").trim();
+    return slug || null;
   }
 
-  function setSlug(slug){
-    slug = clampStr(slug).toLowerCase();
-    if(!slug) return;
-    localStorage.setItem(KEY.slug, slug);
+  function setSlugInUrl(slug) {
+    if (!slug) return;
+    const u = new URL(location.href);
+    if (u.searchParams.get("slug") === slug) return;
+    u.searchParams.set("slug", slug);
+    history.replaceState({}, "", u.toString());
   }
 
-  function getSlug(){
-    // priorité URL, sinon storage
-    const u = getSlugFromUrl();
-    if(u){ setSlug(u); return u; }
-    return clampStr(localStorage.getItem(KEY.slug)).toLowerCase();
-  }
-
-  function withSlug(path){
+  // Préserve slug dans les liens (utile GitHub Pages)
+  function withSlug(url) {
     const slug = getSlug();
-    try{
-      const x = new URL(path, location.href);
-      if(slug && !x.searchParams.get("slug")) x.searchParams.set("slug", slug);
-      return x.toString();
-    }catch(e){
+    if (!slug) return url;
+    try {
+      const base = new URL(url, location.href);
+      base.searchParams.set("slug", slug);
+      return base.toString();
+    } catch {
       // fallback simple
-      if(!slug) return path;
-      return path + (path.includes("?") ? "&" : "?") + "slug=" + encodeURIComponent(slug);
+      const sep = url.includes("?") ? "&" : "?";
+      return url + sep + "slug=" + encodeURIComponent(slug);
     }
   }
 
-  function readSession(){
-    const raw = localStorage.getItem(KEY.sess);
+  function go(url) {
+    location.replace(withSlug(url));
+  }
+
+  function getSession() {
+    const raw = localStorage.getItem(SESSION_KEY);
     const s = safeJsonParse(raw);
-    if(!s || typeof s !== "object") return { ok:false };
-    // expire
-    if(s.exp && Number(s.exp) > 0 && now() > Number(s.exp)){
-      clearSession();
-      return { ok:false };
+    if (!s) return null;
+    if (!s.created_at || !s.expires_at) return null;
+    if (now() > s.expires_at) return null;
+    return s;
+  }
+
+  function setSession(payload) {
+    const session = {
+      ...payload,
+      created_at: now(),
+      expires_at: now() + SESSION_TTL_MS,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    return session;
+  }
+
+  function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+  }
+
+  // slug = URL d’abord, sinon session, sinon null
+  function getSlug() {
+    const urlSlug = getSlugFromUrl();
+    if (urlSlug) return urlSlug;
+    const s = getSession();
+    if (s && s.slug) return s.slug;
+    return null;
+  }
+
+  // =============================
+  // SUPABASE INIT (robuste)
+  // =============================
+  function getSb() {
+    // supabase-js v2 doit être chargé via CDN: window.supabase
+    if (!window.supabase || !window.supabase.createClient) return null;
+    if (!window.__digiy_sb__) {
+      window.__digiy_sb__ = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    // ok
-    return { ok: !!s.ok, ...s };
+    return window.__digiy_sb__;
   }
 
-  function writeSession(obj){
-    localStorage.setItem(KEY.sess, JSON.stringify(obj || {}));
-  }
-
-  function clearSession(){
-    localStorage.removeItem(KEY.sess);
-  }
-
-  function setPhone(phone){
-    if(!phone) return;
-    localStorage.setItem(KEY.phone, String(phone));
-  }
-
-  function getPhone(){
-    return clampStr(localStorage.getItem(KEY.phone));
+  async function waitSupabase(ms = 2500) {
+    const start = now();
+    while (now() - start < ms) {
+      const sb = getSb();
+      if (sb) return sb;
+      await new Promise(r => setTimeout(r, 50));
+    }
+    return null;
   }
 
   // =============================
-  // RPCs
+  // RPC SAFE (ton infra)
   // =============================
-  async function rpc_goPinCheck(slug){
-    if(!sb) throw new Error("Supabase client absent");
-    const { data, error } = await sb.rpc("go_pin_check", { p_slug: slug });
-    if(error) throw error;
-    return data;
-  }
+  async function rpcVerifyAccessPin(phone, pin, moduleName = "loc_pro") {
+    const sb = await waitSupabase();
+    if (!sb) {
+      return { ok: false, reason: "SUPABASE_NOT_READY" };
+    }
 
-  async function rpc_verifyPin(phone, pin, module){
-    if(!sb) throw new Error("Supabase client absent");
+    // RPC attendue: verify_access_pin(p_phone,p_pin,p_module) -> json { ok:true|false, reason, owner_id? }
+    // Si ton RPC a un autre nom, change ici seulement.
     const { data, error } = await sb.rpc("verify_access_pin", {
       p_phone: phone,
       p_pin: pin,
-      p_module: module
+      p_module: moduleName
     });
-    if(error) throw error;
-    return data;
+
+    if (error) {
+      return { ok: false, reason: error.message || "RPC_ERROR" };
+    }
+
+    // certains RPC renvoient json direct ou string json
+    const out = (typeof data === "string") ? safeJsonParse(data) : data;
+    if (!out || typeof out !== "object") {
+      return { ok: false, reason: "RPC_BAD_RESPONSE" };
+    }
+    return out;
+  }
+
+  async function rpcGoPinCheck(slug) {
+    const sb = await waitSupabase();
+    if (!sb) {
+      return { ok: false, reason: "SUPABASE_NOT_READY" };
+    }
+
+    // RPC attendue: go_pin_check(p_slug) -> json { ok:true|false, ... }
+    // Si tu ne l’utilises plus, tu peux ignorer.
+    const { data, error } = await sb.rpc("go_pin_check", { p_slug: slug });
+
+    if (error) return { ok: false, reason: error.message || "RPC_ERROR" };
+    const out = (typeof data === "string") ? safeJsonParse(data) : data;
+    if (!out || typeof out !== "object") return { ok: false, reason: "RPC_BAD_RESPONSE" };
+    return out;
   }
 
   // =============================
-  // FLOW
+  // API PUBLIQUE
   // =============================
-  async function ensureSlugOrRedirect(opts){
-    if(!opts?.requireSlug) return true;
+  async function loginWithPin(opts) {
+    // opts: { phone, pin, module?, slug?, rememberSlug? }
+    const phone = (opts?.phone || "").trim();
+    const pin = (opts?.pin || "").trim();
+    const moduleName = (opts?.module || "loc_pro").trim();
+    const forcedSlug = (opts?.slug || "").trim();
 
-    const slug = getSlug();
-    if(slug) return true;
+    if (!phone || !pin) {
+      return { ok: false, reason: "MISSING_PHONE_OR_PIN" };
+    }
 
-    // slug manquant -> redirect dashboard/login (au choix)
-    const target = opts?.dashboard || opts?.login || "./index.html";
-    location.href = target;
-    return false;
-  }
+    // slug: priorité param, sinon URL/session
+    const slug = forcedSlug || getSlug();
 
-  function ensureSessionOrRedirect(opts){
-    if(!opts?.requireSession) return true;
-
-    const s = readSession();
-    if(s.ok) return true;
-
-    const target = opts?.login || "./pin.html";
-    location.href = withSlug(target);
-    return false;
-  }
-
-  async function boot(opts){
-    // 1) slug
-    const okSlug = await ensureSlugOrRedirect(opts);
-    if(!okSlug) return;
-
-    // 2) go_pin_check (optionnel mais utile)
-    if(opts?.requireSlug){
-      try{
-        const slug = getSlug();
-        if(slug){
-          // check public-safe (RLS)
-          const chk = await rpc_goPinCheck(slug);
-          // si ok:false -> on ne casse pas la page, mais on peut rediriger si demandé
-          if(chk && chk.ok === false && opts?.redirectIfGoPinInvalid){
-            location.href = (opts?.dashboard || "./index.html");
-            return;
-          }
-        }
-      }catch(e){
-        // on n'explose pas la page, c'est "best effort"
-        // console.warn("[DIGIY_GUARD] go_pin_check ignored:", e?.message || e);
+    // Optionnel: check slug (si tu veux forcer un slug valide)
+    if (slug) {
+      const chk = await rpcGoPinCheck(slug);
+      // si ton go_pin_check bloque trop, commente les 4 lignes ci-dessous
+      if (chk && chk.ok === false && chk.reason) {
+        // on ne bloque pas la connexion PIN si le slug check est “accessory”
+        // mais on garde l’info en debug
+        // return { ok:false, reason: "SLUG_CHECK_FAILED", detail: chk.reason };
       }
     }
 
-    // 3) session (si demandé)
-    ensureSessionOrRedirect(opts);
-  }
+    const out = await rpcVerifyAccessPin(phone, pin, moduleName);
 
-  // Login helper: appelé depuis pin.html si tu veux centraliser
-  async function verifyAccessAndCreateSession({ phone, pin, module, keepHours = 8 }){
-    phone = clampStr(phone);
-    pin = clampStr(pin);
-    module = clampStr(module || "loc");
-
-    if(!phone || !pin) return { ok:false, reason:"missing" };
-
-    const res = await rpc_verifyPin(phone, pin, module);
-    // attendu: { ok:true|false, reason, owner_id? }
-    if(!res || res.ok !== true){
-      return { ok:false, reason: res?.reason || "invalid" };
+    if (!out.ok) {
+      return { ok: false, reason: out.reason || "INVALID_PIN" };
     }
 
-    // session 8h
-    const exp = now() + (Number(keepHours) * 60 * 60 * 1000);
+    // owner_id si dispo (utile pour RLS & requêtes futures)
+    const owner_id = out.owner_id || null;
 
-    const slug = getSlug(); // conserve
-    setPhone(phone);
-
-    writeSession({
+    const s = setSession({
       ok: true,
+      module: moduleName,
       phone,
-      module,
-      slug,
-      owner_id: res.owner_id || null,
-      exp
+      owner_id,
+      slug: slug || null
     });
 
-    return { ok:true, owner_id: res.owner_id || null, exp };
+    // garantir slug dans URL
+    if (s.slug) setSlugInUrl(s.slug);
+
+    return { ok: true, session: s };
   }
 
-  // Login simplifié (alias pour pin.html)
-  async function loginWithPin(phone, pin, module){
-    return await verifyAccessAndCreateSession({ 
-      phone, 
-      pin, 
-      module: (module || "LOC").toLowerCase(), 
-      keepHours: 8 
-    });
+  function requireSession(options) {
+    // options: { module?, redirect?, onFail? }
+    const moduleName = (options?.module || "loc_pro").trim();
+    const redirect = options?.redirect || "pin.html";
+    const s = getSession();
+
+    // slugs
+    const slug = getSlug();
+    if (slug) setSlugInUrl(slug);
+
+    if (!s || !s.ok || (s.module !== moduleName)) {
+      if (typeof options?.onFail === "function") {
+        options.onFail({ ok: false, reason: "NO_SESSION" });
+        return null;
+      }
+      go(redirect);
+      return null;
+    }
+
+    // session ok: renvoie la session
+    return s;
   }
 
-  function getSession(){
-    return readSession();
+  function logout(redirect = "index.html") {
+    clearSession();
+    // on conserve slug si présent (option)
+    go(redirect);
   }
 
-  function logout(redirectTo){
-    try{
-      clearSession();
-      // on conserve slug volontairement (terrain)
-      // localStorage.removeItem(KEY.slug);  // NON
-    }catch(e){}
-
-    const target = redirectTo || "./pin.html";
-    location.href = withSlug(target);
+  function getCurrent() {
+    const s = getSession();
+    const slug = getSlug();
+    if (slug) setSlugInUrl(slug);
+    return { session: s, slug };
   }
 
   // =============================
-  // PUBLIC API
+  // EXPORT GLOBAL + HELPERS
   // =============================
   window.DIGIY_GUARD = {
-    // supabase access (pour tes pages PRO)
-    sb,
-    getSupabase: ()=> sb,
-
-    // slug
-    getSlug,
-    withSlug,
-    setSlug,
-
-    // session
-    getSession,
-    verifyAccessAndCreateSession,
-    loginWithPin,  // ← AJOUTÉ !
+    // actions
+    loginWithPin,
+    requireSession,
     logout,
-
-    // util (optionnel)
-    boot
+    // utils
+    withSlug,
+    go,
+    getCurrent,
+    // low-level (debug)
+    _getSb: getSb
   };
+
 })();
