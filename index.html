@@ -258,8 +258,7 @@ a{color:inherit}
   "use strict";
 
   // Boot guard
-  window.DIGIY_GUARD?.boot({
-    module: "loc",
+ window.DIGIY_GUARD.requireSession({ module: "loc_pro", redirect: "pin.html" });    module: "loc",
     login: "./pin.html",
     dashboard: "./index.html",
     requireSlug: true
