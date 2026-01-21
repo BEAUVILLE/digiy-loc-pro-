@@ -173,12 +173,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (() => {
+  "use strict";
+  console.log("GO-PIN VERSION:", "2026-01-21-proid-bridge-v2");
+
   /* =========================
      CONFIG
   ========================= */
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+    "TON_ANON_KEY_ICI"; // <-- remets ta clé complète ici
 
   const GALLERY_URL = "https://beauville.github.io/digiy-loc/";
   const LOC_PRO_URL = "https://beauville.github.io/digiy-loc-pro/";
@@ -209,25 +212,22 @@
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  function setStatus("warn","Préparation accès PRO","On relie le slug au PRO ID…");
-const resolved = await resolveProIdFromSlug(sb, slug);
-
-console.log("RPC resolved =>", resolved);
-
-if (resolved?.pro_id){
-  safeSet("DIGIY_PRO_ID", resolved.pro_id);
-  safeSet("DIGIY_SLUG", slug);
-  safeSet("DIGIY_TITLE", title);
-  safeSet("DIGIY_BUSINESS_NAME", resolved.business_name || "");
-  safeSet("DIGIY_PHONE", resolved.phone || "");
-
-  console.log("✅ STORED DIGIY_PRO_ID =", localStorage.getItem("DIGIY_PRO_ID"));
-} else {
-  ttl.textContent = title;
-  sub.textContent = "Accès public OK, mais PRO_ID introuvable (caisse/guard bloqués).";
-  setStatus("err","PRO_ID introuvable","Active le GRANT RPC (Supabase) puis recharge.");
-  return; // 🔥 IMPORTANT : on ne redirige pas tant que c’est pas bon
-}
+  function setStatus(mode, big, small){
+    stBig.textContent = big || "";
+    stSmall.textContent = small || "";
+    if (mode === "ok"){
+      dot.style.background = "var(--ok)";
+      dot.style.boxShadow = "0 0 16px rgba(34,197,94,.35)";
+    } else if (mode === "warn"){
+      dot.style.background = "var(--accent)";
+      dot.style.boxShadow = "0 0 16px rgba(250,204,21,.35)";
+    } else if (mode === "err"){
+      dot.style.background = "var(--danger)";
+      dot.style.boxShadow = "0 0 16px rgba(251,113,133,.35)";
+    } else {
+      dot.style.background = "var(--accent)";
+      dot.style.boxShadow = "0 0 16px rgba(250,204,21,.35)";
+    }
   }
 
   function cleanSlug(s){
@@ -242,12 +242,13 @@ if (resolved?.pro_id){
   }
 
   function safeSet(k,v){
-    try{ localStorage.setItem(k, String(v ?? "")); }catch(_){}
+    try{ localStorage.setItem(k, String(v ?? "")); }catch(e){ console.warn("localStorage blocked", e); }
   }
 
   async function resolveProIdFromSlug(sb, slug){
     try{
       const { data, error } = await sb.rpc("resolve_slug_to_pro_id", { p_slug: slug });
+      console.log("RPC resolve_slug_to_pro_id =>", { data, error });
       if (error) return { pro_id:null, business_name:null, phone:null, error };
       const row = Array.isArray(data) ? data[0] : data;
       return {
@@ -257,6 +258,7 @@ if (resolved?.pro_id){
         error: null
       };
     }catch(e){
+      console.log("RPC exception =>", e);
       return { pro_id:null, business_name:null, phone:null, error: e };
     }
   }
@@ -278,7 +280,7 @@ if (resolved?.pro_id){
     if (!slug){
       ttl.textContent = "Slug manquant";
       sub.textContent = "Le lien est incomplet. Reviens à la galerie et clique sur “Voir le PIN”.";
-      setStatus("err","Lien incomplet","Exemple attendu : go-pin.html?slug=chez-astou-saly");
+      setStatus("err","Lien incomplet","Exemple : go-pin.html?slug=chez-astou-saly");
       return;
     }
 
@@ -294,7 +296,7 @@ if (resolved?.pro_id){
       return;
     }
 
-    // 1) Récupérer le pin (public gate)
+    // Gate public pin
     const { data, error } = await sb
       .from("go_pins")
       .select("slug,title,is_public,is_active,category")
@@ -324,21 +326,26 @@ if (resolved?.pro_id){
       return;
     }
 
-    // 2) Patch clé : résoudre slug -> PRO_ID et le stocker (même si public)
+    // Bridge slug -> pro_id
     setStatus("warn","Préparation accès PRO","On relie le slug au PRO ID…");
     const resolved = await resolveProIdFromSlug(sb, slug);
+
     if (resolved?.pro_id){
       safeSet("DIGIY_PRO_ID", resolved.pro_id);
       safeSet("DIGIY_SLUG", slug);
       safeSet("DIGIY_TITLE", title);
       safeSet("DIGIY_BUSINESS_NAME", resolved.business_name || "");
       safeSet("DIGIY_PHONE", resolved.phone || "");
+
+      console.log("✅ STORED DIGIY_PRO_ID =", localStorage.getItem("DIGIY_PRO_ID"));
     } else {
-      // pas bloquant pour le PIN public, mais utile à diagnostiquer
-      console.warn("⚠️ slug→pro_id introuvable (non bloquant pour public pin)", resolved?.error || resolved);
+      ttl.textContent = title;
+      sub.textContent = "Accès public OK, mais PRO_ID introuvable (caisse/guard bloqués).";
+      setStatus("err","PRO_ID introuvable","Vérifie GRANT/SECURITY DEFINER du RPC.");
+      return; // STOP: pas de redirection tant que pas bon
     }
 
-    // 3) Si pas public -> rediriger vers espace pro
+    // Private -> pro
     if (!data.is_public){
       ttl.textContent = title;
       sub.textContent = "Ce PIN est réservé (accès propriétaire).";
@@ -347,11 +354,11 @@ if (resolved?.pro_id){
       return;
     }
 
-    // 4) OK → redirect vers PIN public
+    // Public -> pin
     ttl.textContent = title;
     sub.textContent = "Accès public OK. Redirection…";
     setStatus("ok","Accès validé","On t’ouvre la fiche PIN maintenant.");
-    setTimeout(()=> redirectToPin(slug), 450);
+    setTimeout(()=> redirectToPin(slug), 2500); // 2.5s pour voir les logs
   });
 })();
 </script>
