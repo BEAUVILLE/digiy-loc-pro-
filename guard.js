@@ -247,7 +247,7 @@
     const slug = getSlug();
     if (slug) setSlugInUrl(slug);
     return { session: s, slug };
-  }
+  
 async function boot(options){
   // compat: options peut contenir { module, redirect, slug }
   const moduleName = (options?.module || "loc_pro").trim();
