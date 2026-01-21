@@ -208,12 +208,13 @@
 
       // 2) ✅ APPEL CORRECT DU GUARD
       // module: garde "loc_pro" (ou enlève module pour laisser par défaut)
-      const res = await window.DIGIY_GUARD.loginWithPin({
-        phone,
-        pin,
-        module: "loc_pro",
-        slug: LIEU
-      });
+     const res = await window.DIGIY_GUARD.loginWithPin({
+  phone,
+  pin,
+  module: "loc_pro",     // IMPORTANT: même valeur que ton RPC attend
+  slug: LIEU             // pour être béton
+});
+
 
       if(!res || res.ok !== true){
         show("❌ PIN incorrect ou téléphone non autorisé.\n➡️ Vérifie puis réessaie.", "bad");
