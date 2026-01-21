@@ -100,13 +100,20 @@
     </div>
 
     <div class="card">
-      <label>Code PIN</label>
-      <input id="pin" type="text" inputmode="text" autocomplete="off" placeholder="DAK-F5SW2" maxlength="15" style="text-transform:uppercase" />
+  <label>4 derniers chiffres de ton téléphone</label>
+  <input id="pin" type="tel" inputmode="numeric" autocomplete="off" placeholder="5785" maxlength="4" />
 
-      <div class="row" style="margin-top:12px">
-        <button class="btn primary" id="btnLogin" type="button">🔓 Ouvrir mon cockpit</button>
-        <a class="btn gold" id="btnPublic" href="#">👁️ Retour GO PIN (public)</a>
-      </div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn primary" id="btnLogin" type="button">🔓 Ouvrir mon cockpit</button>
+    <a class="btn gold" id="btnPublic" href="#">👁️ Retour GO PIN (public)</a>
+  </div>
+
+  <div class="note warn" id="note"></div>
+
+  <div class="tiny" id="hintBox" style="display:none">
+    💡 Astuce : ouvre toujours cette page via ton <b>QR / lien GO PIN</b> pour que le "Lieu" soit reconnu automatiquement.
+  </div>
+</div>
 
       <div class="note warn" id="note"></div>
 
