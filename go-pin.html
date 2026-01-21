@@ -209,22 +209,25 @@
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  function setStatus(mode, big, small){
-    stBig.textContent = big || "";
-    stSmall.textContent = small || "";
-    if (mode === "ok"){
-      dot.style.background = "var(--ok)";
-      dot.style.boxShadow = "0 0 16px rgba(34,197,94,.35)";
-    } else if (mode === "warn"){
-      dot.style.background = "var(--accent)";
-      dot.style.boxShadow = "0 0 16px rgba(250,204,21,.35)";
-    } else if (mode === "err"){
-      dot.style.background = "var(--danger)";
-      dot.style.boxShadow = "0 0 16px rgba(251,113,133,.35)";
-    } else {
-      dot.style.background = "var(--accent)";
-      dot.style.boxShadow = "0 0 16px rgba(250,204,21,.35)";
-    }
+  function setStatus("warn","Préparation accès PRO","On relie le slug au PRO ID…");
+const resolved = await resolveProIdFromSlug(sb, slug);
+
+console.log("RPC resolved =>", resolved);
+
+if (resolved?.pro_id){
+  safeSet("DIGIY_PRO_ID", resolved.pro_id);
+  safeSet("DIGIY_SLUG", slug);
+  safeSet("DIGIY_TITLE", title);
+  safeSet("DIGIY_BUSINESS_NAME", resolved.business_name || "");
+  safeSet("DIGIY_PHONE", resolved.phone || "");
+
+  console.log("✅ STORED DIGIY_PRO_ID =", localStorage.getItem("DIGIY_PRO_ID"));
+} else {
+  ttl.textContent = title;
+  sub.textContent = "Accès public OK, mais PRO_ID introuvable (caisse/guard bloqués).";
+  setStatus("err","PRO_ID introuvable","Active le GRANT RPC (Supabase) puis recharge.");
+  return; // 🔥 IMPORTANT : on ne redirige pas tant que c’est pas bon
+}
   }
 
   function cleanSlug(s){
