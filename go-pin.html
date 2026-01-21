@@ -29,7 +29,6 @@
     justify-content:center;
     padding:14px;
   }
-
   .wrap{
     width:100%;
     max-width:980px;
@@ -38,7 +37,6 @@
     flex-direction:column;
     gap:12px;
   }
-
   header{
     display:flex;
     justify-content:space-between;
@@ -54,7 +52,6 @@
     padding:6px 10px;border-radius:999px;white-space:nowrap;
     background:rgba(2,6,23,.55);
   }
-
   .card{
     flex:1;
     background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
@@ -66,7 +63,6 @@
     flex-direction:column;
     gap:12px;
   }
-
   .title{
     font-size:20px;
     font-weight:950;
@@ -77,7 +73,6 @@
     color:#cbd5e1;
     line-height:1.5;
   }
-
   .status{
     display:flex;
     gap:10px;
@@ -100,7 +95,6 @@
   }
   .statusBig{font-weight:950}
   .statusSmall{font-size:12px;color:var(--muted)}
-
   .actions{
     margin-top:auto;
     display:flex;
@@ -131,14 +125,12 @@
     color:#bbf7d0;
     border:1px solid rgba(34,197,94,.55);
   }
-
   footer{
     text-align:center;
     color:var(--muted);
     font-size:11px;
     padding:6px 0 2px;
   }
-
   @media(max-width:520px){
     body{padding:0}
     .wrap{min-height:100vh}
@@ -188,14 +180,9 @@
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
-  // Où renvoyer si pas public / slug KO
-  const GALLERY_URL = "https://beauville.github.io/digiy-loc/";      // ← ta galerie publique (celle que tu as collée)
-  const LOC_PRO_URL = "https://beauville.github.io/digiy-loc-pro/";  // ← espace pro (fallback)
-
-  // Page PIN publique (dans digiy-loc-pro)
+  const GALLERY_URL = "https://beauville.github.io/digiy-loc/";
+  const LOC_PRO_URL = "https://beauville.github.io/digiy-loc-pro/";
   const PIN_PAGE = "https://beauville.github.io/digiy-loc-pro/pin.html";
-
-  // WhatsApp équipe DIGIY
   const TEAM_WA = "+221771342889";
 
   /* =========================
@@ -241,17 +228,34 @@
   }
 
   function cleanSlug(s){
-    // normalise et sécurise un minimum
     const x = String(s || "").trim();
     if (!x) return "";
-    // garde lettres/chiffres/-/_ seulement
-    const safe = x.toLowerCase().replace(/[^a-z0-9\-_]/g,"");
-    return safe;
+    return x.toLowerCase().replace(/[^a-z0-9\-_]/g,"");
   }
 
   function redirectToPin(slug){
     const url = PIN_PAGE + "?slug=" + encodeURIComponent(slug);
     location.replace(url);
+  }
+
+  function safeSet(k,v){
+    try{ localStorage.setItem(k, String(v ?? "")); }catch(_){}
+  }
+
+  async function resolveProIdFromSlug(sb, slug){
+    try{
+      const { data, error } = await sb.rpc("resolve_slug_to_pro_id", { p_slug: slug });
+      if (error) return { pro_id:null, business_name:null, phone:null, error };
+      const row = Array.isArray(data) ? data[0] : data;
+      return {
+        pro_id: row?.pro_id || null,
+        business_name: row?.business_name || null,
+        phone: row?.phone || null,
+        error: null
+      };
+    }catch(e){
+      return { pro_id:null, business_name:null, phone:null, error: e };
+    }
   }
 
   /* =========================
@@ -287,7 +291,7 @@
       return;
     }
 
-    // On récupère le pin
+    // 1) Récupérer le pin (public gate)
     const { data, error } = await sb
       .from("go_pins")
       .select("slug,title,is_public,is_active,category")
@@ -301,7 +305,6 @@
       return;
     }
 
-    // Optionnel : verrouille sur loc
     if (data.category && String(data.category).toLowerCase() !== "loc"){
       ttl.textContent = "PIN non compatible";
       sub.textContent = "Ce PIN n’est pas un logement (catégorie différente).";
@@ -311,27 +314,37 @@
 
     const title = data.title || data.slug;
 
-    // Check public + active
-    const isPublic = !!data.is_public;
-    const isActive = !!data.is_active;
-
-    if (!isActive){
+    if (!data.is_active){
       ttl.textContent = title;
       sub.textContent = "Ce logement est en pause pour le moment.";
       setStatus("err","Logement inactif","Retour galerie ou contacte DIGIY.");
       return;
     }
 
-    if (!isPublic){
+    // 2) Patch clé : résoudre slug -> PRO_ID et le stocker (même si public)
+    setStatus("warn","Préparation accès PRO","On relie le slug au PRO ID…");
+    const resolved = await resolveProIdFromSlug(sb, slug);
+    if (resolved?.pro_id){
+      safeSet("DIGIY_PRO_ID", resolved.pro_id);
+      safeSet("DIGIY_SLUG", slug);
+      safeSet("DIGIY_TITLE", title);
+      safeSet("DIGIY_BUSINESS_NAME", resolved.business_name || "");
+      safeSet("DIGIY_PHONE", resolved.phone || "");
+    } else {
+      // pas bloquant pour le PIN public, mais utile à diagnostiquer
+      console.warn("⚠️ slug→pro_id introuvable (non bloquant pour public pin)", resolved?.error || resolved);
+    }
+
+    // 3) Si pas public -> rediriger vers espace pro
+    if (!data.is_public){
       ttl.textContent = title;
       sub.textContent = "Ce PIN est réservé (accès propriétaire).";
-      setStatus("warn","Accès propriétaire","Tu peux passer par l’espace PRO si tu es le propriétaire.");
-      // fallback vers pro après 1.2s (fluide)
-      setTimeout(()=> location.replace(LOC_PRO_URL), 1200);
+      setStatus("warn","Accès propriétaire","Redirection vers l’espace PRO…");
+      setTimeout(()=> location.replace(LOC_PRO_URL), 900);
       return;
     }
 
-    // OK → redirect vers PIN public
+    // 4) OK → redirect vers PIN public
     ttl.textContent = title;
     sub.textContent = "Accès public OK. Redirection…";
     setStatus("ok","Accès validé","On t’ouvre la fiche PIN maintenant.");
