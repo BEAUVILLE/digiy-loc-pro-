@@ -243,11 +243,12 @@
   }
 
   function getCurrent() {
-    const s = getSession();
-    const slug = getSlug();
-    if (slug) setSlugInUrl(slug);
-    return { session: s, slug };
-  
+  const s = getSession();
+  const slug = getSlug();
+  if (slug) setSlugInUrl(slug);
+  return { session: s, slug };
+}
+
 async function boot(options){
   // compat: options peut contenir { module, redirect, slug }
   const moduleName = (options?.module || "loc_pro").trim();
@@ -262,11 +263,11 @@ async function boot(options){
   // renvoie un objet standard
   return { ok: !!s, session: s, slug: getSlug() };
 }
-   
-  // =============================
-  // EXPORT GLOBAL + HELPERS
-  // =============================
-  window.DIGIY_GUARD = {
+
+// =============================
+// EXPORT GLOBAL + HELPERS
+// =============================
+window.DIGIY_GUARD = {
   boot,
   loginWithPin,
   requireSession,
