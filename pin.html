@@ -100,11 +100,8 @@
     </div>
 
     <div class="card">
-      <label>Téléphone (Wave)</label>
-      <input id="phone" inputmode="tel" placeholder="+221 77 123 45 67" />
-
-      <label>PIN</label>
-      <input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" maxlength="8" />
+      <label>Code PIN</label>
+      <input id="pin" type="text" inputmode="text" autocomplete="off" placeholder="DAK-F5SW2" maxlength="15" style="text-transform:uppercase" />
 
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="btnLogin" type="button">🔓 Ouvrir mon cockpit</button>
@@ -114,7 +111,7 @@
       <div class="note warn" id="note"></div>
 
       <div class="tiny" id="hintBox" style="display:none">
-        💡 Astuce : ouvre toujours cette page via ton <b>QR / lien GO PIN</b> pour que le “Lieu” soit reconnu automatiquement.
+        💡 Astuce : ouvre toujours cette page via ton <b>QR / lien GO PIN</b> pour que le "Lieu" soit reconnu automatiquement.
       </div>
     </div>
   </div>
@@ -131,8 +128,6 @@
     el.style.display = msg ? "block" : "none";
   }
 
-  function cleanPin(v){ return String(v||"").trim().replace(/[^\d]/g,"").slice(0,8); }
-
   // --- LIEU (slug) ---
   const u = new URL(location.href);
   const LIEU = (u.searchParams.get("slug") || "").trim().replace(/\/+$/,"").toLowerCase();
@@ -145,39 +140,8 @@
   $("btnPublic").href = back.toString();
 
   if(!LIEU){
-    show("⚠️ Lien incomplet.\n➡️ Ouvre cette page via ton QR / lien GO PIN.\nExemple : pin.html?slug=chez-astou-saly", "bad");
+    show("⚠️ Lien incomplet.\n➡️ Ouvre cette page via ton QR / lien GO PIN.\nExemple : pin.html?slug=chez-astou-boutique", "bad");
     $("hintBox").style.display = "block";
-  }
-
-  async function ensureProIdFromSlug(){
-    // Si déjà présent, on ne refait pas
-    if (localStorage.getItem("DIGIY_PRO_ID")) return true;
-
-    // On récupère le client Supabase via guard.js (plus robuste)
-    const sb = window.DIGIY_GUARD && window.DIGIY_GUARD._getSb ? window.DIGIY_GUARD._getSb() : null;
-    if(!sb) return false;
-
-    try{
-      const { data, error } = await sb.rpc("resolve_slug_to_pro_id", { p_slug: LIEU });
-      const row = Array.isArray(data) ? data[0] : data;
-
-      if(error || !row?.pro_id) {
-        console.warn("resolve_slug_to_pro_id error:", error, data);
-        return false;
-      }
-
-      localStorage.setItem("DIGIY_PRO_ID", row.pro_id);
-      localStorage.setItem("DIGIY_SLUG", LIEU);
-      if (row.phone) localStorage.setItem("DIGIY_PHONE", row.phone);
-      if (row.business_name) localStorage.setItem("DIGIY_BUSINESS_NAME", row.business_name);
-
-      console.log("✅ DIGIY_PRO_ID injecté:", row.pro_id);
-      return true;
-
-    }catch(e){
-      console.warn("resolve_slug_to_pro_id exception:", e);
-      return false;
-    }
   }
 
   async function doLogin(){
@@ -186,12 +150,10 @@
       return;
     }
 
-    const phone = "+" + String($("phone").value||"").replace(/\D/g,""); // +221771234567
-    const pin = cleanPin($("pin").value);
-    $("pin").value = pin;
-   console.log("PHONE_SENT", phone, "PIN_SENT", pin);
-    if(pin.length < 4){
-      show("⚠️ Mets au moins 4 chiffres pour ton PIN.", "warn");
+    const pin = ($("pin").value || "").trim().toUpperCase();
+
+    if(!pin || pin.length < 4){
+      show("⚠️ Entre ton code PIN (minimum 4 caractères).", "warn");
       return;
     }
 
@@ -199,37 +161,30 @@
     show("⏳ Vérification…", "warn");
 
     try{
-      // 1) Bridge slug -> pro_id (important pour la suite)
-      const okBridge = await ensureProIdFromSlug();
-      if(!okBridge){
-        show("❌ Impossible de relier ce lieu au PRO.\n➡️ Vérifie le RPC resolve_slug_to_pro_id (RLS / SECURITY DEFINER / GRANT).", "bad");
+      // ✅ Appel simplifié : loginWithPin(slug, pin)
+      const res = await window.DIGIY_GUARD.loginWithPin(LIEU, pin);
+
+      if(!res || !res.ok){
+        show("❌ PIN incorrect.\n➡️ Vérifie ton code et réessaie.", "bad");
+        $("btnLogin").disabled = false;
         return;
       }
 
-      // 2) ✅ APPEL CORRECT DU GUARD
-      // module: garde "loc_pro" (ou enlève module pour laisser par défaut)
-     const res = await window.DIGIY_GUARD.loginWithPin({
-  phone,
-  pin,
-  module: "loc_pro",     // IMPORTANT: même valeur que ton RPC attend
-  slug: LIEU             // pour être béton
-});
-
-
-      if(!res || res.ok !== true){
-        show("❌ PIN incorrect ou téléphone non autorisé.\n➡️ Vérifie puis réessaie.", "bad");
-        return;
-      }
+      // ✅ Stocke owner_id pour debug
+      console.log("✅ Login OK, owner_id:", res.session?.owner_id);
 
       show("✅ OK. Ouverture du cockpit…", "ok");
-      const dash = new URL("./index.html", location.href);
-      dash.searchParams.set("slug", LIEU);
-      location.replace(dash.toString());
+      
+      // Redirige vers cockpit
+      setTimeout(() => {
+        const dash = new URL("./cockpit.html", location.href);
+        dash.searchParams.set("slug", LIEU);
+        location.replace(dash.toString());
+      }, 800);
 
     }catch(e){
       console.error(e);
       show("❌ Problème technique.\n➡️ Réessaie dans 10 secondes.\nDétail: " + (e?.message || e), "bad");
-    }finally{
       $("btnLogin").disabled = false;
     }
   }
@@ -237,7 +192,7 @@
   $("btnLogin").addEventListener("click", doLogin);
   $("pin").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
 
-  setTimeout(()=> ($("phone").value ? $("pin") : $("phone")).focus(), 120);
+  setTimeout(()=> $("pin").focus(), 120);
 })();
 </script>
 </body>
