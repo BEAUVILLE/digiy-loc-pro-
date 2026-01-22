@@ -143,3 +143,116 @@
   };
 
 })();
+/* =========================
+   DIGIY GUARD — SLUG SOURCE OF TRUTH (PATCH)
+   Objectif:
+   - Slug priorité: URL > session > localStorage
+   - Si URL.slug existe => synchronise localStorage (anti "slug fantôme")
+   - withSlug() injecte toujours le bon slug
+========================= */
+
+(function(){
+  "use strict";
+
+  // --- storage keys (stables) ---
+  const K = {
+    SLUG: "DIGIY_SLUG",
+    PRO_ID: "DIGIY_PRO_ID",     // si chez toi c'est owner_id, ok; sinon adapte
+    TITLE: "DIGIY_TITLE",
+    PHONE: "DIGIY_PHONE",
+    SESSION: "DIGIY_LOC_PRO_SESSION_V1" // adapte si ton guard utilise un autre nom
+  };
+
+  // --- safe localStorage ---
+  function lsGet(k){
+    try{ return localStorage.getItem(k); }catch(_){ return null; }
+  }
+  function lsSet(k,v){
+    try{ localStorage.setItem(k, String(v ?? "")); }catch(_){}
+  }
+
+  // --- read slug from URL (strict) ---
+  function urlSlug(){
+    try{
+      const s = new URLSearchParams(location.search).get("slug");
+      return (s || "").trim();
+    }catch(_){
+      return "";
+    }
+  }
+
+  // --- normalize slug safely (optional but recommended) ---
+  function cleanSlug(s){
+    const x = String(s || "").trim();
+    if(!x) return "";
+    return x
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")   // enlève accents
+      .replace(/[^a-z0-9\-_]/g,"")                      // garde safe
+      .replace(/-+/g,"-")
+      .replace(/^_+|_+$/g,"");
+  }
+
+  // --- get current session object from guard (if exists) ---
+  // Si ton guard expose déjà getSession(), on l'utilise.
+  function safeSession(){
+    try{
+      const s = window.DIGIY_GUARD?.getSession?.();
+      return s && typeof s === "object" ? s : null;
+    }catch(_){
+      return null;
+    }
+  }
+
+  // ✅ SOURCE OF TRUTH
+  function getSlug(){
+    const u = cleanSlug(urlSlug());
+    if(u) return u;
+
+    const sess = safeSession();
+    const ss = cleanSlug(sess?.slug || "");
+    if(ss) return ss;
+
+    return cleanSlug(lsGet(K.SLUG) || "");
+  }
+
+  // ✅ Sync localStorage ONLY when URL gives slug (authoritative)
+  function syncSlugFromUrl(){
+    const u = cleanSlug(urlSlug());
+    if(!u) return null;
+    const cur = cleanSlug(lsGet(K.SLUG) || "");
+    if(cur !== u) lsSet(K.SLUG, u);
+    return u;
+  }
+
+  // ✅ Inject slug into urls
+  function withSlug(url){
+    const s = getSlug();
+    try{
+      const u = new URL(url, location.href);
+      if(s) u.searchParams.set("slug", s);
+      return u.toString();
+    }catch(_){
+      // fallback simple
+      if(!s) return url;
+      return url + (url.includes("?") ? "&" : "?") + "slug=" + encodeURIComponent(s);
+    }
+  }
+
+  // ✅ Convenience: redirect safe
+  function go(url){
+    location.replace(withSlug(url));
+  }
+
+  // --- Attach to guard (non destructif) ---
+  window.DIGIY_GUARD = window.DIGIY_GUARD || {};
+  window.DIGIY_GUARD.getSlug = getSlug;
+  window.DIGIY_GUARD.withSlug = withSlug;
+  window.DIGIY_GUARD.go = go;
+  window.DIGIY_GUARD.syncSlugFromUrl = syncSlugFromUrl;
+
+  // 🔥 Execute sync ASAP when script loads
+  // (Résout ton cas: URL=chez-astou-boutique, LS=chez-astou-saly)
+  syncSlugFromUrl();
+
+})();
