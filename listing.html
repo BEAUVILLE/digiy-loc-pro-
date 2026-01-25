@@ -46,12 +46,11 @@
 
     .topbar{
       position:sticky; top:0; z-index:30;
-      padding:10px 0 12px;
       backdrop-filter: blur(10px);
       background: linear-gradient(180deg, rgba(3,18,13,.92), rgba(3,18,13,.55));
       border-bottom:1px solid rgba(255,255,255,.06);
       margin:-16px -14px 12px;
-      padding-left:14px; padding-right:14px;
+      padding:10px 14px 12px;
     }
     .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;}
     .brand .left{display:flex;align-items:center;gap:10px;min-width:0;}
@@ -350,7 +349,7 @@
     "use strict";
 
     // =============================
-    // SUPABASE (fallback si guard absent)
+    // FALLBACK Supabase (si guard absent)
     // =============================
     const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
     const SUPABASE_ANON_KEY =
@@ -366,21 +365,30 @@
     const todayISO = new Date().toISOString().slice(0,10);
     const DATE = (Q("date") || todayISO);
 
-    // fallback si quelqu’un veut forcer business=...
+    // fallback debug
     let BUSINESS = (Q("business") || "").toUpperCase();
 
     // =============================
     // GUARD HELPERS
     // =============================
-    const MODULE = "LOC";
+    const MODULE = "loc"; // 🔥 cohérent avec le reste de LOC PRO
     const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
 
-    function withSlug(u){
+    const $ = (id)=>document.getElementById(id);
+
+    async function guardBoot(){
       try{
-        return (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.withSlug === "function")
-          ? window.DIGIY_GUARD.withSlug(u)
-          : u;
-      }catch(_){ return u; }
+        if(window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function"){
+          await window.DIGIY_GUARD.boot({
+            module: MODULE,
+            dashboard: "./index.html",
+            login: "./pin.html",        // ✅ FIX: chez toi c’est pin.html
+            pay: PAY_URL,
+            requireSlug: true,
+            checkSubscription: true
+          });
+        }
+      }catch(_){}
     }
 
     function getSB(){
@@ -390,26 +398,9 @@
           || null;
     }
 
-    async function guardBoot(){
-      try{
-        if(window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function"){
-          await window.DIGIY_GUARD.boot({
-            module: MODULE,
-            dashboard: "./planning.html",
-            login: "./login.html",
-            pay: PAY_URL,
-            requireSlug: true,
-            checkSubscription: true
-          });
-        }
-      }catch(_){}
-    }
-
     // =============================
     // UI HELPERS
     // =============================
-    const $ = (id)=>document.getElementById(id);
-
     function fmtDateFRFromISO(iso){
       const d = new Date(iso + "T00:00:00");
       return d.toLocaleDateString("fr-FR", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
@@ -464,23 +455,23 @@
 
     function cardCommon(item, kind){
       const guest = item.guest_name || item.name || "Client";
-      const room = item.room_label || "Logement";
-      const phone = item.phone || "";
+      const room = item.room_label || item.place_name || "Logement";
+      const phone = item.phone || item.guest_phone || "";
       const source = item.source || "—";
-      const status = item.status || kind;
+      const status = item.status || (kind==="arr"?"arriving":kind==="dep"?"leaving":"occupied");
 
       const metaBits = [];
       metaBits.push(`<span class="tag"><span class="ic ${kind==='arr'?'green':kind==='dep'?'orange':'blue'}"></span> ${escapeHtml(room)}</span>`);
       metaBits.push(`<span class="tag"><span class="ic blue"></span> ${escapeHtml(source)}</span>`);
-      metaBits.push(`<span class="tag"><span class="ic ${status==='confirmed'?'green':'orange'}"></span> ${escapeHtml(status)}</span>`);
+      metaBits.push(`<span class="tag"><span class="ic ${String(status).includes('confirm')?'green':'orange'}"></span> ${escapeHtml(status)}</span>`);
 
       let extra = "";
       if(kind==="arr"){
-        extra = `<span class="tag"><span class="ic orange"></span> Arrivée: ${escapeHtml(item.check_in||"—")}</span>`;
+        extra = `<span class="tag"><span class="ic orange"></span> Arrivée: ${escapeHtml(item.check_in||item.start_date||"—")}</span>`;
       }else if(kind==="dep"){
-        extra = `<span class="tag"><span class="ic orange"></span> Départ: ${escapeHtml(item.check_out||"—")}</span>`;
+        extra = `<span class="tag"><span class="ic orange"></span> Départ: ${escapeHtml(item.check_out||item.end_date||"—")}</span>`;
       }else{
-        extra = `<span class="tag"><span class="ic green"></span> ${escapeHtml(item.check_in||"—")} → ${escapeHtml(item.check_out||"—")}</span>`;
+        extra = `<span class="tag"><span class="ic green"></span> ${escapeHtml(item.check_in||item.start_date||"—")} → ${escapeHtml(item.check_out||item.end_date||"—")}</span>`;
       }
 
       const msg = (kind==="arr")
@@ -535,7 +526,6 @@
       const u = new URL(window.location.href);
       if(SLUG) u.searchParams.set("slug", SLUG);
       if(DATE) u.searchParams.set("date", DATE);
-      // on n’affiche business que si présent (debug/fallback)
       if(BUSINESS) u.searchParams.set("business", BUSINESS);
       return u.toString();
     }
@@ -570,7 +560,7 @@ Ouvrir: ${link}`;
       try{
         await navigator.clipboard.writeText(text);
         toast("Copié ✅");
-      }catch(e){
+      }catch(_){
         const ta = document.createElement("textarea");
         ta.value = text;
         ta.style.position = "fixed";
@@ -590,13 +580,11 @@ Ouvrir: ${link}`;
     // =============================
     async function loadData(){
       refreshNetwork();
-
       $("todayLabel").textContent = fmtDateFRFromISO(DATE);
 
-      // 1) boot guard (si présent)
       await guardBoot();
 
-      // 2) BUSINESS auto depuis session guard
+      // BUSINESS auto depuis session (si dispo)
       try{
         const sess = window.DIGIY_GUARD?.getSession?.() || null;
         const bc = (sess?.business_code || sess?.businessCode || "").toString().trim().toUpperCase();
@@ -610,22 +598,30 @@ Ouvrir: ${link}`;
         return;
       }
 
-      // 3) supabase source unique
       const sb = getSB() || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       try{
-        // ✅ RPC : idéalement filtrée par business_code
-        if(!BUSINESS){
-          renderEmpty("Business_code introuvable (session). Reconnecte-toi via PIN.");
-          return;
+        // ✅ RPC ultra-robuste: tente p_slug puis fallback business_code
+        let data = null;
+
+        // 1) slug-first
+        if(SLUG){
+          const r1 = await sb.rpc("digiy_loc_get_listing_day", { p_slug: SLUG, p_date: DATE });
+          if(!r1.error){
+            data = r1.data;
+          }
         }
 
-        const { data, error } = await sb.rpc("digiy_loc_get_listing_day", {
-          p_business_code: BUSINESS,
-          p_date: DATE
-        });
-
-        if(error) throw error;
+        // 2) fallback business_code
+        if(!data){
+          if(!BUSINESS){
+            renderEmpty("business_code introuvable. Reconnecte-toi via PIN.");
+            return;
+          }
+          const r2 = await sb.rpc("digiy_loc_get_listing_day", { p_business_code: BUSINESS, p_date: DATE });
+          if(r2.error) throw r2.error;
+          data = r2.data;
+        }
 
         LAST_DATA = data;
         renderAll(data);
