@@ -191,7 +191,7 @@ a{color:inherit}
       </div>
       <div class="navRight">
         <a class="btn small" id="goToday" href="#">📅 Vue du jour</a>
-        <button class="btn small" id="goApp" type="button">🏠 APP</button>
+        <button class="btn small" id="goApp" type="button" data-go="./app.html">🏠 APP</button>
         <a class="btn small" id="goPulse" href="#">📲 Pulse</a>
         <a class="btn small" id="goPlanning" href="#">🗓️ Planning</a>
         <a class="btn small" id="goListing" href="#">📋 Liste du jour</a>
@@ -288,7 +288,13 @@ a{color:inherit}
   function withSlug(path){
     return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
   }
+
+  // ✅ GO ANTI [object Object]
   function go(path){
+    if(path && typeof path === "object"){
+      path = path.currentTarget?.getAttribute?.("data-go") || "";
+    }
+    if(typeof path !== "string" || !path.trim()) return;
     location.href = withSlug(path);
   }
 
@@ -308,13 +314,10 @@ a{color:inherit}
     if(el && el.tagName === "A") el.href = withSlug(path);
   });
 
-  // ✅ Bouton APP (button)
-  $("goApp")?.addEventListener("click", (e)=>{
-    e.preventDefault();
-    go("./app.html");
-  });
+  // ✅ Bouton APP (data-go + go safe)
+  $("goApp")?.addEventListener("click", go);
 
-  // ✅ Fiche publique client
+  // ✅ Fiche publique client (externe, PAS withSlug)
   if ($("btnPublic")) {
     const url = "https://beauville.github.io/digiy-loc/fiche.html"
       + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
@@ -365,7 +368,6 @@ a{color:inherit}
         $("pillState").classList.add("ok");
       }
       if($("btnLogout")) $("btnLogout").style.display = "inline-flex";
-
       showNote("noteMain",
         "✅ Tout est OK.\nAstuce : partage la fiche publique au client. Il voit la galerie + WhatsApp direct.",
         "ok"
@@ -409,7 +411,7 @@ a{color:inherit}
     return escapeHtml(str).replaceAll("`","&#096;");
   }
 
-   // ✅ FIX: renderList utilise ownerId + verify_v2 + UUID
+  // ✅ renderList (UUID + verify_v2)
   function renderList(rows, ownerId){
     const box = $("waveList");
     if(!box) return;
@@ -456,7 +458,6 @@ a{color:inherit}
       `;
     }).join("");
 
-    // ✅ EVENTS VERIFY (UUID)
     box.querySelectorAll(".jsVerify").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
         const id = String(btn.getAttribute("data-id") || "").trim(); // ✅ UUID
