@@ -28,7 +28,7 @@
         linear-gradient(180deg, var(--bg2), var(--bg));
       padding:16px;
     }
-    .wrap{max-width:980px;margin:0 auto}
+    .wrap{max-width:1040px;margin:0 auto}
     .top{
       display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;
       padding:12px;border:1px solid var(--line);border-radius:18px;background:var(--card);
@@ -71,12 +71,46 @@
     .note.ok{display:block;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.09);color:#bbf7d0}
     .note.bad{display:block;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.09);color:#fecaca}
     .note.warn{display:block;border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.09);color:#fde68a}
+
     table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{padding:10px;border-bottom:1px solid rgba(148,163,184,.18);text-align:left;font-weight:850}
+    th,td{padding:10px;border-bottom:1px solid rgba(148,163,184,.18);text-align:left;font-weight:850;vertical-align:top}
     th{color:rgba(203,213,245,.9);font-size:.85rem}
     td{color:#f9fafb;font-size:.95rem}
+
     .tiny{color:rgba(203,213,245,.9);font-weight:850;font-size:.9rem;line-height:1.35;margin-top:10px}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace}
+
+    .field{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(0,0,0,.18);
+      color:#fff;
+      font-weight:900;
+      outline:none;
+    }
+    .field:focus{
+      border-color:rgba(250,204,21,.45);
+      box-shadow:0 0 0 3px rgba(250,204,21,.12);
+    }
+    .miniBtn{
+      min-height:40px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      font-weight:1000;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .miniBtn.red{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
+    .miniBtn.gold{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10)}
+    .miniBtn.green{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10)}
+    .miniBtn:disabled{opacity:.55;cursor:not-allowed}
   </style>
 </head>
 
@@ -94,6 +128,7 @@
   </div>
 
   <div class="grid">
+    <!-- SESSION -->
     <div class="card">
       <div class="row" style="justify-content:space-between">
         <div style="font-weight:950">🔐 Session</div>
@@ -103,9 +138,9 @@
       <div class="tiny" id="who">—</div>
 
       <div class="row" style="margin-top:12px">
-        <button class="btn primary" id="btnLoad">↻ Charger</button>
-        <button class="btn gold" id="btnSave">💾 Enregistrer</button>
-        <button class="btn red" id="btnReset">🧹 Vider</button>
+        <button class="btn primary" id="btnLoad" type="button">↻ Charger</button>
+        <button class="btn gold" id="btnSave" type="button">💾 Enregistrer</button>
+        <button class="btn red" id="btnReset" type="button">🧹 Vider</button>
         <a class="btn" id="btnBack" href="#">⬅️ Retour cockpit</a>
       </div>
 
@@ -113,40 +148,50 @@
         <a class="btn" id="btnOpenApp" href="#">🏠 Ouvrir APP</a>
         <a class="btn" id="btnOpenPublic" href="#">👁️ Fiche publique</a>
         <a class="btn" id="btnOpenPin" href="#">🔑 Accès (PIN)</a>
+        <button class="btn" id="btnCopyAll" type="button">📋 Copier URLs</button>
       </div>
 
       <div class="note warn" id="note"></div>
     </div>
 
+    <!-- LINKS -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
         <div style="font-weight:950">🔗 GO LINKS</div>
-        <button class="btn" id="btnAdd">➕ Nouveau lien</button>
+        <div class="row">
+          <button class="btn" id="btnAdd" type="button">➕ Nouveau lien</button>
+          <button class="btn" id="btnSort" type="button">↕️ Trier</button>
+        </div>
       </div>
 
-      <div class="tiny">Ces liens deviennent des boutons (Commander / Réserver / WhatsApp / etc.).</div>
+      <div class="tiny">
+        Ces liens deviennent des boutons (Commander / Réserver / WhatsApp / etc.).
+        Conseil terrain : mets <span class="mono">order</span> par pas de 10 (10, 20, 30).
+      </div>
 
       <table>
         <thead>
           <tr>
             <th style="width:90px">Ordre</th>
-            <th>Label</th>
+            <th style="min-width:180px">Label</th>
             <th>URL</th>
             <th style="width:90px">Actif</th>
-            <th style="width:110px">Actions</th>
+            <th style="width:240px">Actions</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
 
+    <!-- QR -->
     <div class="card">
       <div style="font-weight:950">⬇️ QR (téléchargement)</div>
       <div class="tiny">QR-PRO → <span class="mono" id="qrProUrl">—</span></div>
       <div class="row" style="margin-top:10px">
-        <button class="btn" id="btnQrApp">⬇️ QR APP</button>
-        <button class="btn" id="btnQrPublic">⬇️ QR Public</button>
-        <button class="btn" id="btnQrPin">⬇️ QR Accès</button>
+        <button class="btn" id="btnQrApp" type="button">⬇️ QR APP</button>
+        <button class="btn" id="btnQrPublic" type="button">⬇️ QR Public</button>
+        <button class="btn" id="btnQrPin" type="button">⬇️ QR Accès</button>
+        <button class="btn" id="btnCopyQr" type="button">📋 Copier QR-PRO</button>
       </div>
       <div class="tiny" id="qrInfo" style="margin-top:10px">—</div>
     </div>
@@ -158,6 +203,16 @@
   "use strict";
   const $ = (id)=>document.getElementById(id);
 
+  // =========================
+  // CONFIG SUPABASE (fallback)
+  // =========================
+  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+
+  // =========================
+  // UI helpers
+  // =========================
   function show(msg, cls){
     const el = $("note");
     el.className = "note " + (cls || "warn");
@@ -165,6 +220,22 @@
     el.style.display = msg ? "block" : "none";
   }
 
+  function copyText(txt){
+    try{ return navigator.clipboard.writeText(txt).then(()=>true).catch(()=>false); }
+    catch(_){
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = txt; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy");
+        ta.remove();
+        return Promise.resolve(true);
+      }catch(__){ return Promise.resolve(false); }
+    }
+  }
+
+  // =========================
+  // Slug + phones
+  // =========================
   function getSlug(){
     return (window.DIGIY_GUARD?.getSlug?.() || new URL(location.href).searchParams.get("slug") || "").trim();
   }
@@ -182,21 +253,32 @@
     return p ? p.slice(-4) : "";
   }
 
+  function digitsOnly(p){ return String(p||"").replace(/\D/g,""); }
+
+  // =========================
+  // Supabase getter (guard -> fallback local)
+  // =========================
   async function getSB(){
-    if(window.DIGIY_GUARD?.getSbAsync) return await window.DIGIY_GUARD.getSbAsync();
-    return window.DIGIY_GUARD?.getSb?.() || window.sb || null;
+    try{
+      if(window.DIGIY_GUARD?.getSbAsync) return await window.DIGIY_GUARD.getSbAsync();
+      const sb1 = window.DIGIY_GUARD?.getSb?.();
+      if(sb1) return sb1;
+    }catch(e){ console.warn("guard sb fail", e); }
+    try{
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }catch(e){
+      console.error(e);
+      return null;
+    }
   }
 
-  // ---------------------------
-  // SLUG
-  // ---------------------------
+  // =========================
+  // Pages / URLs du module
+  // =========================
   const slug = getSlug();
   $("pillSlug").textContent = "slug : " + (slug || "—");
 
-  // ✅ Pages LOC-PRO (tes vrais fichiers)
-  // APP = cockpit pro (index.html)
-  // PUBLIC = GO PIN public (go-pin-public.html)
-  // PIN = accès (pin.html)
+  // Pages LOC-PRO (tes vrais fichiers)
   const PAGE_APP    = "./index.html";
   const PAGE_PUBLIC = "./go-pin-public.html";
   const PAGE_PIN    = "./pin.html";
@@ -204,6 +286,7 @@
   const appUrl = new URL(PAGE_APP, location.href);
   const publicUrl = new URL(PAGE_PUBLIC, location.href);
   const pinUrl = new URL(PAGE_PIN, location.href);
+
   if(slug){
     appUrl.searchParams.set("slug", slug);
     publicUrl.searchParams.set("slug", slug);
@@ -215,101 +298,217 @@
   $("btnOpenPublic").href = publicUrl.toString();
   $("btnOpenPin").href = pinUrl.toString();
 
-  // ---------------------------
-  // QR-PRO (OFFICIEL) — les boutons ouvrent ça, POINT.
-  // ---------------------------
+  $("btnCopyAll").addEventListener("click", async ()=>{
+    const pack =
+`DIGIY URLs
+slug: ${slug || "—"}
+
+APP: ${appUrl.toString()}
+PUBLIC: ${publicUrl.toString()}
+PIN: ${pinUrl.toString()}
+`;
+    const ok = await copyText(pack);
+    show(ok ? "✅ URLs copiées." : "❌ Copie impossible (navigateur).", ok ? "ok" : "bad");
+  });
+
+  // =========================
+  // QR-PRO officiel
+  // =========================
   const QR_PRO_BASE = "https://beauville.github.io/digiy-qr-pro/";
   const qrPro = new URL(QR_PRO_BASE);
   if(slug) qrPro.searchParams.set("slug", slug);
   $("qrProUrl").textContent = qrPro.toString();
+  $("qrInfo").textContent = "QR-PRO centralise tes QR (app/public/pin).";
 
   function openQrPro(type){
-    // type: app | public | pin (optionnel)
     const u = new URL(QR_PRO_BASE);
     if(slug) u.searchParams.set("slug", slug);
-    if(type) u.searchParams.set("t", type); // optionnel (si QR-PRO le gère)
-    window.open(u.toString(), "_blank", "noopener");
+    if(type) u.searchParams.set("t", type);
+    window.open(u.toString(), "_blank", "noopener,noreferrer");
     $("qrInfo").textContent = "Ouvert QR-PRO (" + (type || "—") + ") → " + u.toString();
   }
+  $("btnQrApp").addEventListener("click", ()=> openQrPro("app"));
+  $("btnQrPublic").addEventListener("click", ()=> openQrPro("public"));
+  $("btnQrPin").addEventListener("click", ()=> openQrPro("pin"));
+  $("btnCopyQr").addEventListener("click", async ()=>{
+    const ok = await copyText(qrPro.toString());
+    show(ok ? "✅ Lien QR-PRO copié." : "❌ Copie impossible.", ok ? "ok" : "bad");
+  });
 
-  // ---------------------------
-  // LINKS MODEL
-  // ---------------------------
+  // =========================
+  // LINKS model (local state)
+  // =========================
   let LINKS = [];
 
-  function escapeHtml(s){
-    return String(s||"").replace(/[&<>"']/g, (m)=>({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-    }[m]));
+  function nextOrder(){
+    const max = LINKS.reduce((m,x)=>Math.max(m, Number(x.order||0)), 0);
+    return (max ? (Math.ceil(max/10)*10 + 10) : 10);
   }
 
-  function render(){
-    const tb = $("rows");
-    if(!LINKS.length){
-      tb.innerHTML = `<tr><td colspan="5" style="color:rgba(203,213,245,.9)">— aucun lien —</td></tr>`;
-      return;
+  function normalizeUrl(u){
+    u = String(u||"").trim();
+    if(!u) return "";
+
+    // WhatsApp convenience: "22177..." or "+221..." => wa.me
+    if(/^\+?\d{9,15}$/.test(u.replace(/\s+/g,""))){
+      const d = digitsOnly(u);
+      return "https://wa.me/" + d;
     }
-    LINKS.sort((a,b)=>(a.order||999)-(b.order||999));
-    tb.innerHTML = LINKS.map((x,i)=>{
-      const ord = Number(x.order||100);
-      const lab = escapeHtml(x.label||"");
-      const url = escapeHtml(x.url||"");
-      const act = !!x.active;
-      return `
-        <tr>
-          <td><input data-i="${i}" data-k="order" value="${ord}" style="padding:10px;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:rgba(0,0,0,.18);color:#fff;font-weight:900;width:90px"/></td>
-          <td><input data-i="${i}" data-k="label" value="${lab}" style="padding:10px;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:rgba(0,0,0,.18);color:#fff;font-weight:900;width:100%"/></td>
-          <td><input data-i="${i}" data-k="url" value="${url}" style="padding:10px;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:rgba(0,0,0,.18);color:#fff;font-weight:900;width:100%"/></td>
-          <td>
-            <select data-i="${i}" data-k="active" style="padding:10px;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:rgba(0,0,0,.18);color:#fff;font-weight:900;width:90px">
-              <option value="true" ${act?"selected":""}>Oui</option>
-              <option value="false" ${!act?"selected":""}>Non</option>
-            </select>
-          </td>
-          <td>
-            <button class="btn red" style="min-height:40px;padding:8px 10px" data-del="${i}">🗑️</button>
-          </td>
-        </tr>
-      `;
-    }).join("");
 
-    tb.querySelectorAll("input,select").forEach(el=>{
-      el.addEventListener("change", ()=>{
-        const i = Number(el.getAttribute("data-i"));
-        const k = el.getAttribute("data-k");
-        if(!Number.isFinite(i) || !k) return;
-        if(k==="order") LINKS[i].order = Number(el.value||100);
-        if(k==="label") LINKS[i].label = String(el.value||"").trim();
-        if(k==="url") LINKS[i].url = String(el.value||"").trim();
-        if(k==="active") LINKS[i].active = (String(el.value)==="true");
-      });
-    });
+    // If user pastes wa.me without protocol
+    if(/^wa\.me\//i.test(u)) return "https://" + u;
 
-    tb.querySelectorAll("button[data-del]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const i = Number(btn.getAttribute("data-del"));
-        LINKS.splice(i,1);
-        render();
-      });
-    });
+    // Basic allowlist
+    const lower = u.toLowerCase();
+    if(lower.startsWith("javascript:") || lower.startsWith("data:")) return "";
+
+    // Auto add https if looks like domain
+    if(!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(u)){
+      // no scheme
+      if(u.includes(".")) u = "https://" + u;
+    }
+
+    return u;
   }
 
   function validateLinks(list){
     const clean = [];
     for(const x of (list||[])){
       const label = String(x.label||"").trim();
-      const url = String(x.url||"").trim();
+      const url = normalizeUrl(x.url||"");
       const order = Number(x.order||100);
       const active = !!x.active;
       if(!label || !url) continue;
       clean.push({ order, label, url, active });
     }
+    // Sort by order then label
+    clean.sort((a,b)=>(a.order-b.order) || a.label.localeCompare(b.label));
     return clean;
   }
 
-  // ---------------------------
-  // RPC (auto phone + pin4)
-  // ---------------------------
+  // =========================
+  // DOM rendering (SAFE)
+  // =========================
+  function makeEl(tag, attrs, children){
+    const el = document.createElement(tag);
+    if(attrs){
+      for(const [k,v] of Object.entries(attrs)){
+        if(k==="class") el.className = v;
+        else if(k==="text") el.textContent = v;
+        else if(k==="html") el.innerHTML = v;
+        else el.setAttribute(k, String(v));
+      }
+    }
+    (children||[]).forEach(ch=> el.appendChild(ch));
+    return el;
+  }
+
+  function render(){
+    const tb = $("rows");
+    tb.innerHTML = "";
+
+    if(!LINKS.length){
+      tb.appendChild(makeEl("tr", null, [
+        makeEl("td", { colspan:"5", style:"color:rgba(203,213,245,.9)" , text:"— aucun lien —" })
+      ]));
+      return;
+    }
+
+    // Stable sort for display
+    const display = LINKS.map((x,idx)=>({x,idx}))
+      .sort((a,b)=> (Number(a.x.order||999)-Number(b.x.order||999)) || (a.idx-b.idx));
+
+    for(const it of display){
+      const i = it.idx;
+      const x = LINKS[i];
+
+      const tr = document.createElement("tr");
+
+      // order
+      const order = makeEl("input", { class:"field", type:"number", value:String(Number(x.order||100)), style:"width:90px" });
+      order.addEventListener("change", ()=>{ x.order = Number(order.value||100); });
+
+      // label
+      const label = makeEl("input", { class:"field", value:String(x.label||""), placeholder:"Ex: WhatsApp / Réserver / Commander" });
+      label.addEventListener("change", ()=>{ x.label = String(label.value||"").trim(); });
+
+      // url
+      const url = makeEl("input", { class:"field", value:String(x.url||""), placeholder:"https://... ou wa.me/..." });
+      url.addEventListener("change", ()=>{
+        const n = normalizeUrl(url.value);
+        if(!n){
+          show("⚠️ URL invalide (refusée). Utilise https://..., tel:..., mailto:..., wa.me/...", "warn");
+          url.value = "";
+          x.url = "";
+          return;
+        }
+        url.value = n;
+        x.url = n;
+      });
+
+      // active
+      const sel = document.createElement("select");
+      sel.className = "field";
+      sel.style.width = "90px";
+      sel.innerHTML = `
+        <option value="true">Oui</option>
+        <option value="false">Non</option>
+      `;
+      sel.value = x.active ? "true" : "false";
+      sel.addEventListener("change", ()=>{ x.active = (sel.value==="true"); });
+
+      // actions
+      const actions = makeEl("div", { class:"row" });
+      const bTest = makeEl("button", { class:"miniBtn", type:"button", text:"🔎 Tester" });
+      const bCopy = makeEl("button", { class:"miniBtn gold", type:"button", text:"📋 Copier" });
+      const bDup  = makeEl("button", { class:"miniBtn green", type:"button", text:"📎 Dupliquer" });
+      const bDel  = makeEl("button", { class:"miniBtn red", type:"button", text:"🗑️" });
+
+      bTest.addEventListener("click", ()=>{
+        const u = normalizeUrl(x.url||"");
+        if(!u){ show("❌ URL vide/invalide.", "bad"); return; }
+        window.open(u, "_blank", "noopener,noreferrer");
+        show("✅ Test ouverture : " + u, "ok");
+      });
+
+      bCopy.addEventListener("click", async ()=>{
+        const u = normalizeUrl(x.url||"");
+        if(!u){ show("❌ URL vide/invalide.", "bad"); return; }
+        const ok = await copyText(u);
+        show(ok ? "✅ URL copiée." : "❌ Copie impossible.", ok ? "ok" : "bad");
+      });
+
+      bDup.addEventListener("click", ()=>{
+        LINKS.push({ order: nextOrder(), label: (x.label||"") + " (copy)", url: x.url||"", active: x.active!==false });
+        render();
+        show("✅ Lien dupliqué.", "ok");
+      });
+
+      bDel.addEventListener("click", ()=>{
+        LINKS.splice(i, 1);
+        render();
+        show("Lien supprimé (pense à Enregistrer).", "warn");
+      });
+
+      actions.appendChild(bTest);
+      actions.appendChild(bCopy);
+      actions.appendChild(bDup);
+      actions.appendChild(bDel);
+
+      // append tds
+      tr.appendChild(makeEl("td", null, [order]));
+      tr.appendChild(makeEl("td", null, [label]));
+      tr.appendChild(makeEl("td", null, [url]));
+      tr.appendChild(makeEl("td", null, [sel]));
+      tr.appendChild(makeEl("td", null, [actions]));
+
+      tb.appendChild(tr);
+    }
+  }
+
+  // =========================
+  // RPC creds (session)
+  // =========================
   function getCreds(){
     const sess = window.DIGIY_GUARD?.getSession?.() || null;
     const phone = normPhone(sess?.phone || "");
@@ -324,21 +523,37 @@
 
     const { sess, phone, pin4 } = getCreds();
     if(!sess?.ok || !phone) return show("⚠️ Session manquante. Retourne sur PIN.", "bad");
+    if(!pin4) return show("⚠️ PIN4 absent. Vérifie ton téléphone session.", "bad");
 
+    $("btnLoad").disabled = true;
     show("⏳ Chargement…", "warn");
 
-    const { data, error } = await sb.rpc("digiy_go_links_get", {
-      p_slug: slug,
-      p_phone: phone,
-      p_pin4: pin4
-    });
+    try{
+      const { data, error } = await sb.rpc("digiy_go_links_get", {
+        p_slug: slug,
+        p_phone: phone,
+        p_pin4: pin4
+      });
 
-    if(error) return show("❌ Erreur: " + (error.message || error), "bad");
-    if(!data?.ok) return show("❌ Accès refusé: " + (data?.error || "unknown"), "bad");
+      if(error) return show("❌ Erreur: " + (error.message || error), "bad");
+      if(!data?.ok) return show("❌ Accès refusé: " + (data?.error || "unknown"), "bad");
 
-    LINKS = Array.isArray(data.links) ? data.links : [];
-    render();
-    show("✅ Liens chargés.", "ok");
+      LINKS = Array.isArray(data.links) ? data.links.map(x=>({
+        order:Number(x.order||100),
+        label:String(x.label||"").trim(),
+        url:String(x.url||"").trim(),
+        active: x.active!==false
+      })) : [];
+
+      render();
+      show("✅ Liens chargés.", "ok");
+
+    }catch(e){
+      console.error(e);
+      show("❌ Crash chargement: " + String(e?.message||e), "bad");
+    }finally{
+      $("btnLoad").disabled = false;
+    }
   }
 
   async function saveLinks(){
@@ -348,55 +563,75 @@
 
     const { sess, phone, pin4 } = getCreds();
     if(!sess?.ok || !phone) return show("⚠️ Session manquante. Retour PIN.", "bad");
+    if(!pin4) return show("⚠️ PIN4 absent. Vérifie ton téléphone session.", "bad");
 
     const clean = validateLinks(LINKS);
+    if(!clean.length){
+      show("⚠️ Aucun lien valide à enregistrer. (Label + URL obligatoires)", "warn");
+      return;
+    }
+
+    $("btnSave").disabled = true;
     show("⏳ Enregistrement…", "warn");
 
-    const { data, error } = await sb.rpc("digiy_go_links_save", {
-      p_slug: slug,
-      p_phone: phone,
-      p_pin4: pin4,
-      p_links: clean
-    });
+    try{
+      const { data, error } = await sb.rpc("digiy_go_links_save", {
+        p_slug: slug,
+        p_phone: phone,
+        p_pin4: pin4,
+        p_links: clean
+      });
 
-    if(error) return show("❌ Erreur: " + (error.message || error), "bad");
-    if(!data?.ok) return show("❌ Refusé: " + (data?.error || "unknown"), "bad");
+      if(error) return show("❌ Erreur: " + (error.message || error), "bad");
+      if(!data?.ok) return show("❌ Refusé: " + (data?.error || "unknown"), "bad");
 
-    show("✅ Enregistré (" + (data.count ?? clean.length) + " lien(s)).", "ok");
+      // Remet la version clean (normalisée)
+      LINKS = clean;
+      render();
+
+      show("✅ Enregistré (" + (data.count ?? clean.length) + " lien(s)).", "ok");
+
+    }catch(e){
+      console.error(e);
+      show("❌ Crash save: " + String(e?.message||e), "bad");
+    }finally{
+      $("btnSave").disabled = false;
+    }
   }
 
-  // ---------------------------
-  // UI bind
-  // ---------------------------
+  // =========================
+  // UI events
+  // =========================
   $("btnAdd").addEventListener("click", ()=>{
-    LINKS.push({ order: 100, label:"WhatsApp", url:"https://wa.me/221XXXXXXXXX", active:true });
+    LINKS.push({ order: nextOrder(), label:"WhatsApp", url:"https://wa.me/221XXXXXXXXX", active:true });
     render();
+    show("✅ Nouveau lien ajouté (pense à Enregistrer).", "ok");
+  });
+
+  $("btnSort").addEventListener("click", ()=>{
+    LINKS = validateLinks(LINKS);
+    render();
+    show("✅ Tri + nettoyage appliqués (pense à Enregistrer).", "ok");
   });
 
   $("btnReset").addEventListener("click", ()=>{
     if(!confirm("Vider la liste ?")) return;
     LINKS = [];
     render();
-    show("Liste vidée. Clique Enregistrer.", "warn");
+    show("Liste vidée. Clique Enregistrer pour appliquer.", "warn");
   });
 
   $("btnLoad").addEventListener("click", loadLinks);
   $("btnSave").addEventListener("click", saveLinks);
 
-  // ✅ QR buttons => ouvrent QR-PRO (officiel)
-  $("btnQrApp").addEventListener("click", ()=> openQrPro("app"));
-  $("btnQrPublic").addEventListener("click", ()=> openQrPro("public"));
-  $("btnQrPin").addEventListener("click", ()=> openQrPro("pin"));
-
-  // ---------------------------
-  // INIT
-  // ---------------------------
+  // =========================
+  // INIT session banner
+  // =========================
   const sess = window.DIGIY_GUARD?.getSession?.() || null;
   const phone = normPhone(sess?.phone || "");
-
   $("pillStatus").textContent = sess?.ok ? "Connecté ✅" : "Non connecté ❌";
   $("who").textContent = sess?.ok
-    ? ("Téléphone: " + phone + " · PIN auto: " + pin4FromPhone(phone) + " · (invisible pour le proprio)")
+    ? ("Téléphone: " + phone + " · PIN auto: " + pin4FromPhone(phone) + " · (PIN4 = contrôle rapide, pas un secret)")
     : "Session absente. Retourne sur PIN et reconnecte-toi.";
 
   render();
