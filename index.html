@@ -222,7 +222,8 @@ a{color:inherit}
         <div class="note" id="noteMain"></div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-          <a class="btn gold" id="btnPublic" href="#" target="_blank" rel="noopener">👁️ GO PIN public</a>
+          <!-- ✅ FIX: FICHE PUBLIQUE CLIENT -->
+          <a class="btn gold" id="btnPublic" href="#" target="_blank" rel="noopener noreferrer">👁️ Ma fiche publique</a>
           <a class="btn" id="btnOpenPin" href="#">🔑 Ouvrir l’accès (PIN)</a>
         </div>
       </div>
@@ -257,11 +258,12 @@ a{color:inherit}
 (async function(){
   "use strict";
 
- // Boot guard
-window.DIGIY_GUARD.requireSession({
-  module: "loc_pro",
-  redirect: "./pin.html"
-});
+  // Boot guard (bloque si pas de session)
+  window.DIGIY_GUARD.requireSession({
+    module: "loc_pro",
+    redirect: "./pin.html"
+  });
+
   const $ = (id)=>document.getElementById(id);
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
 
@@ -281,72 +283,47 @@ window.DIGIY_GUARD.requireSession({
   }
 
   const slug = (window.DIGIY_GUARD?.getSlug?.() || "").trim();
-if($("navPlace")) $("navPlace").textContent = "Lieu : " + (slug || "—");
-if($("kvSlug")) $("kvSlug").textContent = slug || "—";
+  if($("navPlace")) $("navPlace").textContent = "Lieu : " + (slug || "—");
+  if($("kvSlug")) $("kvSlug").textContent = slug || "—";
 
-function withSlug(path){
-  return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
-}
-
-// ✅ helper navigation (marche pour <a> et <button>)
-function go(path){
-  location.href = withSlug(path);
-}
-
-// HREF sur <a> + onclick sur <button>
-const links = [
-  ["btnBack","./index.html"],
-  ["goToday","./today.html"],
-  ["goPulse","./proprio-loc.html"],
-  ["goPlanning","./planning.html"],
-  ["goListing","./listing.html"],
-  ["goLinks","./manage-links.html"],
-  ["goHealth","./health-loc.html"],
-  ["btnOpenPin","./pin.html"],
-
-  // ✅ PUBLIC (client) — à ajouter dans ton HTML: <a id="btnPublic">...</a>
-  ["btnPublic","https://beauville.github.io/digiy-loc/fiche.html"],
-];
-
-links.forEach(([id, path])=>{
-  const el = $(id);
-  if(!el) return;
-
-  const isExternal = /^https?:\/\//i.test(path);
-
-  // ✅ A
-  if (el.tagName === "A"){
-    if(isExternal){
-      el.href = path + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
-      el.target = "_blank";
-      el.rel = "noopener noreferrer";
-    } else {
-      el.href = withSlug(path);
-    }
-    return;
+  function withSlug(path){
+    return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
+  }
+  function go(path){
+    location.href = withSlug(path);
   }
 
-  // ✅ BUTTON (ou autre)
-  el.addEventListener("click", ()=>{
-    if(isExternal){
-      const url = path + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
-      window.open(url, "_blank", "noopener,noreferrer");
-    } else {
-      go(path);
-    }
+  // ✅ Nav links internes (slug conservé)
+  const links = [
+    ["btnBack","./index.html"],
+    ["goToday","./today.html"],
+    ["goPulse","./proprio-loc.html"],
+    ["goPlanning","./planning.html"],
+    ["goListing","./listing.html"],
+    ["goLinks","./manage-links.html"],
+    ["goHealth","./health-loc.html"],
+    ["btnOpenPin","./pin.html"],
+  ];
+  links.forEach(([id, path])=>{
+    const el = $(id);
+    if(el && el.tagName === "A") el.href = withSlug(path);
   });
-});
-  
-  // GO PIN public
-  const pub = new URL("./go-pin.html", location.href);
-  if(slug) pub.searchParams.set("slug", slug);
-  if($("btnPublic")) $("btnPublic").href = pub.toString();
 
-  // APP bouton
+  // ✅ Bouton APP (button)
   $("goApp")?.addEventListener("click", (e)=>{
     e.preventDefault();
-    location.href = withSlug("./app.html");
+    go("./app.html");
   });
+
+  // ✅ FIX FINAL: bouton fiche publique client (pas GO PIN)
+  if ($("btnPublic")) {
+    const url = "https://beauville.github.io/digiy-loc/fiche.html"
+      + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
+    $("btnPublic").href = url;
+    $("btnPublic").target = "_blank";
+    $("btnPublic").rel = "noopener noreferrer";
+    $("btnPublic").textContent = "👁️ Ma fiche publique";
+  }
 
   // Logout
   $("btnLogout")?.addEventListener("click", ()=>{
@@ -391,7 +368,7 @@ links.forEach(([id, path])=>{
       if($("btnLogout")) $("btnLogout").style.display = "inline-flex";
 
       showNote("noteMain",
-        "✅ Tout est OK.\nAstuce : partage ton GO PIN public au client. Il voit la fiche + WhatsApp direct.",
+        "✅ Tout est OK.\nAstuce : partage la fiche publique au client. Il voit la galerie + WhatsApp direct.",
         "ok"
       );
       return true;
@@ -538,9 +515,9 @@ links.forEach(([id, path])=>{
       $("stSumVerified").textContent = money(st.sum_verified_fcfa ?? st.sum_verified ?? 0);
 
       const rows = await rpcSafe("loc_wave_payments_list_owner", {
-  p_slug: slug,
-  p_owner_id: ownerId  // ✅ NOUVELLE LIGNE
-});
+        p_slug: slug,
+        p_owner_id: ownerId
+      });
 
       renderList(Array.isArray(rows) ? rows : [], ownerPhone);
       showNote("noteWave", "", "");
@@ -549,7 +526,6 @@ links.forEach(([id, path])=>{
       showNote("noteWave", "❌ Erreur Wave : " + (e?.message || e), "bad");
     }
 
-    // ownerId reste utile pour DECLARE V2
     if(ownerId && $("kvOwner")) $("kvOwner").textContent = ownerId;
   }
 
@@ -604,12 +580,13 @@ links.forEach(([id, path])=>{
 
   // Boot final
   refreshSessionUI();
-  await getSb();   // <-- garantit sb prêt avant les RPC
+  await getSb();
   await loadWave();
 
 })();
 </script>
- <script>
+
+<script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
@@ -617,8 +594,7 @@ links.forEach(([id, path])=>{
         .catch(err => console.log('⚠️ SW error:', err.message));
     });
   }
-  </script>
+</script>
 
 </body>
 </html>
-
