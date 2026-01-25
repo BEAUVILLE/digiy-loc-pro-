@@ -63,16 +63,8 @@
     flex-direction:column;
     gap:12px;
   }
-  .title{
-    font-size:20px;
-    font-weight:950;
-    line-height:1.2;
-  }
-  .sub{
-    font-size:13px;
-    color:#cbd5e1;
-    line-height:1.5;
-  }
+  .title{font-size:20px;font-weight:950;line-height:1.2}
+  .sub{font-size:13px;color:#cbd5e1;line-height:1.5}
   .status{
     display:flex;
     gap:10px;
@@ -165,21 +157,17 @@
 <script>
 (() => {
   "use strict";
-  console.log("GO-PIN VERSION:", "2026-01-25-go-pin-FIXED-redirect-slug");
+  console.log("GO-PIN VERSION:", "2026-01-25-go-pin-FIX-V2");
 
   /* =========================
-     CONFIG (URLs)
-     - GALLERY_URL: page publique digiy-loc
-     - LOC_PRO_BASE: base digiy-loc-pro
-     - PIN_PAGE: page PIN pro (dans digiy-loc-pro)
+     CONFIG
   ========================= */
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
 
   const GALLERY_URL  = "https://beauville.github.io/digiy-loc/";
-  const LOC_PRO_BASE = "https://beauville.github.io/digiy-loc-pro/";
-  const PIN_PAGE     = "https://beauville.github.io/digiy-loc-pro/pin.html"; // ✅ toujours cette page
+  const PIN_PAGE     = "https://beauville.github.io/digiy-loc-pro/pin.html"; // ✅ porte unique
   const TEAM_WA      = "+221771342889";
 
   /* =========================
@@ -193,11 +181,12 @@
   const btnBack = document.getElementById("btnBack");
   const btnWa = document.getElementById("btnWa");
 
-  btnBack.href = GALLERY_URL || LOC_PRO_BASE;
+  btnBack.href = GALLERY_URL || "./";
 
   /* =========================
      Helpers
   ========================= */
+  const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
   function digits(v){ return String(v || "").replace(/\D/g,""); }
 
   function openWa(phone, msg){
@@ -222,7 +211,6 @@
     }
   }
 
-  // ✅ slug clean robuste (même logique terrain que guard)
   function cleanSlug(s){
     const x = String(s || "").trim();
     if(!x) return "";
@@ -239,43 +227,42 @@
     catch(e){ console.warn("localStorage blocked", e); }
   }
 
-  function toUrl(base){
-    try{ return new URL(base, location.href); }catch(_){ return null; }
-  }
-
   function redirectToPin(slug){
-    const u = toUrl(PIN_PAGE);
-    if(!u) return;
+    const u = new URL(PIN_PAGE, location.href);
     u.searchParams.set("slug", slug);
     location.replace(u.toString());
   }
 
-  function redirectToLocPro(slug){
-    // ✅ IMPORTANT: ne jamais envoyer sur la racine (perte slug)
-    redirectToPin(slug);
+  function fatal(title, message){
+    ttl.textContent = title || "Erreur";
+    sub.textContent = message || "Une erreur est survenue.";
+    setStatus("err", title || "Erreur", message || "");
   }
 
-  async function resolveProIdFromSlug(sb, slug){
-   const { data, error } = await sb
-  .from("digiy_loc_businesses")
-  .select("id,slug,title,phone")
-  .eq("slug", slug)
-  .maybeSingle();
+  /* =========================
+     DB bridge
+     - Ici, le pro_id = digiy_loc_businesses.id
+  ========================= */
+  async function bridgeSlugToBusiness(sb, slug){
+    const { data, error } = await sb
+      .from("digiy_loc_businesses")
+      .select("id,slug,business_name,phone")
+      .eq("slug", slug)
+      .maybeSingle();
 
-if (error) {
-  console.error(error);
-  showError("Erreur technique. Réessaie.");
-  return;
-}
+    if (error) return { ok:false, reason:error.message || String(error), row:null };
+    if (!data) return { ok:false, reason:"business_not_found", row:null };
 
-if (!data) {
-  showError("Slug introuvable (ou accès bloqué). Vérifie le lien.");
-  return;
-}
-
-// OK: data présent
-renderBusiness(data);
-
+    return {
+      ok:true,
+      row:{
+        pro_id: data.id,
+        slug: data.slug,
+        business_name: data.business_name || "",
+        phone: data.phone || ""
+      }
+    };
+  }
 
   /* =========================
      Main
@@ -291,112 +278,86 @@ renderBusiness(data);
   });
 
   window.addEventListener("DOMContentLoaded", async () => {
-    console.log("ORIGIN", location.origin);
     console.log("SLUG", slug);
-    console.log("KEY_LEN", (SUPABASE_ANON_KEY || "").length);
 
     if (!slug){
-      ttl.textContent = "Slug manquant";
-      sub.textContent = "Lien incomplet. Reviens à la galerie et clique sur “Voir le PIN”.";
-      setStatus("err","Lien incomplet","Exemple : go-pin.html?slug=chez-astou-saly");
+      fatal("Slug manquant", "Lien incomplet. Exemple : go-pin.html?slug=chez-astou-saly");
       return;
     }
 
-    if (!SUPABASE_ANON_KEY || (SUPABASE_ANON_KEY || "").length < 80){
-      ttl.textContent = "Clé Supabase absente";
-      sub.textContent = "Tu dois coller la clé ANON complète dans le fichier go-pin.html.";
-      setStatus("err","Config invalide","ANON KEY manquante ou tronquée.");
+    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.length < 80){
+      fatal("Config invalide", "Clé ANON Supabase manquante ou tronquée.");
       return;
     }
-
-    setStatus("warn","Connexion…","Initialisation Supabase…");
 
     let sb;
     try{
       sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }catch(e){
-      ttl.textContent = "Erreur Supabase";
-      sub.textContent = "Supabase non chargé. Vérifie le script CDN.";
-      setStatus("err","Supabase KO","CDN/clé/JS.");
+      fatal("Supabase KO", "CDN/clé/JS non chargé.");
       return;
     }
 
-    // Gate public pin (safe)
     setStatus("warn","Vérification logement","Lecture go_pins…");
-    const r = await sb
+
+    const { data: pinRow, error: pinErr } = await sb
       .from("go_pins")
       .select("slug,title,is_public,is_active,category")
       .eq("slug", slug)
       .maybeSingle();
 
-    console.log("go_pins result =>", r);
-
-    if (r.error){
-      ttl.textContent = "Erreur lecture";
-      sub.textContent = "La lecture go_pins a échoué (RLS/clé).";
-      setStatus("err","Lecture refusée", r.error.message || "Erreur");
+    if (pinErr){
+      fatal("Lecture refusée", pinErr.message || "Erreur go_pins (RLS/clé).");
+      return;
+    }
+    if (!pinRow){
+      fatal("PIN introuvable", "Aucune ligne go_pins trouvée pour ce slug.");
       return;
     }
 
-    if (!r.data){
-      ttl.textContent = "PIN introuvable";
-      sub.textContent = "Aucune ligne trouvée pour ce slug.";
-      setStatus("err","Introuvable","Slug KO ou RLS filtre.");
-      return;
-    }
-
-    const pinRow = r.data;
     const title = pinRow.title || pinRow.slug;
+    ttl.textContent = title;
 
     if (pinRow.category && String(pinRow.category).toLowerCase() !== "loc"){
-      ttl.textContent = "PIN non compatible";
-      sub.textContent = "Ce PIN n’est pas un logement (catégorie différente).";
-      setStatus("err","Catégorie différente","Retour galerie.");
+      fatal("PIN non compatible", "Ce PIN n’est pas un logement (catégorie différente).");
       return;
     }
-
     if (!pinRow.is_active){
-      ttl.textContent = title;
-      sub.textContent = "Ce logement est en pause pour le moment.";
-      setStatus("err","Logement inactif","Retour galerie ou contacte DIGIY.");
+      fatal(title, "Ce logement est en pause pour le moment.");
       return;
     }
 
-    // Bridge slug -> pro_id (OBLIGATOIRE pour la porte)
+    // Bridge slug → pro_id (obligatoire)
     setStatus("warn","Préparation accès PRO","Bridge slug → pro_id…");
-    const brid = await resolveProIdFromSlug(sb, slug);
+    const brid = await bridgeSlugToBusiness(sb, slug);
 
     if (!brid.ok || !brid.row?.pro_id){
-      ttl.textContent = title;
-      sub.textContent = "Accès public OK, mais pro_id introuvable (guard/caisse bloqués).";
-      setStatus("err","Bridge pro_id KO","Vérifie GRANT/SECURITY DEFINER du RPC.");
+      fatal(title, "Accès public OK, mais pro_id introuvable. Vérifie digiy_loc_businesses.slug.");
       return;
     }
 
-    // ✅ STOCKAGE (références globales)
+    // Stockage global
     safeSet("DIGIY_PRO_ID", brid.row.pro_id);
     safeSet("DIGIY_SLUG", slug);
     safeSet("DIGIY_TITLE", title);
     safeSet("DIGIY_BUSINESS_NAME", brid.row.business_name || "");
     safeSet("DIGIY_PHONE", brid.row.phone || "");
 
-    console.log("✅ STORED DIGIY_PRO_ID =", localStorage.getItem("DIGIY_PRO_ID"));
+    console.log("✅ DIGIY_PRO_ID =", localStorage.getItem("DIGIY_PRO_ID"));
 
-    // ✅ IMPORTANT: que ce soit public OU propriétaire -> on va toujours vers pin.html?slug=...
-    // - Si public: pin.html sera l'accès "4 derniers chiffres"
-    // - Si privé: pin.html gère le PIN propriétaire (via verify_access_pin)
-    ttl.textContent = title;
-
+    // Redirection unique (public ou propriétaire)
     if (!pinRow.is_public){
-      sub.textContent = "Ce PIN est réservé (accès propriétaire).";
-      setStatus("warn","Accès propriétaire","Redirection vers l’espace PRO…");
-      setTimeout(()=> redirectToLocPro(slug), 900);  // ✅ plus de perte de slug
+      sub.textContent = "Accès propriétaire. Redirection vers l’espace PRO…";
+      setStatus("warn","Accès propriétaire","Ouverture du PIN PRO…");
+      await sleep(700);
+      redirectToPin(slug);
       return;
     }
 
     sub.textContent = "Accès public OK + pro_id OK. Redirection…";
-    setStatus("ok","Accès validé","On t’ouvre la fiche PIN maintenant.");
-    setTimeout(()=> redirectToPin(slug), 1200);
+    setStatus("ok","Accès validé","On t’ouvre la page PIN maintenant.");
+    await sleep(900);
+    redirectToPin(slug);
   });
 })();
 </script>
