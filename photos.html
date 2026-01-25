@@ -9,7 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Guard (cache-bust) -->
-  <script src="./guard.js?v=locpro-photos-003"></script>
+  <script src="./guard.js?v=locpro-photos-A-004"></script>
 
   <style>
     :root{
@@ -123,6 +123,14 @@
     .note.warn{border-color:rgba(250,204,21,.35);color:#fde68a}
     .mini{margin-top:10px;color:var(--muted);font-size:.9rem}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace}
+    .help{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.35;
+    }
+    .help b{color:#fff}
+    .hr{height:1px;background:rgba(148,163,184,0.18);margin-top:12px}
   </style>
 </head>
 
@@ -130,12 +138,10 @@
 <div class="wrap">
 
   <h1>🖼️ Photos logement</h1>
-  <p>Ajoute une cover + une galerie. Tout est stocké comme URL (léger Afrique).</p>
+  <p>Ajoute une cover + une galerie. On stocke seulement des <b>URLs</b> (léger Afrique).</p>
 
   <div class="card">
     <h2 style="margin-bottom:8px">📸 Galerie</h2>
-
-    <input id="fileInput" type="file" accept="image/*" multiple hidden />
 
     <button class="btn primary" id="btnAdd">➕ Ajouter photo (URL)</button>
     <button class="btn ghost" id="btnSave">💾 Sauvegarder</button>
@@ -145,6 +151,13 @@
     <div class="note" id="note"></div>
 
     <div class="mini mono" id="dbg"></div>
+
+    <div class="hr"></div>
+    <div class="help">
+      ✅ Cache offline : on garde une copie légère (URLs) en LocalStorage si le réseau saute.<br/>
+      ⛔️ On ne stocke jamais les images (pas de base64).<br/><br/>
+      📲 Fallback terrain : si le pro galère, il envoie sur WhatsApp DIGIY → vous uploadez WordPress Media → vous collez l’URL ici.
+    </div>
   </div>
 
 </div>
@@ -168,26 +181,27 @@
 
   const slug = (window.DIGIY_GUARD.getSlug() || "").trim();
   const sess = window.DIGIY_GUARD.getSession() || {};
-  const token = (sess?.pro_token || "").trim();
+  const ownerPhone = String(sess?.phone || "").trim();
 
   const dbgEl = document.getElementById("dbg");
-  dbgEl.textContent = `slug: ${slug || "—"}`;
+  dbgEl.textContent = `slug: ${slug || "—"} · phone: ${ownerPhone || "—"}`;
 
   if(!slug){
     alert("❌ slug manquant. Ouvre la page avec ?slug=...");
     return;
   }
-  if(!token){
-    alert("❌ pro_token manquant. Passe par APP d'abord (session).");
+  if(!ownerPhone){
+    alert("❌ Téléphone manquant en session. Reconnecte-toi via PIN.");
     return;
   }
 
   // UI
-  const fileInput = document.getElementById("fileInput");
   const btnAdd = document.getElementById("btnAdd");
   const btnSave = document.getElementById("btnSave");
   const galleryEl = document.getElementById("gallery");
   const noteEl = document.getElementById("note");
+
+  const LS_KEY = "DIGIY_LOC_PHOTOS_CACHE_V1";
 
   let photos = [];
   let cover = null;
@@ -218,26 +232,27 @@
     return out;
   }
 
-  // ✅ sanity check (pour éviter faux diagnostics)
-  async function sanity(){
-    const { error } = await sb
-      .from("digiy_loc_businesses")
-      .select("slug")
-      .eq("slug", slug)
-      .limit(1);
-
-    if(error) throw error;
+  function cacheSave(){
+    try{
+      const payload = { slug, cover, photos, ts: Date.now() };
+      localStorage.setItem(LS_KEY + ":" + slug, JSON.stringify(payload));
+    }catch(_){}
+  }
+  function cacheLoad(){
+    try{
+      const raw = localStorage.getItem(LS_KEY + ":" + slug);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(_){ return null; }
   }
 
   // ✅ Load existing photos from SQL
   async function loadPhotos(){
     note("⏳ Chargement photos…","warn");
 
-    await sanity();
-
     const { data, error } = await sb
       .from("digiy_loc_businesses")
-      .select("cover_url,gallery_urls")
+      .select("cover_url,gallery_urls,media_provider,photos_updated_at")
       .eq("slug", slug)
       .limit(1)
       .single();
@@ -247,6 +262,7 @@
     cover = data?.cover_url || null;
     photos = Array.isArray(data?.gallery_urls) ? data.gallery_urls : [];
 
+    cacheSave();
     render();
     note("","");
 
@@ -266,7 +282,7 @@
         <div class="tile"><div class="empty">+</div></div>
       `;
       galleryEl.querySelectorAll(".tile").forEach(t=>{
-        t.onclick = ()=> fileInput.click();
+        t.onclick = ()=> btnAdd.click();
       });
       return;
     }
@@ -288,6 +304,7 @@
           const i = cover ? (idx - 1) : idx;
           if(i >= 0) photos.splice(i, 1);
         }
+        cacheSave();
         render();
       };
 
@@ -295,7 +312,7 @@
     });
   }
 
-  // ✅ Add URLs (terrain simple)
+  // ✅ Add URL (terrain simple)
   btnAdd.onclick = ()=>{
     const url = prompt("Colle une URL image (https://...)");
     if(!url) return;
@@ -312,23 +329,23 @@
       photos.push(u);
       photos = uniq(photos).slice(0, 12);
     }
+
+    cacheSave();
     render();
     note("✅ Ajouté (local). Clique Sauvegarder pour pousser SQL.", "ok");
   };
 
-  // ✅ SAVE via RPC token
+  // ✅ SAVE via RPC owner_phone (OPTION A)
   btnSave.onclick = async ()=>{
     try{
       note("⏳ Sauvegarde…","warn");
 
-      await sanity();
-
       const cleanCover = isHttpsUrl(cover) ? cover.trim() : null;
       const cleanGallery = uniq((photos||[]).filter(isHttpsUrl)).slice(0, 12);
 
-      const { data, error } = await sb.rpc("digiy_loc_set_photos_by_token", {
+      const { data, error } = await sb.rpc("digiy_loc_set_photos_owner", {
         p_slug: slug,
-        p_pro_token: token,
+        p_owner_phone: ownerPhone,
         p_cover_url: cleanCover,
         p_gallery_urls: cleanGallery,
         p_provider: "external"
@@ -339,21 +356,37 @@
 
       cover = cleanCover;
       photos = cleanGallery;
+      cacheSave();
 
-      note("✅ Photos sauvegardées avec succès.","ok");
+      note("✅ Photos sauvegardées avec succès.", "ok");
     }catch(e){
       console.error(e);
-      const msg = String(e?.message || e);
-      note("❌ Erreur save: " + msg, "bad");
+      note("❌ Erreur save: " + (e?.message || e), "bad");
+
+      // fallback cache (offline)
+      const cached = cacheLoad();
+      if(cached){
+        cover = cached.cover || cover;
+        photos = Array.isArray(cached.photos) ? cached.photos : photos;
+        render();
+      }
     }
   };
 
-  // GO
+  // GO (SQL first, fallback cache)
   try{
     await loadPhotos();
   }catch(e){
     console.error(e);
-    note("❌ Erreur load: " + (e?.message || e), "bad");
+    const cached = cacheLoad();
+    if(cached){
+      cover = cached.cover || null;
+      photos = Array.isArray(cached.photos) ? cached.photos : [];
+      render();
+      note("⚠️ Réseau/Supabase KO. Cache local chargé (URLs). Clique Sauvegarder plus tard.", "warn");
+    }else{
+      note("❌ Erreur load: " + (e?.message || e), "bad");
+    }
   }
 
 })();
