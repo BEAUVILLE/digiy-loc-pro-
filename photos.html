@@ -8,8 +8,8 @@
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Guard -->
-  <script src="./guard.js?v=locpro-photos-readtable-v1"></script>
+  <!-- Guard (cache-bust) -->
+  <script src="./guard.js?v=locpro-photos-FINAL-001"></script>
 
   <style>
     :root{
@@ -32,16 +32,6 @@
     .wrap{max-width:720px;margin:auto;padding:18px}
     h1{font-size:1.4rem;margin-bottom:6px}
     p{color:var(--muted);margin-bottom:14px;line-height:1.35}
-
-    .topNav{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
-    .linkbtn{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:10px 12px;border-radius:12px;
-      border:1px solid rgba(250,204,21,0.25);
-      background:rgba(255,255,255,0.02);
-      color:#fff;text-decoration:none;font-weight:900;
-    }
-    .linkbtn:hover{filter:brightness(1.08)}
 
     .card{
       background:rgba(255,255,255,0.03);
@@ -66,11 +56,6 @@
       border:1px solid rgba(250,204,21,0.35);
       color:#fff;
     }
-    .btn.danger{
-      background:rgba(239,68,68,0.14);
-      border:1px solid rgba(239,68,68,0.35);
-      color:#fecaca;
-    }
 
     .gallery{
       display:grid;
@@ -86,41 +71,66 @@
       border:1px solid rgba(250,204,21,0.14);
       background:#022c22;
     }
-    .tile img{width:100%;height:100%;object-fit:cover;display:block}
+    .tile img{
+      width:100%;height:100%;
+      object-fit:cover;
+      display:block;
+    }
     .empty{
-      display:flex;align-items:center;justify-content:center;
-      font-size:1.8rem;font-weight:900;color:var(--accent);height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      font-weight:900;
+      color:var(--accent);
+      height:100%;
     }
 
     .badge{
-      position:absolute;top:8px;left:8px;
+      position:absolute;
+      top:8px;left:8px;
       background:rgba(0,0,0,0.65);
-      padding:5px 9px;font-size:.72rem;border-radius:999px;
-      border:1px solid rgba(250,204,21,0.35);font-weight:800;
+      padding:5px 9px;
+      font-size:.72rem;
+      border-radius:999px;
+      border:1px solid rgba(250,204,21,0.35);
+      font-weight:800;
     }
+
     .iconbtn{
-      position:absolute;top:8px;right:8px;
-      width:32px;height:32px;border-radius:10px;border:none;
-      font-weight:900;cursor:pointer;
-      background:rgba(239,68,68,.75);color:#fff;
+      position:absolute;
+      top:8px;right:8px;
+      width:32px;height:32px;
+      border-radius:10px;
+      border:none;
+      font-weight:900;
+      cursor:pointer;
+      background:rgba(239,68,68,.75);
+      color:#fff;
     }
 
     .note{
-      margin-top:10px;padding:10px 12px;border-radius:12px;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
       border:1px solid var(--line);
-      display:none;white-space:pre-wrap;line-height:1.35;
+      display:none;
+      white-space:pre-wrap;
+      line-height:1.35;
     }
     .note.ok{border-color:rgba(34,197,94,.35);color:#bbf7d0}
     .note.bad{border-color:rgba(239,68,68,.35);color:#fecaca}
     .note.warn{border-color:rgba(250,204,21,.35);color:#fde68a}
-
     .mini{margin-top:10px;color:var(--muted);font-size:.9rem}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace}
-    .help{margin-top:10px;color:var(--muted);font-size:.9rem;line-height:1.35}
+    .help{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.35;
+    }
     .help b{color:#fff}
     .hr{height:1px;background:rgba(148,163,184,0.18);margin-top:12px}
-
-    @media (max-width:520px){ .gallery{grid-template-columns:repeat(2,1fr)} }
   </style>
 </head>
 
@@ -128,23 +138,18 @@
 <div class="wrap">
 
   <h1>🖼️ Photos logement</h1>
-  <p>Ajoute une <b>cover</b> + une <b>galerie</b>. On stocke seulement des <b>URLs HTTPS</b>.</p>
-
-  <div class="topNav">
-    <a class="linkbtn" id="btnBack" href="#">⬅️ Retour Cockpit</a>
-    <a class="linkbtn" id="btnApp" href="#">🏠 APP</a>
-  </div>
+  <p>Ajoute une cover + une galerie. On stocke seulement des <b>URLs</b> (léger Afrique).</p>
 
   <div class="card">
     <h2 style="margin-bottom:8px">📸 Galerie</h2>
 
     <button class="btn primary" id="btnAdd">➕ Ajouter photo (URL)</button>
     <button class="btn ghost" id="btnSave">💾 Sauvegarder</button>
-    <button class="btn danger" id="btnClear">🧹 Vider la galerie</button>
 
     <div class="gallery" id="gallery"></div>
 
     <div class="note" id="note"></div>
+
     <div class="mini mono" id="dbg"></div>
 
     <div class="hr"></div>
@@ -161,8 +166,8 @@
 (async function(){
   "use strict";
 
-  // ===== GUARD =====
-  const boot = await window.DIGIY_GUARD?.boot?.({
+  // ✅ Protect page
+  const boot = await window.DIGIY_GUARD.boot({
     module:"loc",
     dashboard:"./photos.html",
     login:"./pin.html",
@@ -170,26 +175,15 @@
   });
   if(!boot?.ok) return;
 
+  // ✅ Always take sb from guard (async, unique client)
   const sb = await window.DIGIY_GUARD.getSbAsync();
-  if(!sb?.from) { alert("Supabase non prêt."); return; }
+  if(!sb?.rpc) return alert("Supabase non prêt (sb.rpc absent).");
 
   const slug = (window.DIGIY_GUARD.getSlug() || "").trim();
-  const sess = window.DIGIY_GUARD.getSession?.() || {};
+  const sess = window.DIGIY_GUARD.getSession() || {};
   const ownerPhone = String(sess?.phone || "").trim();
 
-  const btnAdd = document.getElementById("btnAdd");
-  const btnSave = document.getElementById("btnSave");
-  const btnClear = document.getElementById("btnClear");
-  const galleryEl = document.getElementById("gallery");
-  const noteEl = document.getElementById("note");
   const dbgEl = document.getElementById("dbg");
-
-  function withSlug(path){
-    return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
-  }
-  document.getElementById("btnBack").href = withSlug("./index.html");
-  document.getElementById("btnApp").href  = withSlug("./app.html");
-
   dbgEl.textContent = `slug: ${slug || "—"} · phone: ${ownerPhone || "—"}`;
 
   if(!slug){
@@ -201,8 +195,14 @@
     return;
   }
 
-  // ===== STATE + CACHE =====
+  // UI
+  const btnAdd = document.getElementById("btnAdd");
+  const btnSave = document.getElementById("btnSave");
+  const galleryEl = document.getElementById("gallery");
+  const noteEl = document.getElementById("note");
+
   const LS_KEY = "DIGIY_LOC_PHOTOS_CACHE_V1";
+
   let photos = [];
   let cover = null;
 
@@ -218,6 +218,7 @@
       return x.protocol === "https:" && !!x.hostname;
     }catch{ return false; }
   }
+
   function uniq(arr){
     const s = new Set();
     const out = [];
@@ -230,6 +231,7 @@
     }
     return out;
   }
+
   function cacheSave(){
     try{
       const payload = { slug, cover, photos, ts: Date.now() };
@@ -244,7 +246,6 @@
     }catch(_){ return null; }
   }
 
-  // ===== RENDER =====
   function render(){
     galleryEl.innerHTML = "";
 
@@ -258,21 +259,25 @@
         <div class="tile"><div class="empty">+</div></div>
         <div class="tile"><div class="empty">+</div></div>
       `;
-      galleryEl.querySelectorAll(".tile").forEach(t=> t.onclick = ()=> btnAdd.click());
+      galleryEl.querySelectorAll(".tile").forEach(t=>{
+        t.onclick = ()=> btnAdd.click();
+      });
       return;
     }
 
     all.forEach((p,idx)=>{
       const tile = document.createElement("div");
       tile.className="tile";
+
       tile.innerHTML = `
         ${p.cover ? `<div class="badge">Cover</div>` : ``}
         <button class="iconbtn" title="Supprimer">✕</button>
         <img src="${p.url}" alt="Photo">
       `;
+
       tile.querySelector(".iconbtn").onclick = ()=>{
         if(p.cover){
-          cover = null;
+          cover=null;
         }else{
           const i = cover ? (idx - 1) : idx;
           if(i >= 0) photos.splice(i, 1);
@@ -280,34 +285,73 @@
         cacheSave();
         render();
       };
+
       galleryEl.appendChild(tile);
     });
   }
 
-  // ===== LOAD (TABLE DIRECT) =====
- async function loadPhotos(){
-  note("⏳ Chargement photos…","warn");
+  // ✅ Load photos (RPC if exists -> else SELECT). No .single()
+  async function loadPhotos(){
+    note("⏳ Chargement photos…","warn");
 
-  const { data, error } = await sb.rpc("digiy_loc_get_photos_owner", {
-    p_slug: slug,
-    p_owner_phone: ownerPhone
-  });
+    // 1) Try RPC getter if you have it
+    try{
+      const r = await sb.rpc("digiy_loc_get_photos_owner", {
+        p_slug: slug,
+        p_owner_phone: ownerPhone
+      });
 
-  if(error) throw error;
+      if(r?.error){
+        // If function doesn't exist, we'll fallback to select
+        if(String(r.error?.code || "") === "PGRST202") throw r.error;
+        // Other error (RLS, etc.)
+        throw r.error;
+      }
 
-  const res = (typeof data === "string") ? JSON.parse(data) : data;
-  if(!res?.ok) throw new Error(res?.reason || "load_failed");
+      const res = (typeof r.data === "string") ? JSON.parse(r.data) : r.data;
+      if(res?.ok){
+        cover = res.cover_url || null;
+        photos = Array.isArray(res.gallery_urls) ? res.gallery_urls : [];
+        cacheSave();
+        render();
+        note("✅ Photos chargées depuis Supabase.", "ok");
+        return;
+      }
+      // If RPC exists but returns not ok -> treat as fallback warning
+      throw new Error(res?.reason || "load_failed");
+    }catch(e){
+      // continue to SELECT fallback (unless you want to stop on hard errors)
+      // console.log("RPC get failed, fallback select:", e);
+    }
 
-  cover = res.cover_url || null;
-  photos = Array.isArray(res.gallery_urls) ? res.gallery_urls : [];
+    // 2) Fallback SELECT (may be blocked by RLS)
+    const { data, error } = await sb
+      .from("digiy_loc_businesses")
+      .select("cover_url,gallery_urls")
+      .eq("slug", slug)
+      .limit(1);
 
-  cacheSave();
-  render();
-  note("✅ Photos chargées depuis Supabase.", "ok");
-}
+    if(error){
+      // don't throw hard; we want cache fallback
+      throw error;
+    }
 
+    const row = Array.isArray(data) && data.length ? data[0] : null;
+    if(!row){
+      note("⚠️ Lieu introuvable (0 ligne) ou accès lecture bloqué. Tu peux quand même coller des URLs et sauvegarder.", "warn");
+      render();
+      return;
+    }
 
-  // ===== ADD URL =====
+    cover = row.cover_url || null;
+    photos = Array.isArray(row.gallery_urls) ? row.gallery_urls : [];
+
+    cacheSave();
+    render();
+    note("✅ Photos chargées depuis Supabase.", "ok");
+  }
+
+  // ✅ Add URL (terrain simple)
   btnAdd.onclick = ()=>{
     const url = prompt("Colle une URL image (https://...)");
     if(!url) return;
@@ -319,7 +363,7 @@
     }
 
     if(!cover){
-      cover = u;
+      cover=u;
     }else{
       photos.push(u);
       photos = uniq(photos).slice(0, 12);
@@ -330,17 +374,7 @@
     note("✅ Ajouté (local). Clique Sauvegarder pour pousser SQL.", "ok");
   };
 
-  // ===== CLEAR =====
-  btnClear.onclick = ()=>{
-    if(!confirm("Vider cover + galerie (local) ?")) return;
-    cover = null;
-    photos = [];
-    cacheSave();
-    render();
-    note("✅ Galerie vidée (local). Clique Sauvegarder pour pousser SQL.", "ok");
-  };
-
-  // ===== SAVE (RPC OWNER) =====
+  // ✅ SAVE via RPC that you already have: digiy_loc_set_photos_owner
   btnSave.onclick = async ()=>{
     try{
       note("⏳ Sauvegarde…","warn");
@@ -358,11 +392,8 @@
 
       if(error) throw error;
 
-      const res = (typeof data === "string")
-        ? (function(){ try{return JSON.parse(data);}catch{ return null; } })()
-        : data;
-
-      if(res && res.ok === false) throw new Error(res.reason || "save_failed");
+      const res = (typeof data === "string") ? JSON.parse(data) : data;
+      if(!res?.ok) throw new Error(res?.reason || "save_failed");
 
       cover = cleanCover;
       photos = cleanGallery;
@@ -371,19 +402,19 @@
       note("✅ Photos sauvegardées avec succès.", "ok");
     }catch(e){
       console.error(e);
-      note("❌ Erreur RPC SAVE: " + (e?.message || e), "bad");
+      note("❌ Erreur save: " + (e?.message || e), "bad");
 
+      // fallback cache (offline)
       const cached = cacheLoad();
       if(cached){
         cover = cached.cover || cover;
         photos = Array.isArray(cached.photos) ? cached.photos : photos;
         render();
-        note("⚠️ Réseau/Supabase KO. Cache local chargé (URLs). Clique Sauvegarder plus tard.", "warn");
       }
     }
   };
 
-  // ===== GO =====
+  // GO (SQL first, fallback cache)
   try{
     await loadPhotos();
   }catch(e){
