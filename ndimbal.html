@@ -6,6 +6,7 @@
   <title>NDIMBAL LOC ♾️ — Bureau nomade</title>
   <meta name="theme-color" content="#0b1020"/>
 
+  <!-- Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./guard.js?v=locpro-final"></script>
 
@@ -57,6 +58,7 @@
     .btn:hover{filter:brightness(1.08)}
     .btn.gold{background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.35);color:#fde68a}
     .btn.green{background:rgba(34,197,94,.10);border-color:rgba(34,197,94,.35);color:#bbf7d0}
+    .btn.red{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.35);color:#fecaca}
     .card{
       margin-top:14px;border:1px solid var(--line);
       background:rgba(255,255,255,.03);
@@ -71,13 +73,19 @@
     .note.bad{display:block;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.09);color:#fecaca}
     .note.warn{display:block;border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.09);color:#fde68a}
 
-    .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
     input{
       border-radius:14px;border:1px solid var(--line);
       background:rgba(0,0,0,.18);color:var(--ink);
       padding:11px 12px;font-weight:900;outline:none;min-width:260px;
     }
     input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(250,204,21,.15)}
+    select{
+      border-radius:14px;border:1px solid var(--line);
+      background:rgba(0,0,0,.18);color:var(--ink);
+      padding:11px 12px;font-weight:900;outline:none;
+      min-width:180px;
+    }
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:12px}
     .item{
       border:1px solid rgba(148,163,184,.22);
@@ -87,17 +95,19 @@
     }
     .title{font-weight:1100}
     .meta{margin-top:6px;color:var(--muted);font-weight:850;font-size:.92rem;line-height:1.35}
+    .tagRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .tag{
-      display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+      display:inline-flex;align-items:center;gap:7px;
       padding:6px 9px;border-radius:999px;
       border:1px solid rgba(148,163,184,.25);
       color:var(--muted);font-weight:950;font-size:.82rem;
     }
     .tag.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
     .tag.gold{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10);color:#fde68a}
+    .tag.red{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
 
     @media (max-width:720px){
-      input{min-width:100%}
+      input,select{min-width:100%}
       .btn{width:100%;justify-content:center}
     }
   </style>
@@ -125,6 +135,11 @@
       </div>
 
       <div class="tools">
+        <select id="mode">
+          <option value="office">🏢 Mon bureau (tout)</option>
+          <option value="place">📍 Ce lieu (slug)</option>
+        </select>
+
         <input id="q" placeholder="Recherche: nom, ville, tag…" />
         <button class="btn green" id="btnSearch" type="button">🔎 Chercher</button>
       </div>
@@ -138,27 +153,15 @@
 (async function(){
   "use strict";
 
-  /* 🔐 Guard (même session PIN + slug obligatoire) */
-  const MODULE = "LOC";
-  window.DIGIY_GUARD?.boot({
-    module: MODULE,
-    login: "./pin.html",
-    dashboard: "./ndimbal.html",
-    requireSlug: true
-  });
-
-  /* ✅ Supabase (ANON) */
-  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
-  const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  /* ✅ DOM */
+  // =========================
+  // Helpers UI
+  // =========================
   const $ = (id)=>document.getElementById(id);
   const note = $("note");
   const grid = $("grid");
   const pillCount = $("pillCount");
   const q = $("q");
+  const mode = $("mode");
 
   function show(msg, type){
     note.className = "note " + (type || "warn");
@@ -170,69 +173,148 @@
     grid.innerHTML = "";
     pillCount.textContent = "0 résultat";
   }
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, (m)=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
 
-  /* ✅ slug = bureau nomade */
+  // =========================
+  // Slug (bureau nomade)
+  // =========================
   const url = new URL(location.href);
   const SLUG = (url.searchParams.get("slug") || "").trim();
-  $("pillSlug").innerHTML = `Lieu : <strong>${SLUG || "—"}</strong>`;
+  $("pillSlug").innerHTML = `Lieu : <strong>${esc(SLUG || "—")}</strong>`;
 
-  // Retour cockpit (app.html) en gardant slug
-  const back = new URL("./app.html", location.href);
-  if(SLUG) back.searchParams.set("slug", SLUG);
-  $("btnBack").href = back.toString();
+  // =========================
+  // Guard boot (await)
+  // =========================
+  const MODULE = "loc"; // ⚠️ garde le même que ton cockpit
+  const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
 
-  // sécurité: si session pas ouverte -> retour PIN
-  const sess = window.DIGIY_GUARD?.getSession?.() || null;
-  if(!sess?.ok){
-    show("🔒 Accès non ouvert.\n➡️ Retour PIN…", "warn");
-    setTimeout(()=> window.DIGIY_GUARD?.logout(window.DIGIY_GUARD.withSlug("./pin.html")), 250);
+  if(!window.DIGIY_GUARD || typeof window.DIGIY_GUARD.boot !== "function"){
+    show("❌ Guard absent.\n➡️ Vérifie le script ./guard.js", "bad");
     return;
   }
 
-  /* =========================
-     NDIMBAL SOURCE (Supabase)
-     -> view: v_ndimbal_loc
-     -> contient au moins slug (tu l’as vu)
-     -> on affiche ce qu’on trouve, sans casser si colonnes différentes
-  ========================= */
+  const g = await window.DIGIY_GUARD.boot({
+    module: MODULE,
+    login: "./pin.html",
+    dashboard: "./ndimbal.html",
+    pay: PAY_URL,
+    requireSlug: true,
+    checkSubscription: true
+  });
+
+  if(!g?.ok){
+    show("🔒 Accès non ouvert.\n➡️ Retour PIN…", "warn");
+    const go = window.DIGIY_GUARD.withSlug ? window.DIGIY_GUARD.withSlug("./pin.html") : "./pin.html";
+    setTimeout(()=> window.DIGIY_GUARD.logout?.(go), 200);
+    return;
+  }
+
+  // Retour cockpit (app.html) en gardant slug
+  const back = window.DIGIY_GUARD.withSlug
+    ? window.DIGIY_GUARD.withSlug("./app.html")
+    : (new URL("./app.html", location.href).toString());
+  $("btnBack").href = back;
+
+  // =========================
+  // Supabase: via Guard (source unique)
+  // =========================
+  function getSB(){
+    return window.DIGIY_GUARD?.getSb?.()
+        || window.DIGIY_GUARD?.getSupabase?.()
+        || window.DIGIY_GUARD?.sb
+        || window.sb
+        || null;
+  }
+  const SB = getSB();
+  if(!SB){
+    show("❌ Supabase pas prêt (guard).\n➡️ Recharge la page.", "bad");
+    return;
+  }
+
+  // =========================
+  // Session (owner_id + phone)
+  // =========================
+  const sess = window.DIGIY_GUARD.getSession?.() || null;
+  const ownerId = sess?.owner_id || sess?.ownerId || null;
+  const phone = sess?.phone || "";
+  const businessCode = sess?.business_code || sess?.businessCode || "TEST";
+
+  // =========================
+  // Source NDIMBAL (View)
+  // =========================
   const NDIMBAL_VIEW = "v_ndimbal_loc";
 
+  function pick(obj, keys){
+    for(const k of keys){
+      if(obj && obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") return obj[k];
+    }
+    return "";
+  }
+
+  function rankVal(obj){
+    const r = pick(obj, ["featured_rank","rank","score","priority"]);
+    const n = Number(r);
+    return Number.isFinite(n) ? n : null;
+  }
+
   function cardRow(obj){
-    // lecture safe (au cas où les champs changent)
-    const title =
-      obj.title || obj.name || obj.nom || obj.label || obj.business_name || "—";
-
-    const city =
-      obj.city || obj.ville || obj.zone || obj.address_label || obj.address || "";
-
-    const cat =
-      obj.category || obj.type || obj.kind || "loc";
-
-    const rank = (obj.featured_rank ?? obj.rank ?? obj.score ?? null);
-
-    const extra =
-      obj.phone || obj.whatsapp || obj.partner_url || "";
+    const title = pick(obj, ["title","name","nom","label","business_name","room_title"]) || "—";
+    const city  = pick(obj, ["city","ville","zone","address_label","address","quartier"]);
+    const cat   = (pick(obj, ["category","type","kind"]) || "loc").toString();
+    const rnk   = rankVal(obj);
+    const extra = pick(obj, ["phone","whatsapp","contact","partner_url"]);
 
     const tags = [];
-    if(cat) tags.push(`<span class="tag gold">🏷️ ${escapeHtml(String(cat))}</span>`);
-    if(rank !== null && rank !== undefined) tags.push(`<span class="tag ok">⭐ ${escapeHtml(String(rank))}</span>`);
+    if(cat) tags.push(`<span class="tag gold">🏷️ ${esc(cat.toUpperCase())}</span>`);
+    if(rnk !== null) tags.push(`<span class="tag ok">⭐ ${esc(String(rnk))}</span>`);
+    if(pick(obj, ["ndimbal_enabled","ndimbal","is_ndimbal"]) === true) tags.push(`<span class="tag ok">🤍 NDIMBAL ON</span>`);
+
+    const slug = pick(obj, ["slug","room_slug","business_slug"]);
+    if(slug) tags.push(`<span class="tag">🔗 ${esc(String(slug))}</span>`);
 
     return `
       <div class="item">
-        <div class="title">${escapeHtml(String(title))}</div>
+        <div class="title">${esc(title)}</div>
         <div class="meta">
-          ${city ? "📍 " + escapeHtml(String(city)) + "<br>" : ""}
-          ${extra ? "📞 " + escapeHtml(String(extra)) : ""}
+          ${city ? "📍 " + esc(city) + "<br>" : ""}
+          ${extra ? "📞 " + esc(extra) : ""}
         </div>
-        ${tags.length ? tags.join(" ") : `<div class="tag">NDIMBAL</div>`}
+        <div class="tagRow">
+          ${tags.length ? tags.join("") : `<span class="tag">NDIMBAL</span>`}
+        </div>
       </div>
     `;
   }
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, (m)=>({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
+  function applySearch(rows, keyword){
+    const k = (keyword || "").trim().toLowerCase();
+    if(!k) return rows;
+    return rows.filter(o => {
+      try{
+        return JSON.stringify(o || {}).toLowerCase().includes(k);
+      }catch(_){
+        return false;
+      }
+    });
+  }
+
+  function sortRows(rows){
+    return rows.slice().sort((a,b)=>{
+      const ra = rankVal(a); const rb = rankVal(b);
+      // rank ASC
+      if(ra !== null && rb !== null && ra !== rb) return ra - rb;
+      if(ra !== null && rb === null) return -1;
+      if(ra === null && rb !== null) return 1;
+
+      // title ASC
+      const ta = String(pick(a, ["title","name","nom","label","business_name"]) || "");
+      const tb = String(pick(b, ["title","name","nom","label","business_name"]) || "");
+      return ta.localeCompare(tb);
+    });
   }
 
   async function load(){
@@ -243,51 +325,93 @@
       return;
     }
 
-    const keyword = (q.value || "").trim().toLowerCase();
+    const keyword = (q.value || "").trim();
 
     $("btnReload").disabled = true;
     $("btnSearch").disabled = true;
+    mode.disabled = true;
+
     show("⏳ Chargement NDIMBAL…", "warn");
 
     try{
-      // Base: filtrer par slug (bureau nomade)
-      let query = SB.from(NDIMBAL_VIEW).select("*").eq("slug", SLUG);
+      let query = SB.from(NDIMBAL_VIEW).select("*").limit(250);
 
-      // Bonus: recherche (si la vue a search_vector, on pourra upgrader plus tard)
-      // Là on fait un filtre "soft" côté JS (sans supposer de colonnes exactes)
-      const { data, error } = await query.limit(200);
-      if(error) throw error;
-
-      let rows = data || [];
-      if(keyword){
-        rows = rows.filter(o=>{
-          const blob = JSON.stringify(o || {}).toLowerCase();
-          return blob.includes(keyword);
-        });
+      // Mode “Mon bureau” = owner_id si dispo
+      if(mode.value === "office"){
+        if(!ownerId){
+          show("⚠️ owner_id absent dans la session.\n➡️ Bascule sur “Ce lieu (slug)” ou vérifie le guard.", "warn");
+          query = SB.from(NDIMBAL_VIEW).select("*").eq("slug", SLUG).limit(250);
+        }else{
+          // On tente owner_id, et si la vue n’a pas la colonne, on fallback slug
+          query = SB.from(NDIMBAL_VIEW).select("*").eq("owner_id", ownerId).limit(250);
+        }
+      }else{
+        // Mode “Ce lieu”
+        query = SB.from(NDIMBAL_VIEW).select("*").eq("slug", SLUG).limit(250);
       }
 
-      if(!rows.length){
-        show("ℹ️ Rien trouvé dans NDIMBAL pour ce lieu.\n➡️ Essaie une autre recherche.", "ok");
-        pillCount.textContent = "0 résultat";
-        return;
+      const { data, error } = await query;
+      if(error){
+        // fallback si owner_id inexistant dans la vue
+        if(mode.value === "office"){
+          const { data: d2, error: e2 } = await SB.from(NDIMBAL_VIEW).select("*").eq("slug", SLUG).limit(250);
+          if(e2) throw e2;
+          const rows2 = sortRows(applySearch(d2 || [], keyword));
+          render(rows2, true);
+          return;
+        }
+        throw error;
       }
 
-      grid.innerHTML = rows.map(cardRow).join("");
-      pillCount.textContent = rows.length + " résultat(s)";
-      show("✅ NDIMBAL chargé.", "ok");
+      const rows = sortRows(applySearch(data || [], keyword));
+      render(rows, false);
 
     }catch(e){
       console.error(e);
-      show("❌ NDIMBAL indisponible.\n➡️ Vérifie RLS/permissions sur v_ndimbal_loc.\nErreur: " + (e?.message || e), "bad");
+      show(
+        "❌ NDIMBAL indisponible.\n" +
+        "➡️ Vérifie RLS/permissions sur v_ndimbal_loc.\n" +
+        "➡️ Vérifie que la vue contient les colonnes attendues (slug / owner_id).\n\n" +
+        "Erreur: " + (e?.message || e),
+        "bad"
+      );
     }finally{
       $("btnReload").disabled = false;
       $("btnSearch").disabled = false;
+      mode.disabled = false;
     }
+  }
+
+  function render(rows, fallbackUsed){
+    if(!rows.length){
+      pillCount.textContent = "0 résultat";
+      show(
+        "ℹ️ Rien trouvé.\n" +
+        (mode.value === "office"
+          ? "➡️ Mode bureau: soit tu n’as pas d’éléments NDIMBAL, soit la vue filtre via RLS."
+          : "➡️ Mode lieu: aucun NDIMBAL pour ce slug."),
+        "ok"
+      );
+      grid.innerHTML = "";
+      return;
+    }
+
+    pillCount.textContent = rows.length + " résultat(s)";
+    grid.innerHTML = rows.map(cardRow).join("");
+
+    const info =
+      "✅ NDIMBAL chargé." +
+      (fallbackUsed ? "\n(Mode bureau: fallback slug car owner_id non dispo dans la vue.)" : "") +
+      (ownerId ? `\nowner_id: ${ownerId}` : "") +
+      (phone ? `\nphone: ${phone}` : "") +
+      (businessCode ? `\nbusiness_code: ${businessCode}` : "");
+    show(info, "ok");
   }
 
   $("btnReload").addEventListener("click", load);
   $("btnSearch").addEventListener("click", load);
   q.addEventListener("keydown", (e)=>{ if(e.key==="Enter") load(); });
+  mode.addEventListener("change", load);
 
   // GO
   load();
