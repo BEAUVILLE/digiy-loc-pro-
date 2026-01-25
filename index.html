@@ -222,7 +222,6 @@ a{color:inherit}
         <div class="note" id="noteMain"></div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-          <!-- ✅ FIX: FICHE PUBLIQUE CLIENT -->
           <a class="btn gold" id="btnPublic" href="#" target="_blank" rel="noopener noreferrer">👁️ Ma fiche publique</a>
           <a class="btn" id="btnOpenPin" href="#">🔑 Ouvrir l’accès (PIN)</a>
         </div>
@@ -315,7 +314,7 @@ a{color:inherit}
     go("./app.html");
   });
 
-  // ✅ FIX FINAL: bouton fiche publique client (pas GO PIN)
+  // ✅ Fiche publique client
   if ($("btnPublic")) {
     const url = "https://beauville.github.io/digiy-loc/fiche.html"
       + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
@@ -410,7 +409,8 @@ a{color:inherit}
     return escapeHtml(str).replaceAll("`","&#096;");
   }
 
-  function renderList(rows, ownerPhone){
+  // ✅ FIX: renderList utilise ownerId + verify_v2 + UUID
+  function renderList(rows, ownerPhone, ownerId){
     const box = $("waveList");
     if(!box) return;
 
@@ -434,7 +434,7 @@ a{color:inherit}
 
       const verifyBtn = (status === "verified")
         ? `<button class="btn small" disabled>✅ Déjà vérifié</button>`
-        : `<button class="btn small primary jsVerify" data-id="${r.id}">✅ Vérifier</button>`;
+        : `<button class="btn small primary jsVerify" data-id="${escapeAttr(r.id)}">✅ Vérifier</button>`;
 
       return `
         <div class="row">
@@ -456,20 +456,16 @@ a{color:inherit}
       `;
     }).join("");
 
-    box.querySelectorAll(".jsVerify").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const id = Number(btn.getAttribute("data-id"));
-        if(!id) return;
-
         const old = btn.textContent;
         btn.disabled = true;
         btn.textContent = "⏳ Vérification…";
 
         try{
-          await rpcSafe("loc_wave_payment_verify", {
-            p_id: id,
+          // ✅ V2: verify par owner_id (uuid) + slug
+          await rpcSafe("loc_wave_payment_verify_v2", {
+            p_id: id,          // uuid (text côté JS -> cast uuid côté SQL)
             p_slug: slug,
-            p_owner_phone: ownerPhone
+            p_owner_id: ownerId
           });
 
           showNote("noteWave", "✅ Paiement vérifié.", "ok");
@@ -514,12 +510,13 @@ a{color:inherit}
       $("stSumTotal").textContent = money(st.sum_declared_fcfa ?? st.sum_total ?? 0);
       $("stSumVerified").textContent = money(st.sum_verified_fcfa ?? st.sum_verified ?? 0);
 
+      // ✅ liste owner (filtre UUID)
       const rows = await rpcSafe("loc_wave_payments_list_owner", {
         p_slug: slug,
         p_owner_id: ownerId
       });
 
-      renderList(Array.isArray(rows) ? rows : [], ownerPhone);
+      renderList(Array.isArray(rows) ? rows : [], ownerId);
       showNote("noteWave", "", "");
     }catch(e){
       console.error(e);
@@ -598,3 +595,4 @@ a{color:inherit}
 
 </body>
 </html>
+
