@@ -142,7 +142,7 @@
 
     <div class="card">
       <div style="font-weight:950">⬇️ QR (téléchargement)</div>
-      <div class="tiny">APP → <span class="mono" id="qrAppUrl">—</span></div>
+      <div class="tiny">QR-PRO → <span class="mono" id="qrProUrl">—</span></div>
       <div class="row" style="margin-top:10px">
         <button class="btn" id="btnQrApp">⬇️ QR APP</button>
         <button class="btn" id="btnQrPublic">⬇️ QR Public</button>
@@ -165,10 +165,6 @@
     el.style.display = msg ? "block" : "none";
   }
 
-  function withSlug(url){
-    return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(url) : url;
-  }
-
   function getSlug(){
     return (window.DIGIY_GUARD?.getSlug?.() || new URL(location.href).searchParams.get("slug") || "").trim();
   }
@@ -187,23 +183,24 @@
   }
 
   async function getSB(){
-    // ✅ préfère async (évite sb null)
     if(window.DIGIY_GUARD?.getSbAsync) return await window.DIGIY_GUARD.getSbAsync();
     return window.DIGIY_GUARD?.getSb?.() || window.sb || null;
   }
 
   // ---------------------------
-  // SESSION (GUARD) — source unique
+  // SLUG
   // ---------------------------
   const slug = getSlug();
   $("pillSlug").textContent = "slug : " + (slug || "—");
 
-  // ✅ Pages (mets ici tes vrais noms de fichiers)
-  const PAGE_APP    = "./index.html";   // cockpit pro
-  const PAGE_PUBLIC = "./listing.html"; // fiche client "Voir la fiche"
-  const PAGE_PIN    = "./pin.html";     // accès PIN
+  // ✅ Pages LOC-PRO (tes vrais fichiers)
+  // APP = cockpit pro (index.html)
+  // PUBLIC = GO PIN public (go-pin-public.html)
+  // PIN = accès (pin.html)
+  const PAGE_APP    = "./index.html";
+  const PAGE_PUBLIC = "./go-pin-public.html";
+  const PAGE_PIN    = "./pin.html";
 
-  // ✅ URLs finales avec slug
   const appUrl = new URL(PAGE_APP, location.href);
   const publicUrl = new URL(PAGE_PUBLIC, location.href);
   const pinUrl = new URL(PAGE_PIN, location.href);
@@ -217,7 +214,23 @@
   $("btnOpenApp").href = appUrl.toString();
   $("btnOpenPublic").href = publicUrl.toString();
   $("btnOpenPin").href = pinUrl.toString();
-  $("qrAppUrl").textContent = appUrl.toString();
+
+  // ---------------------------
+  // QR-PRO (OFFICIEL) — les boutons ouvrent ça, POINT.
+  // ---------------------------
+  const QR_PRO_BASE = "https://beauville.github.io/digiy-qr-pro/";
+  const qrPro = new URL(QR_PRO_BASE);
+  if(slug) qrPro.searchParams.set("slug", slug);
+  $("qrProUrl").textContent = qrPro.toString();
+
+  function openQrPro(type){
+    // type: app | public | pin (optionnel)
+    const u = new URL(QR_PRO_BASE);
+    if(slug) u.searchParams.set("slug", slug);
+    if(type) u.searchParams.set("t", type); // optionnel (si QR-PRO le gère)
+    window.open(u.toString(), "_blank", "noopener");
+    $("qrInfo").textContent = "Ouvert QR-PRO (" + (type || "—") + ") → " + u.toString();
+  }
 
   // ---------------------------
   // LINKS MODEL
@@ -295,12 +308,12 @@
   }
 
   // ---------------------------
-  // RPC (auto phone + pin4 depuis session)
+  // RPC (auto phone + pin4)
   // ---------------------------
   function getCreds(){
     const sess = window.DIGIY_GUARD?.getSession?.() || null;
     const phone = normPhone(sess?.phone || "");
-    const pin4 = pin4FromPhone(phone); // ✅ auto
+    const pin4 = pin4FromPhone(phone);
     return { sess, phone, pin4 };
   }
 
@@ -353,21 +366,6 @@
   }
 
   // ---------------------------
-  // QR download (png)
-  // ---------------------------
-  function downloadQr(label, url){
-    // ✅ Simple et universel (Google Chart)
-    const api = "https://chart.googleapis.com/chart?cht=qr&chs=600x600&chld=M|0&chl=" + encodeURIComponent(url);
-    const a = document.createElement("a");
-    a.href = api;
-    a.download = `digiy-qr-${label}-${slug || "noslug"}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    $("qrInfo").textContent = label + " → " + url;
-  }
-
-  // ---------------------------
   // UI bind
   // ---------------------------
   $("btnAdd").addEventListener("click", ()=>{
@@ -385,9 +383,10 @@
   $("btnLoad").addEventListener("click", loadLinks);
   $("btnSave").addEventListener("click", saveLinks);
 
-  $("btnQrApp").addEventListener("click", ()=> downloadQr("app", appUrl.toString()));
-  $("btnQrPublic").addEventListener("click", ()=> downloadQr("public", publicUrl.toString()));
-  $("btnQrPin").addEventListener("click", ()=> downloadQr("acces", pinUrl.toString()));
+  // ✅ QR buttons => ouvrent QR-PRO (officiel)
+  $("btnQrApp").addEventListener("click", ()=> openQrPro("app"));
+  $("btnQrPublic").addEventListener("click", ()=> openQrPro("public"));
+  $("btnQrPin").addEventListener("click", ()=> openQrPro("pin"));
 
   // ---------------------------
   // INIT
