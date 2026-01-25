@@ -281,29 +281,62 @@ window.DIGIY_GUARD.requireSession({
   }
 
   const slug = (window.DIGIY_GUARD?.getSlug?.() || "").trim();
-  if($("navPlace")) $("navPlace").textContent = "Lieu : " + (slug || "—");
-  if($("kvSlug")) $("kvSlug").textContent = slug || "—";
+if($("navPlace")) $("navPlace").textContent = "Lieu : " + (slug || "—");
+if($("kvSlug")) $("kvSlug").textContent = slug || "—";
 
-  function withSlug(path){
-    return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
+function withSlug(path){
+  return window.DIGIY_GUARD?.withSlug ? window.DIGIY_GUARD.withSlug(path) : path;
+}
+
+// ✅ helper navigation (marche pour <a> et <button>)
+function go(path){
+  location.href = withSlug(path);
+}
+
+// HREF sur <a> + onclick sur <button>
+const links = [
+  ["btnBack","./index.html"],
+  ["goToday","./today.html"],
+  ["goPulse","./proprio-loc.html"],
+  ["goPlanning","./planning.html"],
+  ["goListing","./listing.html"],
+  ["goLinks","./manage-links.html"],
+  ["goHealth","./health-loc.html"],
+  ["btnOpenPin","./pin.html"],
+
+  // ✅ PUBLIC (client) — à ajouter dans ton HTML: <a id="btnPublic">...</a>
+  ["btnPublic","https://beauville.github.io/digiy-loc/fiche.html"],
+];
+
+links.forEach(([id, path])=>{
+  const el = $(id);
+  if(!el) return;
+
+  const isExternal = /^https?:\/\//i.test(path);
+
+  // ✅ A
+  if (el.tagName === "A"){
+    if(isExternal){
+      el.href = path + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
+      el.target = "_blank";
+      el.rel = "noopener noreferrer";
+    } else {
+      el.href = withSlug(path);
+    }
+    return;
   }
 
-  // HREF sur <a>
-  const links = [
-    ["btnBack","./index.html"],
-    ["goToday","./today.html"],
-    ["goPulse","./proprio-loc.html"],
-    ["goPlanning","./planning.html"],
-    ["goListing","./listing.html"],
-    ["goLinks","./manage-links.html"],
-    ["goHealth","./health-loc.html"],
-    ["btnOpenPin","./pin.html"],
-  ];
-  links.forEach(([id, path])=>{
-    const el = $(id);
-    if(el && el.tagName === "A") el.href = withSlug(path);
+  // ✅ BUTTON (ou autre)
+  el.addEventListener("click", ()=>{
+    if(isExternal){
+      const url = path + (slug ? `?slug=${encodeURIComponent(slug)}` : "");
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      go(path);
+    }
   });
-
+});
+  
   // GO PIN public
   const pub = new URL("./go-pin.html", location.href);
   if(slug) pub.searchParams.set("slug", slug);
