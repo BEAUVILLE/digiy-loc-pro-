@@ -95,9 +95,11 @@
       cursor:pointer;text-align:center;
       transition:.2s ease;
       display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      user-select:none;
     }
     .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
     .btn:active{transform:translateY(0)}
+    .btn[aria-disabled="true"]{opacity:.55;pointer-events:none}
     .btn.whats{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35)}
     .btn.call{background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.35)}
     .btn.loc{background:rgba(255,255,255,.03)}
@@ -162,8 +164,9 @@
       <div class="card">
         <div class="head">
           <b>📍 Le lieu</b>
-          <span class="pill" id="pillStatus">⏳ Chargement…</span>
+          <span class="pill warn" id="pillStatus">⏳ Chargement…</span>
         </div>
+
         <div class="body">
           <div class="hero">
             <div class="title" id="tTitle">—</div>
@@ -177,8 +180,8 @@
 
             <div class="btnRow">
               <a class="btn whats" id="btnWhats" href="#" target="_blank" rel="noopener">💬 WhatsApp</a>
-              <a class="btn call" id="btnCall" href="#">📞 Appeler</a>
-              <a class="btn loc" id="btnLoc" href="#">🏡 Galerie</a>
+              <a class="btn call"  id="btnCall"  href="#">📞 Appeler</a>
+              <a class="btn loc"   id="btnLoc"   href="#">🏡 Galerie</a>
             </div>
 
             <div class="note warn" id="note"></div>
@@ -210,9 +213,15 @@
             <div class="small" style="margin-top:6px">
               Copie ce lien et envoie-le sur WhatsApp / SMS. Le QR peut pointer ici.
             </div>
+
             <div class="kv">
               <div class="k">Lien</div>
               <div class="v"><code id="shareUrl">—</code></div>
+            </div>
+
+            <div class="btnRow" style="margin-top:10px">
+              <button class="btn" id="btnCopy" type="button">📋 Copier lien</button>
+              <a class="btn whats" id="btnShareWA" href="#" target="_blank" rel="noopener">💬 Partager WhatsApp</a>
             </div>
           </div>
         </div>
@@ -274,6 +283,12 @@
 
   const $ = (id)=>document.getElementById(id);
 
+  function setPill(txt, cls){
+    const el = $("pillStatus");
+    el.textContent = txt || "";
+    el.className = "pill " + (cls || "warn");
+  }
+
   function setNote(msg, cls){
     const el = $("note");
     el.className = "note " + (cls || "warn");
@@ -291,7 +306,7 @@
     return p;
   }
 
-  // ✅ slug clean robuste (même logique que guard)
+  // ✅ slug clean robuste
   function cleanSlug(s){
     const x = String(s || "").trim();
     if(!x) return "";
@@ -319,137 +334,182 @@
   $("btnLoc").href = withSlug("./index.html");    // Galerie
   $("btnPin").href = withSlug("./pin.html");      // Cockpit PIN
 
-  async function load(){
-    // ✅ share canonique
-    const share = new URL(location.href);
-    if (SLUG) share.searchParams.set("slug", SLUG);
-    $("shareUrl").textContent = share.toString();
+  // Share canonique
+  const share = new URL(location.href);
+  if (SLUG) share.searchParams.set("slug", SLUG);
+  const shareUrl = share.toString();
+  $("shareUrl").textContent = shareUrl;
 
+  $("btnCopy").addEventListener("click", async ()=>{
+    try{
+      await navigator.clipboard.writeText(shareUrl);
+      setNote("✅ Lien copié. Tu peux le coller sur WhatsApp/SMS.", "ok");
+    }catch(_){
+      // fallback vieux navigateurs
+      const t = document.createElement("textarea");
+      t.value = shareUrl;
+      document.body.appendChild(t);
+      t.select();
+      document.execCommand("copy");
+      t.remove();
+      setNote("✅ Lien copié (fallback).", "ok");
+    }
+  });
+
+  $("btnShareWA").href = "https://wa.me/?text=" + encodeURIComponent("Voici le lien DIGIY GO PIN :\n" + shareUrl);
+
+  function disable(elId, on){
+    const el = $(elId);
+    if(!el) return;
+    if(on){
+      el.setAttribute("aria-disabled","true");
+      if(el.tagName === "A") el.href = "#";
+    }else{
+      el.removeAttribute("aria-disabled");
+    }
+  }
+
+  function renderPin(data){
+    const title = data.title || "Lieu DIGIY";
+    const cat = (data.category || "loc").toString();
+    const phone = normPhone(data.phone || "");
+    const whats = normPhone(data.whatsapp || data.phone || "");
+    const nd = (data.ndimbal_enabled === true);
+
+    setPill("✅ En ligne", "ok");
+    setNote("", "");
+
+    $("tTitle").textContent = title;
+    $("tMeta").textContent = data.address_label ? ("📌 " + data.address_label) : "📌 Lieu vérifié — contact direct";
+
+    $("tCat").textContent = "🏷️ " + cat.toUpperCase();
+    $("tPhone").textContent = "📞 " + (phone || "—");
+    $("tWhats").textContent = "💬 " + (whats || "—");
+
+    $("dSlug").textContent = SLUG;
+    $("dTitle").textContent = title;
+    $("dCat").textContent = cat.toUpperCase();
+    $("dPhone").textContent = phone || "—";
+    $("dWhats").textContent = whats || "—";
+
+    // Badge NDIMBAL
+    if(nd){
+      const tagsRow = $("tagsRow");
+      const ndSpan = document.createElement("span");
+      ndSpan.className = "tag nd";
+      ndSpan.textContent = "🤍 NDIMBAL LOC · 1→2 • 2→3";
+      tagsRow.appendChild(ndSpan);
+      setNote("🤍 NDIMBAL activé — bonus +1 nuit : 1→2 • 2→3", "ok");
+    }
+
+    // WhatsApp / Call
+    const waMsg = `Bonjour ${title} 👋\nJe viens via DIGIY. Je veux des infos / réserver.`;
+    if(whats){
+      $("btnWhats").href = "https://wa.me/" + digitsOnly(whats) + "?text=" + encodeURIComponent(waMsg);
+      disable("btnWhats", false);
+    }else{
+      disable("btnWhats", true);
+    }
+
+    if(phone){
+      $("btnCall").href  = "tel:" + digitsOnly(phone);
+      disable("btnCall", false);
+    }else{
+      disable("btnCall", true);
+    }
+
+    // ===== WAVE =====
+    const wavePhone = phone || whats || "";
+    $("waveNum").textContent = wavePhone ? wavePhone : "—";
+
+    // “Ouvrir Wave” : pas de deep link universel fiable => fallback WhatsApp vers le proprio
+    if(wavePhone){
+      const waveHint = digitsOnly(wavePhone);
+      $("btnPay").href = "https://wa.me/" + waveHint + "?text=" + encodeURIComponent(
+        `Bonjour 👋 Je vais effectuer un paiement Wave pour "${title}".\nMontant: (à préciser)`
+      );
+      disable("btnPay", false);
+      disable("btnDeclare", false);
+    }else{
+      disable("btnPay", true);
+      disable("btnDeclare", true);
+      setNote("⚠️ Téléphone propriétaire manquant. Le paiement Wave ne peut pas être affiché.", "warn");
+    }
+
+    // Déclaration Wave -> RPC (si dispo)
+    $("btnDeclare").onclick = async ()=>{
+      const amtRaw = $("amount").value || "";
+      const amt = parseInt(String(amtRaw).replace(/\D/g,""), 10);
+
+      if(!amt || amt <= 0){
+        setNote("⚠️ Mets un montant (ex: 30000) puis clique “J’ai payé”.", "warn");
+        return;
+      }
+      if(!phone){
+        setNote("❌ Ce GO PIN n’a pas de téléphone propriétaire (champ phone).", "bad");
+        return;
+      }
+
+      const clientName = prompt("Ton nom (optionnel) :") || "";
+      const clientPhone = prompt("Ton téléphone (optionnel) :") || "";
+
+      setNote("⏳ Déclaration du paiement…", "warn");
+
+      try{
+        const { data: r, error: e } = await SB.rpc("loc_wave_payment_declare", {
+          p_slug: SLUG,
+          p_owner_phone: phone,
+          p_amount: amt,
+          p_client_name: clientName,
+          p_client_phone: clientPhone,
+          p_note: "Déclaré depuis GO PIN public",
+          p_proof_url: null
+        });
+
+        if(e) throw e;
+        if(!r || r.ok !== true) throw new Error(r?.reason || "declare_failed");
+
+        setNote("✅ Paiement déclaré ! Le propriétaire le voit dans son cockpit.", "ok");
+      }catch(err){
+        setNote("❌ Déclaration impossible.\nDétail: " + (err?.message || err), "bad");
+      }
+    };
+  }
+
+  async function load(){
     if(!SLUG){
-      $("pillStatus").textContent = "❌ Slug manquant";
+      setPill("❌ Slug manquant", "warn");
       setNote("⚠️ Il manque le slug.\n➡️ Exemple: go-pin.html?slug=chez-astou-saly", "bad");
       return;
     }
 
-    $("pillStatus").textContent = "⏳ Vérification…";
+    setPill("⏳ Vérification…", "warn");
     setNote("⏳ Chargement du GO PIN…", "warn");
 
     try{
       const { data, error } = await SB
-  .from("go_pins")
-  .select("slug,title,category,phone,whatsapp,address_label,ndimbal_enabled,is_public,is_active")
-  .eq("slug", SLUG)
-  .eq("is_public", true)
-  .eq("is_active", true)
-  .maybeSingle(); // ✅ SAFE
+        .from("go_pins")
+        .select("slug,title,category,phone,whatsapp,address_label,ndimbal_enabled,is_public,is_active")
+        .eq("slug", SLUG)
+        .eq("is_public", true)
+        .eq("is_active", true)
+        .maybeSingle();
 
-if (error) {
-  console.error("❌ Erreur Supabase:", error);
-  alert("Erreur technique. Réessaie.");
-  return;
-}
+      if(error) throw error;
 
-if (!data) {
-  alert("❌ Ce lieu n’est pas public ou pas activé.");
-  return;
-}
-
-// ✅ OK : lieu trouvé
-console.log("✅ GO PIN public:", data);
-renderPinPage(data);
-
-
-      const title = data.title || "Lieu DIGIY";
-      const cat = (data.category || "loc").toString();
-      const phone = normPhone(data.phone || "");
-      const whats = normPhone(data.whatsapp || data.phone || "");
-      const nd = (data.ndimbal_enabled === true);
-
-      $("pillStatus").textContent = "✅ En ligne";
-      setNote("", "");
-
-      $("tTitle").textContent = title;
-      $("tMeta").textContent = data.address_label ? ("📌 " + data.address_label) : "📌 Lieu vérifié — contact direct";
-
-      $("tCat").textContent = "🏷️ " + cat.toUpperCase();
-      $("tPhone").textContent = "📞 " + (phone || "—");
-      $("tWhats").textContent = "💬 " + (whats || "—");
-
-      $("dSlug").textContent = SLUG;
-      $("dTitle").textContent = title;
-      $("dCat").textContent = cat.toUpperCase();
-      $("dPhone").textContent = phone || "—";
-      $("dWhats").textContent = whats || "—";
-
-      // Badge NDIMBAL
-      if(nd){
-        const tagsRow = $("tagsRow");
-        const ndSpan = document.createElement("span");
-        ndSpan.className = "tag nd";
-        ndSpan.textContent = "🤍 NDIMBAL LOC · 1→2 • 2→3";
-        tagsRow.appendChild(ndSpan);
-        setNote("🤍 NDIMBAL activé — bonus +1 nuit : 1→2 • 2→3", "ok");
+      if(!data){
+        setPill("❌ Indisponible", "warn");
+        setNote("❌ Ce lieu n’est pas public ou pas activé.\n➡️ Vérifie le slug / l’activation dans go_pins.", "bad");
+        return;
       }
 
-      // Actions WA/CALL
-      const waMsg = `Bonjour ${title} 👋\nJe viens via DIGIY. Je veux des infos / réserver.`;
-      $("btnWhats").href = whats ? ("https://wa.me/" + digitsOnly(whats) + "?text=" + encodeURIComponent(waMsg)) : "#";
-      $("btnCall").href  = phone ? ("tel:" + digitsOnly(phone)) : "#";
-      if(!whats) $("btnWhats").style.opacity = 0.6;
-      if(!phone) $("btnCall").style.opacity = 0.6;
-
-      // ===== WAVE =====
-      const wavePhone = phone || whats || "";
-      $("waveNum").textContent = wavePhone ? wavePhone : "—";
-
-      // "Ouvrir Wave" => fallback WhatsApp (universal)
-      const waveHint = wavePhone ? digitsOnly(wavePhone) : "";
-      $("btnPay").href = waveHint
-        ? ("https://wa.me/" + waveHint + "?text=" + encodeURIComponent(`Bonjour 👋 Je vais effectuer un paiement Wave pour "${title}".`))
-        : "#";
-
-      // Declare (client) -> RPC declare (owner_phone = go_pins.phone)
-      $("btnDeclare").onclick = async ()=>{
-        const amtRaw = $("amount").value || "";
-        const amt = parseInt(String(amtRaw).replace(/\D/g,""), 10);
-
-        if(!amt || amt <= 0){
-          setNote("⚠️ Mets un montant (ex: 30000) puis clique “J’ai payé”.", "warn");
-          return;
-        }
-
-        if(!phone){
-          setNote("❌ Ce GO PIN n’a pas de téléphone propriétaire (champ phone).", "bad");
-          return;
-        }
-
-        const clientName = prompt("Ton nom (optionnel) :") || "";
-        const clientPhone = prompt("Ton téléphone (optionnel) :") || "";
-
-        setNote("⏳ Déclaration du paiement…", "warn");
-
-        try{
-          const { data: r, error: e } = await SB.rpc("loc_wave_payment_declare", {
-            p_slug: SLUG,
-            p_owner_phone: phone,
-            p_amount: amt,
-            p_client_name: clientName,
-            p_client_phone: clientPhone,
-            p_note: `Déclaré depuis GO PIN public`,
-            p_proof_url: null
-          });
-          if(e) throw e;
-          if(!r || r.ok !== true) throw new Error(r?.reason || "declare_failed");
-
-          setNote("✅ Paiement déclaré ! Le propriétaire le voit dans son cockpit.", "ok");
-        }catch(err){
-          setNote("❌ Déclaration impossible.\nDétail: " + (err?.message || err), "bad");
-        }
-      };
+      // OK
+      console.log("✅ GO PIN public:", data);
+      renderPin(data);
 
     }catch(e){
       console.error(e);
-      $("pillStatus").textContent = "⚠️ Erreur";
+      setPill("⚠️ Erreur", "warn");
       setNote("❌ Impossible de charger le GO PIN.\nDétail: " + (e?.message || e), "bad");
     }
   }
