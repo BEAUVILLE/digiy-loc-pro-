@@ -44,7 +44,6 @@
     a{color:inherit;text-decoration:none}
     .wrap{max-width:520px;margin:0 auto}
 
-    /* TOPBAR */
     .topbar{
       position:sticky; top:0; z-index:30;
       padding:10px 0 12px;
@@ -84,7 +83,6 @@
     }
     .dot{width:8px;height:8px;border-radius:99px;background:var(--green); box-shadow:0 0 0 4px rgba(34,197,94,.15)}
 
-    /* HERO */
     .hero{
       background: linear-gradient(180deg, rgba(11,42,31,.9), rgba(11,42,31,.65));
       border:1px solid rgba(255,255,255,.10);
@@ -133,7 +131,6 @@
     .btn.call{background: rgba(250,204,21,.12);border-color: rgba(250,204,21,.25);}
     .btn.ok{background: rgba(56,189,248,.14);border-color: rgba(56,189,248,.25);}
 
-    /* TABS */
     .tabs{
       display:flex; gap:10px; margin:14px 0 10px;
       position:sticky; top:76px; z-index:25;
@@ -169,7 +166,6 @@
       background: rgba(0,0,0,.18);
     }
 
-    /* LIST */
     .section{ margin-top:8px; }
     .sectionHead{display:flex;align-items:center;justify-content:space-between;margin:10px 2px 10px;}
     .sectionHead h3{margin:0;font-size:13px;letter-spacing:.2px;font-weight:900;}
@@ -354,7 +350,7 @@
     "use strict";
 
     // =============================
-    // SUPABASE
+    // SUPABASE (fallback si guard absent)
     // =============================
     const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
     const SUPABASE_ANON_KEY =
@@ -366,23 +362,19 @@
     const url = new URL(window.location.href);
     const Q = (k)=> (url.searchParams.get(k) || "").trim();
 
-    // business: obligatoire pour filtre
-    const BUSINESS = (Q("business") || "").toUpperCase();
-
-    // date: YYYY-MM-DD (sinon today)
+    const SLUG = Q("slug") || ""; // ✅ slug-first
     const todayISO = new Date().toISOString().slice(0,10);
     const DATE = (Q("date") || todayISO);
 
-    // Token optionnel
-    const TOKEN = Q("token") || "";
+    // fallback si quelqu’un veut forcer business=...
+    let BUSINESS = (Q("business") || "").toUpperCase();
 
     // =============================
-    // GUARD FIRST (pas de double boot)
+    // GUARD HELPERS
     // =============================
     const MODULE = "LOC";
     const PAY_URL = "https://beauville.github.io/commencer-a-payer/";
 
-    // conserve slug dans les redirections
     function withSlug(u){
       try{
         return (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.withSlug === "function")
@@ -391,17 +383,26 @@
       }catch(_){ return u; }
     }
 
-    // ⚠️ si tu veux OBLIGER le guard sur listing, laisse. Sinon commente ce bloc.
-    if (window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function") {
-      // boot est async; on le lance, mais on ne bloque pas l'UI.
-      window.DIGIY_GUARD.boot({
-        module: MODULE,
-        dashboard: "./planning.html",
-        login: "./login.html",
-        pay: PAY_URL,
-        requireSlug: true,
-        checkSubscription: true
-      });
+    function getSB(){
+      return window.DIGIY_GUARD?.getSb?.()
+          || window.DIGIY_GUARD?.getSupabase?.()
+          || window.DIGIY_GUARD?.sb
+          || null;
+    }
+
+    async function guardBoot(){
+      try{
+        if(window.DIGIY_GUARD && typeof window.DIGIY_GUARD.boot === "function"){
+          await window.DIGIY_GUARD.boot({
+            module: MODULE,
+            dashboard: "./planning.html",
+            login: "./login.html",
+            pay: PAY_URL,
+            requireSlug: true,
+            checkSubscription: true
+          });
+        }
+      }catch(_){}
     }
 
     // =============================
@@ -532,9 +533,10 @@
     // =============================
     function buildListingUrl(){
       const u = new URL(window.location.href);
-      if(BUSINESS) u.searchParams.set("business", BUSINESS);
+      if(SLUG) u.searchParams.set("slug", SLUG);
       if(DATE) u.searchParams.set("date", DATE);
-      if(TOKEN) u.searchParams.set("token", TOKEN);
+      // on n’affiche business que si présent (debug/fallback)
+      if(BUSINESS) u.searchParams.set("business", BUSINESS);
       return u.toString();
     }
 
@@ -546,6 +548,7 @@
       const link = buildListingUrl();
 
       return `📋 DIGIY LOC — Listing du Jour
+📍 ${SLUG || (data?.slug||"")}
 🏠 ${BUSINESS || (data?.business_code||"")}
 📅 ${dateLabel}
 Arrivées: ${arr} • Départs: ${dep} • En cours: ${occ}
@@ -589,20 +592,39 @@ Ouvrir: ${link}`;
       refreshNetwork();
 
       $("todayLabel").textContent = fmtDateFRFromISO(DATE);
+
+      // 1) boot guard (si présent)
+      await guardBoot();
+
+      // 2) BUSINESS auto depuis session guard
+      try{
+        const sess = window.DIGIY_GUARD?.getSession?.() || null;
+        const bc = (sess?.business_code || sess?.businessCode || "").toString().trim().toUpperCase();
+        if(bc) BUSINESS = bc;
+      }catch(_){}
+
       $("businessCode").textContent = "CODE • " + (BUSINESS || "—");
 
-      if(!BUSINESS){
-        renderEmpty("Business manquant. Ajoute ?business=BEAUVILLE");
+      if(!SLUG && !BUSINESS){
+        renderEmpty("Paramètre manquant. Mets ?slug=chez-astou-saly (recommandé) ou ?business=CODE.");
         return;
       }
 
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // 3) supabase source unique
+      const sb = getSB() || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       try{
-        const { data, error } = await supabase.rpc("digiy_loc_get_listing_day", {
+        // ✅ RPC : idéalement filtrée par business_code
+        if(!BUSINESS){
+          renderEmpty("Business_code introuvable (session). Reconnecte-toi via PIN.");
+          return;
+        }
+
+        const { data, error } = await sb.rpc("digiy_loc_get_listing_day", {
           p_business_code: BUSINESS,
           p_date: DATE
         });
+
         if(error) throw error;
 
         LAST_DATA = data;
@@ -692,7 +714,7 @@ Ouvrir: ${link}`;
     })();
 
     // =============================
-    // Boot page (UNE SEULE FOIS)
+    // Boot page
     // =============================
     (function boot(){
       const last = localStorage.getItem("digiy_loc_listing_tab") || "arr";
@@ -704,4 +726,3 @@ Ouvrir: ${link}`;
   </script>
 </body>
 </html>
-
