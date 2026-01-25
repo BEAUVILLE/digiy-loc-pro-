@@ -291,9 +291,21 @@
     return p;
   }
 
+  // ✅ slug clean robuste (même logique que guard)
+  function cleanSlug(s){
+    const x = String(s || "").trim();
+    if(!x) return "";
+    return x
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9\-_]/g,"")
+      .replace(/-+/g,"-")
+      .replace(/^_+|_+$/g,"");
+  }
+
   // slug
   const u = new URL(location.href);
-  const SLUG = (u.searchParams.get("slug") || "").trim().replace(/\/+$/,"").toLowerCase();
+  const SLUG = cleanSlug(u.searchParams.get("slug") || "");
   $("pillSlug").textContent = "slug: " + (SLUG || "—");
 
   function withSlug(path){
@@ -303,12 +315,15 @@
     return x.toString();
   }
 
-  // liens internes repo
-  $("btnLoc").href = withSlug("./index.html");  // Galerie
-  $("btnPin").href = withSlug("./pin.html");
+  // ✅ liens internes (repo-safe)
+  $("btnLoc").href = withSlug("./index.html");    // Galerie
+  $("btnPin").href = withSlug("./pin.html");      // Cockpit PIN
 
   async function load(){
-    $("shareUrl").textContent = location.href;
+    // ✅ share canonique
+    const share = new URL(location.href);
+    if (SLUG) share.searchParams.set("slug", SLUG);
+    $("shareUrl").textContent = share.toString();
 
     if(!SLUG){
       $("pillStatus").textContent = "❌ Slug manquant";
@@ -369,23 +384,17 @@
       if(!whats) $("btnWhats").style.opacity = 0.6;
       if(!phone) $("btnCall").style.opacity = 0.6;
 
-      // Share canonique
-      const share = new URL(location.href);
-      share.searchParams.set("slug", SLUG);
-      $("shareUrl").textContent = share.toString();
-
       // ===== WAVE =====
       const wavePhone = phone || whats || "";
       $("waveNum").textContent = wavePhone ? wavePhone : "—";
 
-      // "Ouvrir Wave" => on met un lien WhatsApp fallback si pas Wave deep link
-      // (Wave n'a pas toujours un schéma universel web)
+      // "Ouvrir Wave" => fallback WhatsApp (universal)
       const waveHint = wavePhone ? digitsOnly(wavePhone) : "";
       $("btnPay").href = waveHint
         ? ("https://wa.me/" + waveHint + "?text=" + encodeURIComponent(`Bonjour 👋 Je vais effectuer un paiement Wave pour "${title}".`))
         : "#";
 
-      // Declare (client) -> RPC declare (owner_phone = phone du go_pin)
+      // Declare (client) -> RPC declare (owner_phone = go_pins.phone)
       $("btnDeclare").onclick = async ()=>{
         const amtRaw = $("amount").value || "";
         const amt = parseInt(String(amtRaw).replace(/\D/g,""), 10);
@@ -400,7 +409,6 @@
           return;
         }
 
-        // Infos client (léger)
         const clientName = prompt("Ton nom (optionnel) :") || "";
         const clientPhone = prompt("Ton téléphone (optionnel) :") || "";
 
@@ -409,7 +417,7 @@
         try{
           const { data: r, error: e } = await SB.rpc("loc_wave_payment_declare", {
             p_slug: SLUG,
-            p_owner_phone: phone,          // IMPORTANT: ownership = go_pins.phone
+            p_owner_phone: phone,
             p_amount: amt,
             p_client_name: clientName,
             p_client_phone: clientPhone,
