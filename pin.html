@@ -6,7 +6,7 @@
   <title>DIGIY LOC PRO ♾️ — Accès</title>
   <meta name="theme-color" content="#0b1020"/>
 
-  <!-- Supabase + Guard -->
+  <!-- ✅ Supabase + Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./guard.js?v=locpro-final"></script>
 
@@ -92,7 +92,7 @@
         <div>
           <h1>DIGIY LOC PRO — Accès</h1>
           <div class="sub">
-           Entre les <b>4 derniers chiffres</b> de ton téléphone pour ouvrir ton cockpit.
+            Entre les <b>4 derniers chiffres</b> de ton téléphone pour ouvrir ton cockpit.
           </div>
         </div>
       </div>
@@ -100,21 +100,15 @@
     </div>
 
     <div class="card">
-  <label>4 derniers chiffres de ton téléphone</label>
-  <input id="pin" type="tel" inputmode="numeric" autocomplete="off" placeholder="5785" maxlength="4" />
+      <label>4 derniers chiffres de ton téléphone</label>
+      <input id="pin" type="tel" inputmode="numeric" autocomplete="off" placeholder="5785" maxlength="4" />
 
-  <div class="row" style="margin-top:12px">
-    <button class="btn primary" id="btnLogin" type="button">🔓 Ouvrir mon cockpit</button>
-    <a class="btn gold" id="btnPublic" href="#">👁️ Retour GO PIN (public)</a>
-  </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="btnLogin" type="button">🔓 Ouvrir mon cockpit</button>
+        <a class="btn gold" id="btnPublic" href="#">👁️ Retour GO PIN (public)</a>
+      </div>
 
-  <div class="note warn" id="note"></div>
-
-  <div class="tiny" id="hintBox" style="display:none">
-    💡 Astuce : ouvre toujours cette page via ton <b>QR / lien GO PIN</b> pour que le "Lieu" soit reconnu automatiquement.
-  </div>
-</div>
-
+      <!-- ✅ NOTE unique (pas de doublon) -->
       <div class="note warn" id="note"></div>
 
       <div class="tiny" id="hintBox" style="display:none">
@@ -135,19 +129,21 @@
     el.style.display = msg ? "block" : "none";
   }
 
-  // --- LIEU (slug) ---
-  const u = new URL(location.href);
-  const LIEU = (u.searchParams.get("slug") || "").trim().replace(/\/+$/,"").toLowerCase();
+  // ✅ Slug source-of-truth = guard (URL > session > LS)
+  const LIEU = (window.DIGIY_GUARD?.getSlug?.() || "").trim();
 
   $("pillLieu").textContent = "Lieu : " + (LIEU || "—");
 
-  // --- Retour GO PIN (public) ---
+  // ✅ Retour GO PIN (public) — garde slug
   const back = new URL("./go-pin.html", location.href);
   if (LIEU) back.searchParams.set("slug", LIEU);
   $("btnPublic").href = back.toString();
 
   if(!LIEU){
-    show("⚠️ Lien incomplet.\n➡️ Ouvre cette page via ton QR / lien GO PIN.\nExemple : pin.html?slug=chez-astou-boutique", "bad");
+    show(
+      "⚠️ Lien incomplet.\n➡️ Ouvre cette page via ton QR / lien GO PIN.\nExemple : pin.html?slug=chez-astou-boutique",
+      "bad"
+    );
     $("hintBox").style.display = "block";
   }
 
@@ -157,10 +153,10 @@
       return;
     }
 
-    const pin = ($("pin").value || "").trim().toUpperCase();
+    const pin = ($("pin").value || "").trim();
 
     if(!pin || pin.length < 4){
-      show("⚠️ Entre ton code PIN (minimum 4 caractères).", "warn");
+      show("⚠️ Entre ton code PIN (4 chiffres).", "warn");
       return;
     }
 
@@ -168,7 +164,10 @@
     show("⏳ Vérification…", "warn");
 
     try{
-      // ✅ Appel simplifié : loginWithPin(slug, pin)
+      // ✅ Attendre que le guard soit prêt (Supabase CDN ok)
+      await window.DIGIY_GUARD.ready(8000).catch(()=>true);
+
+      // ✅ Appel : loginWithPin(slug, pin)
       const res = await window.DIGIY_GUARD.loginWithPin(LIEU, pin);
 
       if(!res || !res.ok){
@@ -177,21 +176,21 @@
         return;
       }
 
-      // ✅ Stocke owner_id pour debug
       console.log("✅ Login OK, owner_id:", res.session?.owner_id);
 
       show("✅ OK. Ouverture du cockpit…", "ok");
-      
-      // ✅ Redirige vers app.html
+
+      // ✅ Redirect safe (slug conservé via guard)
       setTimeout(() => {
-        const dashboardUrl = new URL("./app.html", location.href);
-        dashboardUrl.searchParams.set("slug", LIEU);
-        location.replace(dashboardUrl.toString());
-      }, 800);
+        window.DIGIY_GUARD.go("app.html");
+      }, 500);
 
     }catch(e){
       console.error(e);
-      show("❌ Problème technique.\n➡️ Réessaie dans 10 secondes.\nDétail: " + (e?.message || e), "bad");
+      show(
+        "❌ Problème technique.\n➡️ Réessaie dans 10 secondes.\nDétail: " + (e?.message || e),
+        "bad"
+      );
       $("btnLogin").disabled = false;
     }
   }
