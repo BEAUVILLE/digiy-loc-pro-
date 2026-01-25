@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#0A0E1A"/>
-  <title>DIGIY QR FACTORY ♾️ — Générateur Pro</title>
+  <title>DIGIY QR FACTORY ♾️ — Générateur Pro (V2)</title>
   <meta name="description" content="Génère un QR unique qui ouvre DIGIY QR PRO avec le slug."/>
 
   <!-- ✅ QR local (pas d’API externe) -->
@@ -15,7 +15,8 @@
       --bg:#020617;--card:#0B1120;--line:rgba(148,163,184,.25);
       --ink:#F9FAFB;--muted:#CBD5E1;
       --orange:#f97316;--shadow:0 18px 60px rgba(0,0,0,.55);
-      --gold:#facc15;--green:#22c55e;
+      --gold:#facc15;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;
+      --r:18px;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -28,10 +29,10 @@
         rgba(2,6,23,1);
       padding:16px;
     }
-    .wrap{max-width:980px;margin:0 auto}
+    .wrap{max-width:1040px;margin:0 auto}
     .top{
       border:1px solid rgba(148,163,184,.22);
-      background:rgba(2,6,23,.75);
+      background:rgba(2,6,23,.78);
       border-radius:18px;
       padding:14px;
       box-shadow:var(--shadow);
@@ -46,29 +47,32 @@
       box-shadow:0 12px 26px rgba(249,115,22,.35);
     }
     h1{font-size:16px;margin:0;font-weight:950;letter-spacing:.06em;text-transform:uppercase}
-    .sub{color:var(--muted);font-weight:700;font-size:12px}
+    .sub{color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
     .pill{
       border:1px solid rgba(148,163,184,.35);
       padding:8px 10px;border-radius:999px;
       background:rgba(255,255,255,.03);
-      color:var(--muted);font-weight:850;font-size:12px;
+      color:var(--muted);font-weight:900;font-size:12px;
     }
+
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+    @media(min-width:980px){ .grid{grid-template-columns: 1.25fr .75fr;} }
+
     .card{
-      margin-top:14px;
       border:1px solid rgba(148,163,184,.22);
       background:rgba(11,17,32,.92);
       border-radius:18px;
       box-shadow:var(--shadow);
       padding:14px;
     }
-    label{display:block;color:#fff;font-weight:900;margin:8px 0 6px}
+    label{display:block;color:#fff;font-weight:950;margin:8px 0 6px}
     input{
       width:100%;
       border-radius:14px;border:1px solid var(--line);
       background:rgba(0,0,0,.18);
       color:var(--ink);
       padding:12px 12px;
-      font-weight:900;
+      font-weight:950;
       outline:none;
     }
     input:focus{border-color:rgba(249,115,22,.8);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
@@ -79,6 +83,7 @@
       font-weight:950;cursor:pointer;
       background:rgba(255,255,255,.06);
       color:#fff;border:1px solid rgba(148,163,184,.25);
+      min-height:44px;
     }
     .btn.primary{
       background:linear-gradient(135deg,var(--orange),#ea580c);
@@ -88,52 +93,109 @@
       background:linear-gradient(135deg,#16a34a,var(--green));
       color:#052e16;border:none;
     }
+    .btn.gold{
+      background:linear-gradient(135deg,#fef3c7,var(--gold));
+      color:#111827;border:none;
+    }
+    .btn.red{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.35);
+      color:#fecaca;
+    }
     .btn:disabled{opacity:.55;cursor:not-allowed}
+
     .note{
       margin-top:10px;
       padding:10px 12px;border-radius:14px;
       border:1px solid rgba(250,204,21,.35);
       background:rgba(250,204,21,.08);
       color:#fde68a;
-      font-weight:850;
+      font-weight:900;
       display:none;
       white-space:pre-wrap;
+      line-height:1.35;
     }
     .note.show{display:block}
+    .note.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+    .note.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
+    .note.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.08);color:#fde68a}
 
     .item{
       margin-top:12px;
       border:1px solid rgba(148,163,184,.20);
       border-radius:16px;
       padding:12px;
-      background:radial-gradient(circle at top left,rgba(34,211,238,.10),transparent 55%),rgba(2,6,23,.55);
+      background:
+        radial-gradient(circle at top left,rgba(34,211,238,.10),transparent 55%),
+        rgba(2,6,23,.55);
     }
     .itemTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .name{font-weight:950}
-    .tag{color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+    .tag{color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
     .link{
       margin-top:8px;font-size:12px;color:#e5e7eb;word-break:break-all;opacity:.95;
       padding:8px 10px;border-radius:12px;border:1px solid rgba(148,163,184,.18);
       background:rgba(255,255,255,.03);
     }
-    .qrBox{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .qrBox{margin-top:10px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
     .qrLink{
       display:inline-block;border-radius:14px;overflow:hidden;
       transition:transform .12s ease, box-shadow .12s ease;
     }
     .qrLink:hover{transform:scale(1.03);box-shadow:0 10px 24px rgba(0,0,0,.35)}
     .qrImg{
-      width:150px;height:150px;border-radius:14px;background:#fff;padding:10px;
+      width:160px;height:160px;border-radius:14px;background:#fff;padding:10px;
       border:1px solid rgba(148,163,184,.22);display:block;
     }
+    .mutedLine{color:rgba(203,213,225,.9);font-weight:850;font-size:12px;line-height:1.35}
     .miniBtns{display:flex;gap:8px;flex-wrap:wrap}
     .mini{
-      padding:8px 10px;border-radius:12px;font-weight:900;font-size:12px;
+      padding:8px 10px;border-radius:12px;font-weight:950;font-size:12px;
       border:1px solid rgba(148,163,184,.25);
       background:rgba(255,255,255,.05);
       color:#fff;cursor:pointer;
+      min-height:40px;
     }
     .mini:hover{border-color:rgba(249,115,22,.75)}
+    .mini.cyan{border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.10)}
+    .mini.green{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10)}
+    .mini.gold{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10)}
+    .mini.red{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
+
+    .list{
+      margin-top:10px;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .listHead{
+      padding:10px 12px;
+      background:rgba(255,255,255,.03);
+      border-bottom:1px solid rgba(148,163,184,.14);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .listBody{max-height:320px;overflow:auto;background:rgba(0,0,0,.10)}
+    .hrow{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(148,163,184,.12);
+      align-items:center;
+    }
+    .hrow:last-child{border-bottom:none}
+    .hSlug{font-weight:950}
+    .hMeta{color:rgba(203,213,225,.9);font-weight:850;font-size:12px;margin-top:3px}
+    .hBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .kbd{
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(0,0,0,.18);
+      padding:2px 8px;border-radius:999px;
+      color:rgba(203,213,225,.95);
+      font-weight:900;
+      font-size:12px;
+    }
   </style>
 </head>
 
@@ -144,39 +206,85 @@
         <div class="logo">♾️</div>
         <div>
           <h1>DIGIY QR FACTORY</h1>
-          <div class="sub">Un seul QR → ouvre DIGIY QR PRO (tout le reste derrière)</div>
+          <div class="sub">V2 • Un seul QR → ouvre <b>DIGIY QR PRO</b> (tout le reste derrière)<br/>Astuce: <span class="kbd">?slug=chez-astou-saly</span> génère direct.</div>
         </div>
       </div>
       <div class="pill" id="pill">Slug : —</div>
     </div>
 
-    <div class="card">
-      <label>Slug pro</label>
-      <input id="slug" placeholder="chez-astou-saly" autocomplete="off" />
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <label>Slug pro</label>
+        <input id="slug" placeholder="chez-astou-saly" autocomplete="off" />
 
-      <div class="row">
-        <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
-        <button class="btn" id="btnCopy" type="button" disabled>📋 Copier le lien</button>
-        <button class="btn good" id="btnDl" type="button" disabled>⬇️ PNG</button>
-      </div>
+        <div class="row">
+          <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
+          <button class="btn" id="btnCopy" type="button" disabled>📋 Copier le lien</button>
+          <button class="btn good" id="btnDl" type="button" disabled>⬇️ PNG</button>
+          <button class="btn gold" id="btnSticker" type="button" disabled>🟩 Sticker (XL)</button>
+          <button class="btn red" id="btnReset" type="button">🧹 Reset</button>
+        </div>
 
-      <div class="note" id="note"></div>
+        <div class="note" id="note"></div>
 
-      <div class="item" id="out" style="display:none">
-        <div class="itemTop">
-          <div>
-            <div class="name">DIGIY QR PRO — HUB PRO</div>
-            <div class="tag">UN SEUL LIEN • UN SEUL QR</div>
+        <div class="item" id="out" style="display:none">
+          <div class="itemTop">
+            <div>
+              <div class="name">DIGIY QR PRO — HUB PRO</div>
+              <div class="tag">UN SEUL LIEN • UN SEUL QR • TERRAIN READY</div>
+            </div>
+            <div class="miniBtns">
+              <button class="mini cyan" id="btnOpen">Ouvrir</button>
+              <button class="mini green" id="btnTest">📲 Test téléphone</button>
+            </div>
           </div>
-          <div class="miniBtns">
-            <button class="mini" id="btnOpen">Ouvrir</button>
+
+          <div class="link" id="linkText"></div>
+
+          <div class="qrBox">
+            <a class="qrLink" id="qrLink" href="#" target="_blank" rel="noopener">
+              <img class="qrImg" id="qrImg" alt="QR DIGIY QR PRO" />
+            </a>
+
+            <div style="min-width:240px;flex:1">
+              <div class="mutedLine"><b>Conseil terrain</b></div>
+              <div class="mutedLine" style="margin-top:6px">
+                1) Génère → 2) Clique <b>Test téléphone</b> → 3) Imprime seulement après.
+              </div>
+              <div class="mutedLine" style="margin-top:10px">
+                ✅ QR normal = affiche vitrine<br/>
+                🟩 Sticker XL = vitrine / taxi / porte
+              </div>
+              <div class="mutedLine" style="margin-top:10px">
+                Tip: si le réseau saute, garde le <b>PNG</b> sur ton WhatsApp/Drive.
+              </div>
+            </div>
           </div>
         </div>
-        <div class="link" id="linkText"></div>
-        <div class="qrBox">
-          <a class="qrLink" id="qrLink" href="#" target="_blank" rel="noopener">
-            <img class="qrImg" id="qrImg" alt="QR DIGIY QR PRO" />
-          </a>
+      </div>
+
+      <!-- RIGHT: HISTORY -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <div style="font-weight:950">🕒 Historique (10 derniers)</div>
+          <div class="miniBtns">
+            <button class="mini red" id="btnClearHistory">🗑️ Vider</button>
+          </div>
+        </div>
+        <div class="mutedLine" style="margin-top:6px">Tu retrouves vite les QR d’hier sans tout retaper.</div>
+
+        <div class="list" style="margin-top:10px">
+          <div class="listHead">
+            <div class="mutedLine" id="histCount">0 élément</div>
+            <div class="mutedLine">Clique un slug → ça régénère</div>
+          </div>
+          <div class="listBody" id="histBody"></div>
+        </div>
+
+        <div class="note warn show" style="margin-top:12px">
+          💡 Rappel: <b>tous</b> les QR ouvrent la même base :<br/>
+          <span class="kbd">https://beauville.github.io/digiy-qr-pro/</span>
         </div>
       </div>
     </div>
@@ -190,35 +298,48 @@ window.addEventListener("DOMContentLoaded", () => {
   // ✅ LA VÉRITÉ: tous les QR ouvrent ça
   const QR_PRO_BASE = "https://beauville.github.io/digiy-qr-pro/";
 
+  // ✅ Local history
+  const KEY_HIST = "DIGIY_QR_FACTORY_V2_HISTORY";
+
   const elSlug = $("slug");
   const btnGen = $("btnGen");
   const btnCopy = $("btnCopy");
   const btnDl = $("btnDl");
+  const btnSticker = $("btnSticker");
   const btnOpen = $("btnOpen");
+  const btnTest = $("btnTest");
+  const btnReset = $("btnReset");
+  const btnClearHistory = $("btnClearHistory");
   const pill = $("pill");
   const note = $("note");
   const out = $("out");
   const linkText = $("linkText");
   const qrImg = $("qrImg");
   const qrLink = $("qrLink");
+  const histBody = $("histBody");
+  const histCount = $("histCount");
 
-  function showNote(msg){
+  function showNote(msg, type){
     note.textContent = msg || "";
-    note.classList.toggle("show", !!msg);
+    note.className = "note " + (type || "warn") + (msg ? " show" : "");
   }
 
+  // ✅ DIGIY slug clean officiel (accents, emojis, etc.)
   function slugClean(v){
-    return (v||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/\/+$/,"");
+    return (v||"")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")     // remove accents
+      .replace(/[^a-z0-9\- ]/g,"")                       // keep a-z0-9 space -
+      .replace(/\s+/g,"-")                               // spaces -> -
+      .replace(/-+/g,"-")                                // collapse
+      .replace(/^-|-$/g,"");                             // trim -
   }
 
   function buildQrProUrl(slug){
     const u = new URL(QR_PRO_BASE, location.href);
     u.searchParams.set("slug", slug);
     return u.toString();
-  }
-
-  function copy(text){
-    return navigator.clipboard.writeText(text);
   }
 
   function openUrl(url){
@@ -234,57 +355,168 @@ window.addEventListener("DOMContentLoaded", () => {
     a.remove();
   }
 
-  async function makeQrDataUrl(url){
+  async function makeQrDataUrl(url, size){
     if(!window.QRCode) throw new Error("QRCode lib missing");
-    return await QRCode.toDataURL(url, { margin: 1, width: 320 });
+    const width = Number(size || 360);
+    return await QRCode.toDataURL(url, { margin: 1, width });
   }
 
-  let current = { slug:"", url:"", dataUrl:"" };
+  function copy(text){
+    return navigator.clipboard.writeText(text);
+  }
+
+  function nowTs(){ return Date.now(); }
+
+  function loadHistory(){
+    try{
+      const raw = localStorage.getItem(KEY_HIST);
+      const h = raw ? JSON.parse(raw) : [];
+      return Array.isArray(h) ? h : [];
+    }catch(_){ return []; }
+  }
+
+  function saveHistory(list){
+    try{ localStorage.setItem(KEY_HIST, JSON.stringify(list || [])); }catch(_){}
+  }
+
+  function pushHistory(slug, url){
+    const h = loadHistory();
+    // remove duplicates
+    const filtered = h.filter(x => String(x?.slug||"") !== slug);
+    filtered.unshift({ slug, url, ts: nowTs() });
+    const out = filtered.slice(0, 10);
+    saveHistory(out);
+    renderHistory();
+  }
+
+  function tsToNice(ts){
+    try{
+      const d = new Date(ts);
+      return d.toLocaleString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    }catch(_){ return ""; }
+  }
+
+  function renderHistory(){
+    const h = loadHistory();
+    histCount.textContent = h.length + " élément(s)";
+    if(!h.length){
+      histBody.innerHTML = `<div class="hrow"><div style="color:rgba(203,213,225,.9);font-weight:850">— aucun historique —</div><div></div></div>`;
+      return;
+    }
+    histBody.innerHTML = h.map((x, idx)=>{
+      const slug = String(x.slug||"");
+      const url = String(x.url||"");
+      const when = x.ts ? tsToNice(x.ts) : "";
+      return `
+        <div class="hrow">
+          <div>
+            <div class="hSlug">${escapeHtml(slug)}</div>
+            <div class="hMeta">${when ? "⏱️ " + escapeHtml(when) + " · " : ""}<span style="opacity:.9">${escapeHtml(url)}</span></div>
+          </div>
+          <div class="hBtns">
+            <button class="mini gold" data-act="regen" data-i="${idx}">⚡</button>
+            <button class="mini cyan" data-act="open" data-i="${idx}">↗</button>
+            <button class="mini red" data-act="del" data-i="${idx}">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    histBody.querySelectorAll("button[data-act]").forEach(b=>{
+      b.addEventListener("click", async ()=>{
+        const act = b.getAttribute("data-act");
+        const i = Number(b.getAttribute("data-i"));
+        const list = loadHistory();
+        const item = list[i];
+        if(!item) return;
+
+        if(act === "open"){
+          openUrl(item.url);
+          return;
+        }
+        if(act === "regen"){
+          elSlug.value = item.slug;
+          await generate();
+          return;
+        }
+        if(act === "del"){
+          list.splice(i,1);
+          saveHistory(list);
+          renderHistory();
+          showNote("🗑️ Supprimé de l’historique.", "ok");
+        }
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g, (m)=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function setUiIdle(){
+    btnCopy.disabled = true;
+    btnDl.disabled = true;
+    btnSticker.disabled = true;
+    out.style.display = "none";
+    qrImg.src = "";
+    linkText.textContent = "";
+  }
+
+  let current = { slug:"", url:"", dataUrl:"", dataUrlXL:"" };
 
   async function generate(){
     const slug = slugClean(elSlug.value);
     pill.textContent = "Slug : " + (slug || "—");
 
-    btnCopy.disabled = true;
-    btnDl.disabled = true;
-    out.style.display = "none";
-    current = { slug:"", url:"", dataUrl:"" };
+    setUiIdle();
+    current = { slug:"", url:"", dataUrl:"", dataUrlXL:"" };
 
+    // ✅ validations terrain
     if(!slug){
-      showNote("⚠️ Entre un slug (ex: chez-astou-saly).");
+      showNote("⚠️ Entre un slug (ex: chez-astou-saly).", "warn");
+      return;
+    }
+    if(slug.length < 4){
+      showNote("⚠️ Slug trop court (min 4).", "warn");
+      return;
+    }
+    if(slug.includes("--")){
+      showNote("⚠️ Slug invalide (double tiret).", "warn");
       return;
     }
 
-    showNote("✅ Génération en cours…");
+    showNote("✅ Génération en cours…", "warn");
 
     const url = buildQrProUrl(slug);
-    let dataUrl = "";
 
     try{
-      dataUrl = await makeQrDataUrl(url);
+      const dataUrl = await makeQrDataUrl(url, 360);  // normal
+      current = { slug, url, dataUrl, dataUrlXL: "" };
+
+      linkText.textContent = url;
+      qrImg.src = dataUrl;
+      qrLink.href = url;
+
+      qrImg.style.cursor = "pointer";
+      qrImg.onclick = (e)=>{ e.preventDefault(); openUrl(url); };
+
+      btnOpen.onclick = ()=> openUrl(url);
+      btnTest.onclick = ()=> openUrl(url); // même lien (test terrain)
+
+      btnCopy.disabled = false;
+      btnDl.disabled = false;
+      btnSticker.disabled = false;
+      out.style.display = "block";
+
+      pushHistory(slug, url);
+
+      showNote("✅ OK.\n📲 Clique “Test téléphone” AVANT impression.\nPuis imprime.", "ok");
     }catch(e){
       console.error("QR local error", e);
-      showNote("❌ QR KO (lib). Recharge la page.");
-      return;
+      showNote("❌ QR KO (lib). Recharge la page.", "bad");
     }
-
-    current = { slug, url, dataUrl };
-
-    linkText.textContent = url;
-    qrImg.src = dataUrl;
-    qrLink.href = url;
-
-    // cliquer sur l’image => ouvre QR PRO
-    qrImg.style.cursor = "pointer";
-    qrImg.onclick = (e)=>{ e.preventDefault(); openUrl(url); };
-
-    btnOpen.onclick = ()=> openUrl(url);
-
-    btnCopy.disabled = false;
-    btnDl.disabled = false;
-    out.style.display = "block";
-
-    showNote("✅ OK. Scanne → ça ouvre DIGIY QR PRO. Ensuite QR PRO te donne APP/Public/Accès.");
   }
 
   btnGen.addEventListener("click", (e)=>{ e.preventDefault(); generate(); });
@@ -292,16 +524,53 @@ window.addEventListener("DOMContentLoaded", () => {
 
   btnCopy.addEventListener("click", async ()=>{
     if(!current.url) return;
-    await copy(current.url);
-    showNote("✅ Lien copié.");
+    try{
+      await copy(current.url);
+      showNote("✅ Lien copié.", "ok");
+    }catch{
+      showNote("❌ Clipboard bloqué. Copie manuelle dans le lien.", "warn");
+    }
   });
 
   btnDl.addEventListener("click", ()=>{
-    if(!current.dataUrl) return;
+    if(!current.dataUrl || !current.slug) return;
     const filename = `QR_PRO_${current.slug}.png`;
     downloadPngFromDataUrl(current.dataUrl, filename);
-    showNote("⬇️ PNG téléchargé : " + filename);
+    showNote("⬇️ PNG téléchargé : " + filename, "ok");
   });
+
+  btnSticker.addEventListener("click", async ()=>{
+    if(!current.url || !current.slug) return;
+    showNote("🟩 Génération Sticker XL…", "warn");
+    try{
+      const dataUrlXL = await makeQrDataUrl(current.url, 900); // XL
+      current.dataUrlXL = dataUrlXL;
+      const filename = `STICKER_XL_${current.slug}.png`;
+      downloadPngFromDataUrl(dataUrlXL, filename);
+      showNote("⬇️ Sticker XL téléchargé : " + filename, "ok");
+    }catch(e){
+      console.error(e);
+      showNote("❌ Sticker XL KO. Recharge et réessaie.", "bad");
+    }
+  });
+
+  btnReset.addEventListener("click", ()=>{
+    elSlug.value = "";
+    pill.textContent = "Slug : —";
+    setUiIdle();
+    showNote("Reset OK. Entre un slug.", "warn");
+  });
+
+  btnClearHistory.addEventListener("click", ()=>{
+    if(!confirm("Vider l’historique ?")) return;
+    saveHistory([]);
+    renderHistory();
+    showNote("Historique vidé.", "ok");
+  });
+
+  // INIT
+  renderHistory();
+  setUiIdle();
 
   // Auto ?slug=
   try{
@@ -310,13 +579,13 @@ window.addEventListener("DOMContentLoaded", () => {
       elSlug.value = s;
       generate();
     }else{
-      showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
+      showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.", "warn");
     }
   }catch{
-    showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
+    showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.", "warn");
   }
 
-  console.log("✅ QR FACTORY ONE-URL READY →", QR_PRO_BASE);
+  console.log("✅ QR FACTORY V2 READY →", QR_PRO_BASE);
 });
 </script>
 
