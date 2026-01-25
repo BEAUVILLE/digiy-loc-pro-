@@ -204,10 +204,10 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   const MODULES = [
-    // ✅ LOC PRO d’abord (ce que tu veux)
-    { key:"locProApp",    name:"DIGIY LOC PRO — APP",        tag:"PROPRIO • COCKPIT", qrf:"QR_APP" },
-    { key:"locProPublic", name:"DIGIY LOC PRO — PUBLIC",     tag:"GO PIN • PUBLIC",  qrf:"QR_PUBLIC" },
-    { key:"locProAccess", name:"DIGIY LOC PRO — ACCÈS",      tag:"PIN • ACCÈS PRO",  qrf:"QR_ACCES" },
+    // ✅ LOC PRO d’abord
+    { key:"locProApp",    name:"DIGIY LOC PRO — APP",    tag:"PROPRIO • COCKPIT", qrf:"QR_APP" },
+    { key:"locProPublic", name:"DIGIY LOC PRO — PUBLIC", tag:"GO PIN • PUBLIC",  qrf:"QR_PUBLIC" },
+    { key:"locProAccess", name:"DIGIY LOC PRO — ACCÈS",  tag:"PIN • ACCÈS PRO",  qrf:"QR_ACCES" },
 
     // autres modules
     { key:"hub",          name:"DIGIY HUB",        tag:"ENTRÉE • COCKPIT", qrf:"QR_HUB" },
@@ -267,11 +267,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   async function makeQrDataUrl(url){
     if(!window.QRCode) throw new Error("QRCode lib missing");
-    // ✅ dataURL PNG (local)
     return await QRCode.toDataURL(url, { margin: 1, width: 240 });
   }
 
-  let last = []; // {name,url,dataUrl,filename}
+  let last = []; // {name,url,filename}
 
   async function generate(){
     const slug = slugClean(elSlug.value);
@@ -319,13 +318,11 @@ window.addEventListener("DOMContentLoaded", () => {
       const img  = item.querySelector(".qrImg");
       const link = item.querySelector(".qrLink");
 
-      // QR local (dataURL)
       let dataUrl = "";
       try{
         dataUrl = await makeQrDataUrl(url);
       }catch(e){
         console.error("QR local error", e);
-        // fallback visuel (si CDN qrcode down)
         dataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
           `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240">
             <rect width="100%" height="100%" fill="#fff"/>
@@ -337,8 +334,6 @@ window.addEventListener("DOMContentLoaded", () => {
       }
 
       img.src = dataUrl;
-
-      // ✅ clic QR => ouvre le module
       link.href = url;
 
       img.style.cursor = "pointer";
@@ -363,7 +358,7 @@ window.addEventListener("DOMContentLoaded", () => {
       });
 
       grid.appendChild(item);
-      last.push({ name:m.name, url, dataUrl, filename:`${m.qrf || "QR"}_${slug}.png` });
+      last.push({ name:m.name, url, filename:`${m.qrf || "QR"}_${slug}.png` });
     }
 
     btnCopyAll.disabled = false;
