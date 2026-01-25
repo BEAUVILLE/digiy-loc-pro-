@@ -1,5 +1,5 @@
 /* =========================
-   DIGIY LOC PRO — GUARD CONSOLIDÉ (FINAL PROPRE)
+   DIGIY LOC PRO — GUARD CONSOLIDÉ (FINAL PROPRE) ✅ GITHUB PAGES SAFE
    - Session 8h
    - RPC verify_access_pin(p_slug,p_pin) -> {ok, owner_id, slug, title, phone, error?}
    - Slug source of truth: URL > session > localStorage
@@ -7,6 +7,7 @@
    - Compat session keys (V1/V2) -> migration auto vers clé unifiée
    - Supabase ready lock (évite: "Supabase pas prêt")
    - No crash: fallback redirect propre si Supabase CDN KO
+   - ✅ GitHub Pages SAFE: navigation relative + basePath auto
 ========================= */
 (function () {
   "use strict";
@@ -78,7 +79,7 @@
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9\-_]/g, "")
       .replace(/-+/g, "-")
-      .replace(/^_+|_+$/g, "");
+      .replace(/^[-_]+|[-_]+$/g, ""); // ✅ nettoie - et _
   }
 
   // =============================
@@ -130,7 +131,6 @@
 
   function clearSession() {
     lsDel(SESSION_KEY);
-    // optionnel: nettoyer compat
     for (const k of SESSION_KEYS_COMPAT) lsDel(k);
   }
 
@@ -153,24 +153,40 @@
     return u;
   }
 
+  // 🔥 sync asap (anti slug fantôme)
+  syncSlugFromUrl();
+
+  // =============================
+  // GITHUB PAGES SAFE BASE PATH ✅
+  // =============================
+  function basePath() {
+    // Ex: /digiy-loc-pro/planning.html -> ["digiy-loc-pro","planning.html"]
+    const parts = location.pathname.split("/").filter(Boolean);
+
+    // ✅ GitHub Pages (repo site): /<repo>/
+    if (parts.length > 0) return "/" + parts[0] + "/";
+
+    return "/";
+  }
+
   function withSlug(url) {
     const s = getSlug();
-    try {
-      const u = new URL(url, location.href);
-      if (s) u.searchParams.set("slug", s);
-      return u.toString();
-    } catch (_) {
-      if (!s) return url;
-      return url + (url.includes("?") ? "&" : "?") + "slug=" + encodeURIComponent(s);
+
+    // ✅ force relatif (évite double dossier / 404)
+    let clean = String(url || "").trim().replace(/^\/+/, "");
+
+    if (!clean) clean = "index.html";
+
+    if (s) {
+      clean += (clean.includes("?") ? "&" : "?") + "slug=" + encodeURIComponent(s);
     }
+
+    return basePath() + clean;
   }
 
   function go(url) {
     location.replace(withSlug(url));
   }
-
-  // 🔥 sync asap (anti slug fantôme)
-  syncSlugFromUrl();
 
   // =============================
   // READY LOCK
@@ -280,7 +296,7 @@
     });
 
     // ✅ sync LS utile
-    lsSet(LS.PRO_ID, session.owner_id); // si pro_id != owner_id un jour, tu changes ici
+    lsSet(LS.PRO_ID, session.owner_id);
     lsSet(LS.SLUG, session.slug);
     if (session.title) lsSet(LS.TITLE, session.title);
     if (session.phone) lsSet(LS.PHONE, session.phone);
@@ -325,7 +341,6 @@
       return { ok: true, session: s };
     } catch (e) {
       console.warn("[GUARD] Supabase not ready:", e);
-      // ✅ pas de crash, retour propre
       location.replace(withSlug(loginUrl));
       return { ok: false, error: "SUPABASE_NOT_READY" };
     }
@@ -337,11 +352,8 @@
   function logout(redirect = "index.html") {
     clearSession();
 
-    // on garde slug si tu veux; sinon décommente:
-    // lsDel(LS.SLUG);
-    // lsDel(LS.PRO_ID);
-    // lsDel(LS.TITLE);
-    // lsDel(LS.PHONE);
+    // Tu peux garder slug si tu veux. Pour purge totale:
+    // lsDel(LS.SLUG); lsDel(LS.PRO_ID); lsDel(LS.TITLE); lsDel(LS.PHONE);
 
     location.replace(withSlug(redirect));
   }
@@ -362,5 +374,6 @@
     withSlug,
     go,
     syncSlugFromUrl,
+    basePath, // ✅ debug utile
   };
 })();
