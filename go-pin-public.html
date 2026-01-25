@@ -336,14 +336,28 @@
 
     try{
       const { data, error } = await SB
-        .from("go_pins")
-        .select("slug,title,category,phone,whatsapp,address_label,ndimbal_enabled,is_public,is_active")
-        .eq("slug", SLUG)
-        .eq("is_public", true)
-        .eq("is_active", true)
-        .single();
+  .from("go_pins")
+  .select("slug,title,category,phone,whatsapp,address_label,ndimbal_enabled,is_public,is_active")
+  .eq("slug", SLUG)
+  .eq("is_public", true)
+  .eq("is_active", true)
+  .maybeSingle(); // ✅ SAFE
 
-      if(error) throw error;
+if (error) {
+  console.error("❌ Erreur Supabase:", error);
+  alert("Erreur technique. Réessaie.");
+  return;
+}
+
+if (!data) {
+  alert("❌ Ce lieu n’est pas public ou pas activé.");
+  return;
+}
+
+// ✅ OK : lieu trouvé
+console.log("✅ GO PIN public:", data);
+renderPinPage(data);
+
 
       const title = data.title || "Lieu DIGIY";
       const cat = (data.category || "loc").toString();
